@@ -243,7 +243,7 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 
 func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 	value := p.token.Literal
-	quoted := p.token.Quoted
+	quoted := p.token.QuotedBy
 	p.nextToken()
 
 	switch p.token.Type {

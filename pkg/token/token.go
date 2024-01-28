@@ -63,7 +63,7 @@ type Token struct {
 	Length     int
 	LineNumber int
 	Commented  bool
-	Quoted     rune
+	QuotedBy   rune
 
 	Annotation      bool
 	AnnotationKey   string
@@ -83,6 +83,6 @@ func NewWithLiteral(t Type, literal string, quote rune, offset, line int) Token 
 		Offset:     offset - length,
 		Length:     length,
 		LineNumber: line,
-		Quoted:     quote,
+		QuotedBy:   quote,
 	}
 }
