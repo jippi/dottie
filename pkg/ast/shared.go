@@ -7,11 +7,3 @@ type Statement interface {
 	BelongsToGroup(RenderSettings) bool
 	ShouldRender(RenderSettings) bool
 }
-
-// Type is the set of lexical tokens.
-type Type uint
-
-// The list of tokens.
-const (
-	Illegal Type = iota
-)

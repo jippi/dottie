@@ -23,7 +23,7 @@ func (s *Comment) Is(other Statement) bool {
 }
 
 func (s *Comment) BelongsToGroup(config RenderSettings) bool {
-	if s.Group == nil && config.FilterGroup != "" {
+	if s.Group == nil && len(config.FilterGroup) > 0 {
 		return false
 	}
 
