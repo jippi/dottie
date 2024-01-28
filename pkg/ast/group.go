@@ -1,5 +1,9 @@
 package ast
 
+import (
+	"strings"
+)
+
 type Group struct {
 	Name       string
 	FirstLine  int
@@ -10,11 +14,6 @@ type Group struct {
 func (s *Group) statementNode() {
 }
 
-type Newline struct {
-	Blank      bool
-	LineNumber int
-	Group      *Group
-}
-
-func (s *Newline) statementNode() {
+func (s *Group) String() string {
+	return strings.TrimPrefix(s.Name, "# ")
 }

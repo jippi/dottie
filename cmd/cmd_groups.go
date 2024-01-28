@@ -21,7 +21,7 @@ var groupsCommand = &cli.Command{
 		fmt.Println()
 
 		for _, group := range groups {
-			fmt.Printf("  '%s' (line %d to %d)", group.Name, group.FirstLine, group.LastLine)
+			fmt.Printf("  '%s' (line %d to %d)", group, group.FirstLine, group.LastLine)
 			fmt.Println()
 		}
 

@@ -136,27 +136,24 @@ func (s *Scanner) scanComment() token.Token {
 		return res
 	}
 
-	s.consumeWhitespace()
+	s.skipWhitespace()
 
-	// Normal comment handling here
-	for !(isEOF(s.ch) || isNewLine(s.ch)) {
-		s.next()
-
-		// Looks like we found a comment annotation
-		// so parse the line as such instead
-		if s.input[start:s.offset] == "# @" {
-			return s.scanCommentAnnotation()
-		}
+	// We got an annotation!
+	if s.ch == '@' {
+		return s.scanCommentAnnotation(start)
 	}
 
+	s.untilEndOfLine()
 	lit := s.input[start:s.offset]
-	lit = strings.TrimPrefix(lit, "#")
 
 	return token.NewWithLiteral(token.Comment, lit, 0, s.offset, s.lineNumber)
 }
 
-func (s *Scanner) scanCommentAnnotation() token.Token {
+func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
 	start := s.offset
+
+	// Consume the @
+	s.next()
 
 	// Key
 	for isValidIdentifier(s.ch) {
@@ -166,17 +163,16 @@ func (s *Scanner) scanCommentAnnotation() token.Token {
 	key := s.input[start:s.offset]
 
 	// Consume any space between key and value
-	s.consumeWhitespace()
+	s.skipWhitespace()
 
 	// Value
 	valueStart := s.offset
-	for !isEOF(s.ch) && !isNewLine(s.ch) {
-		s.next()
-	}
+	s.untilEndOfLine()
 
 	value := s.input[valueStart:s.offset]
 
-	lit := s.input[start-1 : s.offset]
+	// Full line
+	lit := s.input[offset:s.offset]
 
 	comment := token.NewWithLiteral(token.CommentAnnotation, lit, 0, s.offset, s.lineNumber)
 	comment.Annotation = true
@@ -186,8 +182,14 @@ func (s *Scanner) scanCommentAnnotation() token.Token {
 	return comment
 }
 
-func (s *Scanner) consumeWhitespace() {
+func (s *Scanner) skipWhitespace() {
 	for !isEOF(s.ch) && !isNewLine(s.ch) && unicode.IsSpace(s.ch) {
+		s.next()
+	}
+}
+
+func (s *Scanner) untilEndOfLine() {
+	for !isEOF(s.ch) && !isNewLine(s.ch) {
 		s.next()
 	}
 }
@@ -300,6 +302,18 @@ func (s *Scanner) scanRune(offset int) (r rune, width int) {
 		}
 	}
 	return r, width
+}
+
+func (s *Scanner) peek(length int) string {
+	start := s.offset
+	end := start + length
+
+	maxLength := len(s.input)
+	if maxLength >= end {
+		return s.input[start:end]
+	}
+
+	return s.input[start:maxLength]
 }
 
 // ========================================================================

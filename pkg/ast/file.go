@@ -71,7 +71,7 @@ func (s *File) RenderWithFilter(f *RenderSettings) []byte {
 				buff.WriteString("################################################################################")
 				buff.WriteString("\n")
 
-				buff.WriteString("# " + v.Name)
+				buff.WriteString(v.Name)
 				buff.WriteString("\n")
 
 				buff.WriteString("################################################################################")

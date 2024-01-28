@@ -1,9 +1,5 @@
 package ast
 
-import (
-	"fmt"
-)
-
 // Comment node represents a comment statement.
 type Comment struct {
 	Value           string
@@ -24,5 +20,5 @@ func (s *Comment) statementNode() {
 }
 
 func (s *Comment) String() string {
-	return fmt.Sprintf("#%s", s.Value)
+	return s.Value
 }
