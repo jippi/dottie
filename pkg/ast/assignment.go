@@ -39,7 +39,7 @@ func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
 	return a.Group == nil || a.Group.BelongsToGroup(config)
 }
 
-func (a *Assignment) HasComment() bool {
+func (a *Assignment) HasComments() bool {
 	return len(a.Comments) > 0
 }
 
@@ -81,7 +81,7 @@ func (a *Assignment) SetQuote(in string) {
 }
 
 func (a *Assignment) Assignment() string {
-	if a.Quoted == 0 {
+	if a.Quoted == NoQuotes {
 		return fmt.Sprintf("%s=%s", a.Key, a.Value)
 	}
 

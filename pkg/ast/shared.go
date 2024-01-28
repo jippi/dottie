@@ -50,7 +50,7 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				switch {
 
 				// only allow cuddling of assignments if they both have no comments
-				case val.HasComment() || assignmentHasComments(prev):
+				case val.HasComments() || assignmentHasComments(prev):
 					buf.WriteString("\n")
 
 				default:
@@ -94,5 +94,5 @@ func assignmentHasComments(stmt Statement) bool {
 		return false
 	}
 
-	return x.HasComment()
+	return x.HasComments()
 }
