@@ -48,12 +48,13 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 			// attempt to inject some new-lines to give them some space
 			if config.WithBlankLines() && val.Is(prev) {
 				switch {
-				// only allow cuddling of assignments if they both have no comments
-				case !val.HasComment() && !hasComment(prev):
 
-				// otherwise add some spacing
-				default:
+				// only allow cuddling of assignments if they both have no comments
+				case val.HasComment() || assignmentHasComments(prev):
 					buf.WriteString("\n")
+
+				default:
+					// NOOP
 				}
 			}
 
@@ -87,7 +88,7 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 	return str
 }
 
-func hasComment(stmt Statement) bool {
+func assignmentHasComments(stmt Statement) bool {
 	x, ok := stmt.(*Assignment)
 	if !ok {
 		return false

@@ -40,7 +40,7 @@ func (c *Comment) Render(config RenderSettings) string {
 
 	var buff bytes.Buffer
 
-	buff.WriteString(c.String())
+	buff.WriteString(c.Value)
 	buff.WriteString("\n")
 
 	return buff.String()
