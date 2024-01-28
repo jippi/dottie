@@ -51,10 +51,14 @@ func (a *Assignment) Render(config RenderSettings) string {
 	var buff bytes.Buffer
 
 	if config.WithComments() {
-		buff.WriteString(a.String())
-		buff.WriteString("\n")
+		for _, c := range a.Comments {
+			buff.WriteString(c.Value)
+			buff.WriteString("\n")
+		}
+	}
 
-		return buff.String()
+	if a.Commented {
+		buff.WriteString("#")
 	}
 
 	buff.WriteString(a.Assignment())
@@ -82,21 +86,4 @@ func (a *Assignment) Assignment() string {
 	}
 
 	return fmt.Sprintf("%s=%c%s%c", a.Key, a.Quoted, a.Value, a.Quoted)
-}
-
-func (a *Assignment) String() string {
-	var buff bytes.Buffer
-
-	for _, c := range a.Comments {
-		buff.WriteString(c.Value)
-		buff.WriteString("\n")
-	}
-
-	if a.Commented {
-		buff.WriteString("#")
-	}
-
-	buff.WriteString(a.Assignment())
-
-	return buff.String()
 }
