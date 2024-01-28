@@ -65,10 +65,6 @@ func (d *Document) GetPosition(name string) (int, *Assignment) {
 	return -1, nil
 }
 
-func (d *Document) ShouldRender(config RenderSettings) bool {
-	return true
-}
-
 func (d *Document) RenderFull() string {
 	return d.Render(RenderSettings{
 		ShowPretty:       true,

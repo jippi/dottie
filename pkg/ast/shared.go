@@ -11,7 +11,6 @@ type Statement interface {
 	statementNode()
 	Is(Statement) bool
 	BelongsToGroup(RenderSettings) bool
-	ShouldRender(RenderSettings) bool
 	Render(RenderSettings) string
 }
 
@@ -24,7 +23,8 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 		switch val := stmt.(type) {
 
 		case *Group:
-			if !val.ShouldRender(config) {
+			output := val.Render(config)
+			if len(output) == 0 {
 				continue
 			}
 
@@ -32,17 +32,14 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				buf.WriteString("\n")
 			}
 
-			buf.WriteString(val.Render(config))
+			buf.WriteString(output)
 
 		case *Comment:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
 			buf.WriteString(val.Render(config))
 
 		case *Assignment:
-			if !val.ShouldRender(config) {
+			output := val.Render(config)
+			if len(output) == 0 {
 				continue
 			}
 
@@ -60,10 +57,11 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				}
 			}
 
-			buf.WriteString(val.Render(config))
+			buf.WriteString(output)
 
 		case *Newline:
-			if !val.ShouldRender(config) {
+			output := val.Render(config)
+			if len(output) == 0 {
 				continue
 			}
 
@@ -72,7 +70,7 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				continue
 			}
 
-			buf.WriteString(val.Render(config))
+			buf.WriteString(output)
 		}
 
 		prev = stmt

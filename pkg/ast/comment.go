@@ -33,11 +33,11 @@ func (c *Comment) BelongsToGroup(config RenderSettings) bool {
 	return c.Group == nil || c.Group.BelongsToGroup(config)
 }
 
-func (c *Comment) ShouldRender(config RenderSettings) bool {
-	return config.WithComments() && c.BelongsToGroup(config)
-}
-
 func (c *Comment) Render(config RenderSettings) string {
+	if !config.WithComments() || !c.BelongsToGroup(config) {
+		return ""
+	}
+
 	var buff bytes.Buffer
 
 	buff.WriteString(c.String())

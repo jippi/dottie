@@ -16,11 +16,11 @@ func (n *Newline) BelongsToGroup(config RenderSettings) bool {
 	return n.Group == nil || n.Group.BelongsToGroup(config)
 }
 
-func (n *Newline) ShouldRender(config RenderSettings) bool {
-	return config.WithBlankLines()
-}
-
 func (n *Newline) Render(config RenderSettings) string {
+	if !config.WithBlankLines() {
+		return ""
+	}
+
 	return "\n"
 }
 

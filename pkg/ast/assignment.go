@@ -39,15 +39,15 @@ func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
 	return a.Group == nil || a.Group.BelongsToGroup(config)
 }
 
-func (a *Assignment) ShouldRender(config RenderSettings) bool {
-	return config.Match(a) && a.BelongsToGroup(config)
-}
-
 func (a *Assignment) HasComment() bool {
 	return len(a.Comments) > 0
 }
 
 func (a *Assignment) Render(config RenderSettings) string {
+	if !config.Match(a) || !a.BelongsToGroup(config) {
+		return ""
+	}
+
 	var buff bytes.Buffer
 
 	if config.WithComments() {

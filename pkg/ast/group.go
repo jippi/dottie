@@ -34,33 +34,11 @@ func (g *Group) String() string {
 	return strings.TrimPrefix(g.Name, "# ")
 }
 
-func (g *Group) ShouldRender(config RenderSettings) bool {
-	if !g.BelongsToGroup(config) {
-		return false
-	}
-
-	for _, stmt := range g.Statements {
-		switch val := stmt.(type) {
-		case *Assignment:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
-			if config.Match(val) {
-				return true
-			}
-
-		case *Comment:
-			if val.ShouldRender(config) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 func (g *Group) Render(config RenderSettings) string {
+	if !g.BelongsToGroup(config) {
+		return ""
+	}
+
 	var buff bytes.Buffer
 
 	if config.WithGroups() {
