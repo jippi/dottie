@@ -16,8 +16,7 @@ var printCommand = &cli.Command{
 		spew.Config.DisablePointerMethods = true
 		spew.Config.DisableMethods = true
 
-		res := env.Render(*settings)
-		fmt.Println(string(res))
+		fmt.Println(env.Render(*settings))
 
 		return nil
 	},

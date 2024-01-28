@@ -63,7 +63,8 @@ var setCommand = &cli.Command{
 				Group: group,
 			}
 
-			env.Statements = append(env.Statements, assignment)
+			group.Statements = append(group.Statements, assignment)
+			env.Assignments = append(env.Assignments, assignment)
 		}
 
 		assignment.Value = value

@@ -7,8 +7,9 @@ import (
 
 // File node represents .env file statement, that contains assignments and comments.
 type File struct {
-	Statements []Statement
-	Groups     []*Group
+	Statements  []Statement
+	Groups      []*Group
+	Assignments []*Assignment
 }
 
 func (s *File) Is(other Statement) bool {
@@ -45,11 +46,9 @@ func (s *File) GetGroup(config RenderSettings) *Group {
 }
 
 func (s *File) Get(name string) *Assignment {
-	for _, stmt := range s.Statements {
-		if assign, ok := stmt.(*Assignment); ok {
-			if assign.Key == name {
-				return assign
-			}
+	for _, assign := range s.Assignments {
+		if assign.Key == name {
+			return assign
 		}
 	}
 

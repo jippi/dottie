@@ -17,7 +17,7 @@ type Comment struct {
 
 func NewComment(value string) *Comment {
 	return &Comment{
-		Value: " " + value,
+		Value: "# " + value,
 	}
 }
 

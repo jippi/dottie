@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"reflect"
 	"strings"
+
+	"github.com/gosimple/slug"
 )
 
 type Group struct {
@@ -22,7 +24,7 @@ func (s *Group) BelongsToGroup(config RenderSettings) bool {
 		return true
 	}
 
-	return s.String() == config.FilterGroup
+	return s.String() == config.FilterGroup || slug.Make(s.String()) == config.FilterGroup
 }
 
 func (s *Group) statementNode() {
@@ -33,7 +35,7 @@ func (s *Group) String() string {
 }
 
 func (s *Group) ShouldRender(config RenderSettings) bool {
-	if !config.WithGroups() || !s.BelongsToGroup(config) {
+	if !s.BelongsToGroup(config) {
 		return false
 	}
 
@@ -61,14 +63,16 @@ func (s *Group) ShouldRender(config RenderSettings) bool {
 func (s *Group) Render(config RenderSettings) string {
 	var buff bytes.Buffer
 
-	buff.WriteString("################################################################################")
-	buff.WriteString("\n")
+	if config.WithGroups() {
+		buff.WriteString("################################################################################")
+		buff.WriteString("\n")
 
-	buff.WriteString(s.Name)
-	buff.WriteString("\n")
+		buff.WriteString(s.Name)
+		buff.WriteString("\n")
 
-	buff.WriteString("################################################################################")
-	buff.WriteString("\n")
+		buff.WriteString("################################################################################")
+		buff.WriteString("\n")
+	}
 
 	buff.WriteString(renderStatements(s.Statements, config))
 

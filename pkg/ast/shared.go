@@ -2,6 +2,8 @@ package ast
 
 import (
 	"bytes"
+	"strings"
+	"unicode"
 )
 
 // Statement represents syntax tree node of .env file statement (like: assignment or comment).
@@ -61,5 +63,10 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 		}
 	}
 
-	return buff.String()
+	str := buff.String()
+	str = strings.TrimRightFunc(str, unicode.IsSpace)
+	str += "\n"
+	str += "\n"
+
+	return str
 }

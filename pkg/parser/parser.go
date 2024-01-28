@@ -76,6 +76,8 @@ func (p *Parser) Parse() (ast.Statement, error) {
 				global.Statements = append(global.Statements, stmt)
 			}
 
+			global.Assignments = append(global.Assignments, val)
+
 			// Reset comment block
 			comments = nil
 
