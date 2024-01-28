@@ -12,7 +12,7 @@ var enableCommand = &cli.Command{
 	Name:      "enable",
 	Usage:     "Uncomment/enable a key if it exists",
 	Before:    setup,
-	ArgsUsage: "key",
+	ArgsUsage: "KEY",
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		key := cmd.Args().Get(0)
 		existing := env.Get(key)

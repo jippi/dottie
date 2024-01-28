@@ -14,7 +14,7 @@ var setCommand = &cli.Command{
 	Name:      "set",
 	Usage:     "Set a key/value pair",
 	Before:    setup,
-	ArgsUsage: "key value",
+	ArgsUsage: "KEY VALUE",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:     "commented",
@@ -39,6 +39,10 @@ var setCommand = &cli.Command{
 	},
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		key := cmd.Args().Get(0)
+		if len(key) == 0 {
+			return fmt.Errorf("Missing required argument: KEY")
+		}
+
 		value := cmd.Args().Get(1)
 
 		assignment := env.Get(key)

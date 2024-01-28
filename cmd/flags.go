@@ -62,4 +62,12 @@ var globalFlags = []cli.Flag{
 		Persistent: true,
 		OnlyOnce:   true,
 	},
+	&cli.BoolFlag{
+		Name:       "include-commented",
+		Category:   "Filters:",
+		Sources:    cli.EnvVars("INCLUDE_COMMENTED"),
+		Usage:      "Include commented KEY/VALUE pairs`",
+		Persistent: true,
+		OnlyOnce:   true,
+	},
 }

@@ -9,6 +9,7 @@ import (
 type Filter struct {
 	KeyPrefix string
 	Group     string
+	Commented bool
 }
 
 func (f *Filter) Match(assignment *ast.Assignment) bool {
@@ -17,6 +18,10 @@ func (f *Filter) Match(assignment *ast.Assignment) bool {
 	}
 
 	if len(f.Group) > 0 && assignment.Group != nil && assignment.Group.Comment != f.Group {
+		return false
+	}
+
+	if assignment.Commented && !f.Commented {
 		return false
 	}
 

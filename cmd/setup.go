@@ -19,6 +19,7 @@ func setup(_ context.Context, cmd *cli.Command) error {
 	filters = &filter.Filter{
 		KeyPrefix: cmd.Root().String("filter-key-prefix"),
 		Group:     cmd.Root().String("filter-group"),
+		Commented: cmd.Root().Bool("include-commented"),
 	}
 
 	return nil

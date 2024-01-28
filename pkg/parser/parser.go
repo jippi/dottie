@@ -31,10 +31,10 @@ func New(scanner Scanner) *Parser {
 
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse() (ast.Statement, error) {
-	var statements []ast.Statement
-
+	// var statements []ast.Statement
 	var currentGroup *ast.Group
-	var currentComment []*ast.Comment
+	var comments []*ast.Comment
+
 	result := &ast.File{}
 
 	for p.token.Type != token.EOF {
@@ -45,15 +45,19 @@ func (p *Parser) Parse() (ast.Statement, error) {
 
 		switch val := stmt.(type) {
 		case *ast.Group:
+			// Track the last line of this group
 			if currentGroup != nil {
 				currentGroup.LastLine = p.token.LineNumber
 			}
 
+			// Change the group
 			currentGroup = val
 
+			// Append the group
 			result.Groups = append(result.Groups, currentGroup)
 
-			statements = append(statements, stmt)
+			// Append it to the statements list
+			result.Statements = append(result.Statements, val)
 
 		case *ast.Assignment:
 			// Assign the assignment to a grouping if such exists
@@ -64,39 +68,42 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			}
 
 			// Assign accumulated comments to this assignment
-			val.Comments = currentComment
+			val.Comments = comments
 
 			if len(val.Comments) > 0 {
 				val.FirstLine = val.Comments[0].LineNumber
 			}
+
 			val.LastLine = val.LineNumber
 
 			// Reset comment block
-			currentComment = nil
+			comments = nil
 
-			statements = append(statements, stmt)
+			result.Statements = append(result.Statements, stmt)
 
 		case *ast.Comment:
 			if currentGroup != nil {
 				val.Group = currentGroup
 			}
 
-			currentComment = append(currentComment, val)
+			comments = append(comments, val)
 
 		case *ast.Newline:
 			if val.Blank {
 				// If there is a blank line, print all previous comments
-				for _, c := range currentComment {
-					statements = append(statements, c)
+				for _, c := range comments {
+					result.Statements = append(result.Statements, c)
 				}
 
-				currentComment = nil
+				// Reset the accumulated comments slice
+				comments = nil
 
+				// Attach the newline to a group for easier filtering
 				if currentGroup != nil {
 					val.Group = currentGroup
 				}
 
-				statements = append(statements, val)
+				result.Statements = append(result.Statements, val)
 			}
 		}
 	}
@@ -104,8 +111,6 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	if currentGroup != nil {
 		currentGroup.LastLine = p.token.LineNumber
 	}
-
-	result.Statements = statements
 
 	return result, nil
 }

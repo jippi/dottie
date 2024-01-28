@@ -43,6 +43,7 @@ func main() {
 			enableCommand,
 			printCommand,
 			setCommand,
+			valueCommand,
 		},
 	}
 
