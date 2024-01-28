@@ -15,30 +15,30 @@ type RenderSettings struct {
 	ShowBlankLines bool
 }
 
-func (f *RenderSettings) Match(assignment *Assignment) bool {
-	if len(f.FilterKeyPrefix) > 0 && !strings.HasPrefix(assignment.Key, f.FilterKeyPrefix) {
+func (rs *RenderSettings) Match(assignment *Assignment) bool {
+	if len(rs.FilterKeyPrefix) > 0 && !strings.HasPrefix(assignment.Key, rs.FilterKeyPrefix) {
 		return false
 	}
 
-	if !assignment.BelongsToGroup(*f) {
+	if !assignment.BelongsToGroup(*rs) {
 		return false
 	}
 
-	if assignment.Commented && !f.IncludeCommented {
+	if assignment.Commented && !rs.IncludeCommented {
 		return false
 	}
 
 	return true
 }
 
-func (f *RenderSettings) WithComments() bool {
-	return f.ShowPretty || f.ShowComments
+func (rs *RenderSettings) WithComments() bool {
+	return rs.ShowPretty || rs.ShowComments
 }
 
-func (f *RenderSettings) WithGroups() bool {
-	return f.ShowPretty || f.ShowGroups
+func (rs *RenderSettings) WithGroups() bool {
+	return rs.ShowPretty || rs.ShowGroups
 }
 
-func (f *RenderSettings) WithBlankLines() bool {
-	return f.ShowPretty || f.ShowBlankLines
+func (rs *RenderSettings) WithBlankLines() bool {
+	return rs.ShowPretty || rs.ShowBlankLines
 }

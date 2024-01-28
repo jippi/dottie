@@ -8,21 +8,21 @@ type Newline struct {
 	Group      *Group
 }
 
-func (s *Newline) Is(other Statement) bool {
-	return reflect.TypeOf(s) == reflect.TypeOf(other)
+func (n *Newline) Is(other Statement) bool {
+	return reflect.TypeOf(n) == reflect.TypeOf(other)
 }
 
-func (s *Newline) BelongsToGroup(config RenderSettings) bool {
-	return s.Group == nil || s.Group.BelongsToGroup(config)
+func (n *Newline) BelongsToGroup(config RenderSettings) bool {
+	return n.Group == nil || n.Group.BelongsToGroup(config)
 }
 
-func (s *Newline) ShouldRender(config RenderSettings) bool {
+func (n *Newline) ShouldRender(config RenderSettings) bool {
 	return config.WithBlankLines()
 }
 
-func (s *Newline) Render(config RenderSettings) string {
+func (n *Newline) Render(config RenderSettings) string {
 	return "\n"
 }
 
-func (s *Newline) statementNode() {
+func (n *Newline) statementNode() {
 }

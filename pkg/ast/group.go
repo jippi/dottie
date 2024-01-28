@@ -15,31 +15,31 @@ type Group struct {
 	Statements []Statement
 }
 
-func (s *Group) Is(other Statement) bool {
-	return reflect.TypeOf(s) == reflect.TypeOf(other)
+func (g *Group) Is(other Statement) bool {
+	return reflect.TypeOf(g) == reflect.TypeOf(other)
 }
 
-func (s *Group) BelongsToGroup(config RenderSettings) bool {
+func (g *Group) BelongsToGroup(config RenderSettings) bool {
 	if len(config.FilterGroup) == 0 {
 		return true
 	}
 
-	return s.String() == config.FilterGroup || slug.Make(s.String()) == config.FilterGroup
+	return g.String() == config.FilterGroup || slug.Make(g.String()) == config.FilterGroup
 }
 
-func (s *Group) statementNode() {
+func (g *Group) statementNode() {
 }
 
-func (s *Group) String() string {
-	return strings.TrimPrefix(s.Name, "# ")
+func (g *Group) String() string {
+	return strings.TrimPrefix(g.Name, "# ")
 }
 
-func (s *Group) ShouldRender(config RenderSettings) bool {
-	if !s.BelongsToGroup(config) {
+func (g *Group) ShouldRender(config RenderSettings) bool {
+	if !g.BelongsToGroup(config) {
 		return false
 	}
 
-	for _, stmt := range s.Statements {
+	for _, stmt := range g.Statements {
 		switch val := stmt.(type) {
 		case *Assignment:
 			if !val.ShouldRender(config) {
@@ -60,21 +60,21 @@ func (s *Group) ShouldRender(config RenderSettings) bool {
 	return false
 }
 
-func (s *Group) Render(config RenderSettings) string {
+func (g *Group) Render(config RenderSettings) string {
 	var buff bytes.Buffer
 
 	if config.WithGroups() {
 		buff.WriteString("################################################################################")
 		buff.WriteString("\n")
 
-		buff.WriteString(s.Name)
+		buff.WriteString(g.Name)
 		buff.WriteString("\n")
 
 		buff.WriteString("################################################################################")
 		buff.WriteString("\n")
 	}
 
-	buff.WriteString(renderStatements(s.Statements, config))
+	buff.WriteString(renderStatements(g.Statements, config))
 
 	return buff.String()
 }

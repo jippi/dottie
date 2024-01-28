@@ -21,34 +21,34 @@ func NewComment(value string) *Comment {
 	}
 }
 
-func (s *Comment) Is(other Statement) bool {
-	return reflect.TypeOf(s) == reflect.TypeOf(other)
+func (c *Comment) Is(other Statement) bool {
+	return reflect.TypeOf(c) == reflect.TypeOf(other)
 }
 
-func (s *Comment) BelongsToGroup(config RenderSettings) bool {
-	if s.Group == nil && len(config.FilterGroup) > 0 {
+func (c *Comment) BelongsToGroup(config RenderSettings) bool {
+	if c.Group == nil && len(config.FilterGroup) > 0 {
 		return false
 	}
 
-	return s.Group == nil || s.Group.BelongsToGroup(config)
+	return c.Group == nil || c.Group.BelongsToGroup(config)
 }
 
-func (s *Comment) ShouldRender(config RenderSettings) bool {
-	return config.WithComments() && s.BelongsToGroup(config)
+func (c *Comment) ShouldRender(config RenderSettings) bool {
+	return config.WithComments() && c.BelongsToGroup(config)
 }
 
-func (s *Comment) Render(config RenderSettings) string {
+func (c *Comment) Render(config RenderSettings) string {
 	var buff bytes.Buffer
 
-	buff.WriteString(s.String())
+	buff.WriteString(c.String())
 	buff.WriteString("\n")
 
 	return buff.String()
 }
 
-func (s *Comment) statementNode() {
+func (c *Comment) statementNode() {
 }
 
-func (s *Comment) String() string {
-	return s.Value
+func (c *Comment) String() string {
+	return c.Value
 }

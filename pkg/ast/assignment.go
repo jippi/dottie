@@ -27,76 +27,76 @@ type Assignment struct {
 	Quoted     rune
 }
 
-func (s *Assignment) Is(other Statement) bool {
+func (a *Assignment) Is(other Statement) bool {
 	if other == nil {
 		return false
 	}
 
-	return reflect.TypeOf(s) == reflect.TypeOf(other)
+	return reflect.TypeOf(a) == reflect.TypeOf(other)
 }
 
-func (s *Assignment) BelongsToGroup(config RenderSettings) bool {
-	return s.Group == nil || s.Group.BelongsToGroup(config)
+func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
+	return a.Group == nil || a.Group.BelongsToGroup(config)
 }
 
-func (s *Assignment) ShouldRender(config RenderSettings) bool {
-	return config.Match(s) && s.BelongsToGroup(config)
+func (a *Assignment) ShouldRender(config RenderSettings) bool {
+	return config.Match(a) && a.BelongsToGroup(config)
 }
 
-func (s *Assignment) HasComment() bool {
-	return len(s.Comments) > 0
+func (a *Assignment) HasComment() bool {
+	return len(a.Comments) > 0
 }
 
-func (s *Assignment) Render(config RenderSettings) string {
+func (a *Assignment) Render(config RenderSettings) string {
 	var buff bytes.Buffer
 
 	if config.WithComments() {
-		buff.WriteString(s.String())
+		buff.WriteString(a.String())
 		buff.WriteString("\n")
 
 		return buff.String()
 	}
 
-	buff.WriteString(s.Assignment())
+	buff.WriteString(a.Assignment())
 	buff.WriteString("\n")
 
 	return buff.String()
 }
 
-func (s *Assignment) statementNode() {}
+func (a *Assignment) statementNode() {}
 
-func (s *Assignment) SetQuote(in string) {
+func (a *Assignment) SetQuote(in string) {
 	switch in {
 	case "\"", "double":
-		s.Quoted = DoubleQuotes
+		a.Quoted = DoubleQuotes
 	case "'", "single":
-		s.Quoted = SingleQuotes
+		a.Quoted = SingleQuotes
 	case "none":
-		s.Quoted = NoQuotes
+		a.Quoted = NoQuotes
 	}
 }
 
-func (s *Assignment) Assignment() string {
-	if s.Quoted == 0 {
-		return fmt.Sprintf("%s=%s", s.Key, s.Value)
+func (a *Assignment) Assignment() string {
+	if a.Quoted == 0 {
+		return fmt.Sprintf("%s=%s", a.Key, a.Value)
 	}
 
-	return fmt.Sprintf("%s=%c%s%c", s.Key, s.Quoted, s.Value, s.Quoted)
+	return fmt.Sprintf("%s=%c%s%c", a.Key, a.Quoted, a.Value, a.Quoted)
 }
 
-func (s *Assignment) String() string {
+func (a *Assignment) String() string {
 	var buff bytes.Buffer
 
-	for _, c := range s.Comments {
+	for _, c := range a.Comments {
 		buff.WriteString(c.Value)
 		buff.WriteString("\n")
 	}
 
-	if s.Commented {
+	if a.Commented {
 		buff.WriteString("#")
 	}
 
-	buff.WriteString(s.Assignment())
+	buff.WriteString(a.Assignment())
 
 	return buff.String()
 }

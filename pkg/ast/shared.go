@@ -16,48 +16,51 @@ type Statement interface {
 }
 
 func renderStatements(statements []Statement, config RenderSettings) string {
-	var buff bytes.Buffer
-	var previous Statement
+	var buf bytes.Buffer
+	var prev Statement
 	var line *Newline
 
 	for _, stmt := range statements {
 		switch val := stmt.(type) {
+
 		case *Group:
 			if !val.ShouldRender(config) {
 				continue
 			}
 
-			if config.WithBlankLines() && !previous.Is(line) {
-				buff.WriteString("\n")
+			if config.WithBlankLines() && !prev.Is(line) {
+				buf.WriteString("\n")
 			}
 
-			buff.WriteString(val.Render(config))
+			buf.WriteString(val.Render(config))
 
 		case *Comment:
 			if !val.ShouldRender(config) {
 				continue
 			}
 
-			buff.WriteString(val.Render(config))
+			buf.WriteString(val.Render(config))
 
 		case *Assignment:
 			if !val.ShouldRender(config) {
 				continue
 			}
 
-			// Avoid assignments with comments cuddling
-			if config.WithBlankLines() && val.Is(previous) {
+			// Looks like current and previous is both "Assignment"
+			// which mean they are too close in the document, so we will
+			// attempt to inject some new-lines to give them some space
+			if config.WithBlankLines() && val.Is(prev) {
 				switch {
 				// only allow cuddling of assignments if they both have no comments
-				case !val.HasComment() && !hasComment(previous):
+				case !val.HasComment() && !hasComment(prev):
 
-					// otherwise add some spacing
+				// otherwise add some spacing
 				default:
-					buff.WriteString("\n")
+					buf.WriteString("\n")
 				}
 			}
 
-			buff.WriteString(val.Render(config))
+			buf.WriteString(val.Render(config))
 
 		case *Newline:
 			if !val.ShouldRender(config) {
@@ -65,18 +68,19 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 			}
 
 			// Don't print multiple newlines after each other
-			if val.Is(previous) {
+			if val.Is(prev) {
 				continue
 			}
 
-			buff.WriteString(val.Render(config))
+			buf.WriteString(val.Render(config))
 		}
 
-		previous = stmt
+		prev = stmt
 	}
 
-	str := buff.String()
+	str := buf.String()
 
+	// Remove any duplicate newlines that might have crept into the output
 	if config.WithBlankLines() {
 		str = strings.TrimRightFunc(str, unicode.IsSpace)
 		str += "\n"
