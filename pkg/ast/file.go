@@ -55,6 +55,16 @@ func (s *File) Get(name string) *Assignment {
 	return nil
 }
 
+func (s *File) GetPosition(name string) (int, *Assignment) {
+	for i, assign := range s.Assignments {
+		if assign.Key == name {
+			return i, assign
+		}
+	}
+
+	return -1, nil
+}
+
 func (s *File) ShouldRender(config RenderSettings) bool {
 	return true
 }

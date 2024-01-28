@@ -29,6 +29,14 @@ var setCommand = &cli.Command{
 			OnlyOnce: true,
 		},
 		&cli.StringFlag{
+			Name:     "before",
+			OnlyOnce: true,
+		},
+		&cli.StringFlag{
+			Name:     "after",
+			OnlyOnce: true,
+		},
+		&cli.StringFlag{
 			Name:     "quote-style",
 			Usage:    "single|double|none",
 			OnlyOnce: true,
@@ -63,9 +71,33 @@ var setCommand = &cli.Command{
 				Group: group,
 			}
 
-			group.Statements = append(group.Statements, assignment)
-			env.Assignments = append(env.Assignments, assignment)
+			switch {
+			case len(cmd.String("before")) > 0:
+				before := cmd.String("before")
+
+				var res []ast.Statement
+				for _, stmt := range group.Statements {
+					x, ok := stmt.(*ast.Assignment)
+					if !ok {
+						res = append(res, stmt)
+						continue
+					}
+
+					if x.Key == before {
+						res = append(res, assignment)
+					}
+
+					res = append(res, stmt)
+				}
+
+				group.Statements = res
+
+			default:
+				group.Statements = append(group.Statements, assignment)
+			}
 		}
+
+		env.Assignments = append(env.Assignments, assignment)
 
 		assignment.Value = value
 		assignment.Commented = cmd.Bool("commented")

@@ -18,12 +18,17 @@ type Statement interface {
 func renderStatements(statements []Statement, config RenderSettings) string {
 	var buff bytes.Buffer
 	var previous Statement
+	var line *Newline
 
 	for _, stmt := range statements {
 		switch val := stmt.(type) {
 		case *Group:
 			if !val.ShouldRender(config) {
 				continue
+			}
+
+			if config.WithBlankLines() && !previous.Is(line) {
+				buff.WriteString("\n")
 			}
 
 			buff.WriteString(val.Render(config))
@@ -44,8 +49,21 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				continue
 			}
 
-			previous = stmt
+			// Avoid assignments with comments cuddling
+			if config.WithBlankLines() && val.Is(previous) {
+				switch {
+				// only allow cuddling of assignments if they both have no comments
+				case !val.HasComment() && !hasComment(previous):
+
+					// otherwise add some spacing
+				default:
+					buff.WriteString("\n")
+				}
+			}
+
 			buff.WriteString(val.Render(config))
+
+			previous = stmt
 
 		case *Newline:
 			if !val.ShouldRender(config) {
@@ -66,7 +84,15 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 	str := buff.String()
 	str = strings.TrimRightFunc(str, unicode.IsSpace)
 	str += "\n"
-	str += "\n"
 
 	return str
+}
+
+func hasComment(stmt Statement) bool {
+	x, ok := stmt.(*Assignment)
+	if !ok {
+		return false
+	}
+
+	return x.HasComment()
 }

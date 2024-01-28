@@ -28,6 +28,10 @@ type Assignment struct {
 }
 
 func (s *Assignment) Is(other Statement) bool {
+	if other == nil {
+		return false
+	}
+
 	return reflect.TypeOf(s) == reflect.TypeOf(other)
 }
 
@@ -37,6 +41,10 @@ func (s *Assignment) BelongsToGroup(config RenderSettings) bool {
 
 func (s *Assignment) ShouldRender(config RenderSettings) bool {
 	return config.Match(s) && s.BelongsToGroup(config)
+}
+
+func (s *Assignment) HasComment() bool {
+	return len(s.Comments) > 0
 }
 
 func (s *Assignment) Render(config RenderSettings) string {
