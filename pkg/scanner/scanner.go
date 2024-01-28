@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -126,6 +127,8 @@ func (s *Scanner) scanComment() token.Token {
 
 	s.next()
 
+	// If a comment looks like "#KEY=VALUE" it's a commented/disabled KEY=VALUE pair
+	// so consume it as such instead
 	if isValidIdentifier(s.ch) {
 		res := s.scanIdentifier()
 		res.Offset = res.Offset - 1
@@ -133,6 +136,8 @@ func (s *Scanner) scanComment() token.Token {
 
 		return res
 	}
+
+	fmt.Println(string(s.ch))
 
 	var key string
 	var val string

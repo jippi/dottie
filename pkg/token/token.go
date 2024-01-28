@@ -14,8 +14,9 @@ const (
 	EOF
 
 	// Special characters
-	Comment // #
-	Assign  // =
+	Comment           // # -- # <anything>
+	CommentAnnotation // # -- # @type value
+	Assign            // = -- KEY=VALUE
 
 	// The following tokens are related to variable assignments..
 	Identifier // Name of the variable
