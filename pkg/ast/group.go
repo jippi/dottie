@@ -15,6 +15,9 @@ type Group struct {
 	Statements []Statement
 }
 
+func (g *Group) statementNode() {
+}
+
 func (g *Group) Is(other Statement) bool {
 	return reflect.TypeOf(g) == reflect.TypeOf(other)
 }
@@ -25,9 +28,6 @@ func (g *Group) BelongsToGroup(config RenderSettings) bool {
 	}
 
 	return g.String() == config.FilterGroup || slug.Make(g.String()) == config.FilterGroup
-}
-
-func (g *Group) statementNode() {
 }
 
 func (g *Group) String() string {
@@ -52,6 +52,7 @@ func (g *Group) Render(config RenderSettings) string {
 		buff.WriteString("\n")
 	}
 
+	// Render the statements attached to the group
 	buff.WriteString(renderStatements(g.Statements, config))
 
 	return buff.String()
