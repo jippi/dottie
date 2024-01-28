@@ -20,5 +20,9 @@ func (s *Newline) ShouldRender(config RenderSettings) bool {
 	return config.WithBlankLines()
 }
 
+func (s *Newline) Render(config RenderSettings) string {
+	return "\n"
+}
+
 func (s *Newline) statementNode() {
 }

@@ -1,6 +1,9 @@
 package ast
 
-import "reflect"
+import (
+	"bytes"
+	"reflect"
+)
 
 // Comment node represents a comment statement.
 type Comment struct {
@@ -32,6 +35,15 @@ func (s *Comment) BelongsToGroup(config RenderSettings) bool {
 
 func (s *Comment) ShouldRender(config RenderSettings) bool {
 	return config.WithComments() && s.BelongsToGroup(config)
+}
+
+func (s *Comment) Render(config RenderSettings) string {
+	var buff bytes.Buffer
+
+	buff.WriteString(s.String())
+	buff.WriteString("\n")
+
+	return buff.String()
 }
 
 func (s *Comment) statementNode() {

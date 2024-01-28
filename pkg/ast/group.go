@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
 )
@@ -55,4 +56,21 @@ func (s *Group) ShouldRender(config RenderSettings) bool {
 	}
 
 	return false
+}
+
+func (s *Group) Render(config RenderSettings) string {
+	var buff bytes.Buffer
+
+	buff.WriteString("################################################################################")
+	buff.WriteString("\n")
+
+	buff.WriteString(s.Name)
+	buff.WriteString("\n")
+
+	buff.WriteString("################################################################################")
+	buff.WriteString("\n")
+
+	buff.WriteString(renderStatements(s.Statements, config))
+
+	return buff.String()
 }

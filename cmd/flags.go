@@ -47,7 +47,7 @@ var globalFlags = []cli.Flag{
 		OnlyOnce:   true,
 	},
 	&cli.StringFlag{
-		Name:       "filter-key-prefix",
+		Name:       "key-prefix",
 		Category:   "Filters:",
 		Sources:    cli.EnvVars("FILTER_KEY_PREFIX"),
 		Usage:      "Filter by key prefix`",
@@ -55,7 +55,7 @@ var globalFlags = []cli.Flag{
 		OnlyOnce:   true,
 	},
 	&cli.StringFlag{
-		Name:       "filter-group",
+		Name:       "group",
 		Category:   "Filters:",
 		Sources:    cli.EnvVars("FILTER_GROUP"),
 		Usage:      "Filter by group name`",

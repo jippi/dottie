@@ -43,6 +43,7 @@ var setCommand = &cli.Command{
 			return fmt.Errorf("Missing required argument: KEY")
 		}
 
+		var group *ast.Group
 		value := cmd.Args().Get(1)
 
 		assignment := env.Get(key)
@@ -50,6 +51,19 @@ var setCommand = &cli.Command{
 			if cmd.Bool("error-if-missing") {
 				return fmt.Errorf("Key [%s] does not exists", key)
 			}
+
+			group = env.GetGroup(ast.RenderSettings{FilterGroup: cmd.String("group")})
+			if group == nil {
+				group = &ast.Group{Name: cmd.String("group")}
+				env.Groups = append(env.Groups, group)
+			}
+
+			assignment = &ast.Assignment{
+				Key:   key,
+				Group: group,
+			}
+
+			env.Statements = append(env.Statements, assignment)
 		}
 
 		assignment.Value = value
@@ -58,9 +72,11 @@ var setCommand = &cli.Command{
 
 		if comments := cmd.StringSlice("comment"); len(comments) > 0 {
 			slice := make([]*ast.Comment, 0)
+
 			for _, v := range comments {
 				slice = append(slice, ast.NewComment(v))
 			}
+
 			assignment.Comments = slice
 		}
 

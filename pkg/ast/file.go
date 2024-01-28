@@ -2,7 +2,6 @@
 package ast
 
 import (
-	"bytes"
 	"reflect"
 )
 
@@ -61,81 +60,13 @@ func (s *File) ShouldRender(config RenderSettings) bool {
 	return true
 }
 
-func (s *File) Render() []byte {
-	return s.RenderWithFilter(RenderSettings{
+func (s *File) RenderFull() string {
+	return s.Render(RenderSettings{
 		ShowPretty:       true,
 		IncludeCommented: true,
 	})
 }
 
-func (s *File) RenderWithFilter(config RenderSettings) []byte {
-	var buff bytes.Buffer
-	var previous Statement
-
-	for _, stmt := range s.Statements {
-		switch val := stmt.(type) {
-		case *Group:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
-			previous = stmt
-
-			buff.WriteString("################################################################################")
-			buff.WriteString("\n")
-
-			buff.WriteString(val.Name)
-			buff.WriteString("\n")
-
-			buff.WriteString("################################################################################")
-			buff.WriteString("\n")
-
-		case *Comment:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
-			previous = stmt
-
-			buff.WriteString(val.String())
-			buff.WriteString("\n")
-
-		case *Assignment:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
-			previous = stmt
-
-			if config.WithComments() {
-				buff.WriteString(val.String())
-				buff.WriteString("\n")
-				// buff.WriteString("\n")
-
-				continue
-			}
-
-			buff.WriteString(val.Assignment())
-			buff.WriteString("\n")
-
-		case *Newline:
-			if !val.ShouldRender(config) {
-				continue
-			}
-
-			// Don't print multiple newlines after each other
-			if val.Is(previous) {
-				continue
-			}
-
-			previous = stmt
-
-			buff.WriteString("\n")
-		}
-	}
-
-	b := bytes.TrimSpace(buff.Bytes())
-	b = append(b, byte('\n'))
-
-	return b
+func (s *File) Render(config RenderSettings) string {
+	return renderStatements(s.Statements, config)
 }
