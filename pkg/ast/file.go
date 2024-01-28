@@ -3,21 +3,21 @@ package ast
 
 import (
 	"bytes"
+	"reflect"
 )
-
-// Node represents AST-node of the syntax tree.
-type Node interface{}
-
-// Statement represents syntax tree node of .env file statement (like: assignment or comment).
-type Statement interface {
-	Node
-	statementNode()
-}
 
 // File node represents .env file statement, that contains assignments and comments.
 type File struct {
 	Statements []Statement
 	Groups     []*Group
+}
+
+func (s *File) Is(other Statement) bool {
+	return reflect.TypeOf(s) == reflect.TypeOf(other)
+}
+
+func (s *File) BelongsToGroup(config RenderSettings) bool {
+	return false
 }
 
 func (s *File) statementNode() {
@@ -35,9 +35,9 @@ func (s *File) Pairs() map[string]string {
 	return values
 }
 
-func (s *File) GetGroup(name string) *Group {
+func (s *File) GetGroup(config RenderSettings) *Group {
 	for _, grp := range s.Groups {
-		if grp.Name == name {
+		if grp.BelongsToGroup(config) {
 			return grp
 		}
 	}
@@ -57,53 +57,85 @@ func (s *File) Get(name string) *Assignment {
 	return nil
 }
 
-func (s *File) Render() []byte {
-	return s.RenderWithFilter(nil)
+func (s *File) ShouldRender(config RenderSettings) bool {
+	return true
 }
 
-func (s *File) RenderWithFilter(f *RenderSettings) []byte {
+func (s *File) Render() []byte {
+	return s.RenderWithFilter(RenderSettings{
+		ShowPretty:       true,
+		IncludeCommented: true,
+	})
+}
+
+func (s *File) RenderWithFilter(config RenderSettings) []byte {
 	var buff bytes.Buffer
+	var previous Statement
 
-	for _, s := range s.Statements {
-		switch v := s.(type) {
+	for _, stmt := range s.Statements {
+		switch val := stmt.(type) {
 		case *Group:
-			if f == nil || f.Groups() {
-				buff.WriteString("################################################################################")
-				buff.WriteString("\n")
-
-				buff.WriteString(v.Name)
-				buff.WriteString("\n")
-
-				buff.WriteString("################################################################################")
-				buff.WriteString("\n")
+			if !val.ShouldRender(config) {
+				continue
 			}
+
+			previous = stmt
+
+			buff.WriteString("################################################################################")
+			buff.WriteString("\n")
+
+			buff.WriteString(val.Name)
+			buff.WriteString("\n")
+
+			buff.WriteString("################################################################################")
+			buff.WriteString("\n")
 
 		case *Comment:
-			if f == nil || f.Comments() {
-				buff.WriteString(v.String())
-				buff.WriteString("\n")
+			if !val.ShouldRender(config) {
+				continue
 			}
+
+			previous = stmt
+
+			buff.WriteString(val.String())
+			buff.WriteString("\n")
 
 		case *Assignment:
-			if f != nil && !f.Match(v) {
+			if !val.ShouldRender(config) {
 				continue
 			}
 
-			if f == nil || f.Comments() {
-				buff.WriteString(v.String())
+			previous = stmt
+
+			if config.WithComments() {
+				buff.WriteString(val.String())
 				buff.WriteString("\n")
-				buff.WriteString("\n")
+				// buff.WriteString("\n")
 
 				continue
 			}
 
-			buff.WriteString(v.Assignment())
+			buff.WriteString(val.Assignment())
 			buff.WriteString("\n")
 
 		case *Newline:
+			if !val.ShouldRender(config) {
+				continue
+			}
+
+			// Don't print multiple newlines after each other
+			if val.Is(previous) {
+				continue
+			}
+
+			previous = stmt
+
 			buff.WriteString("\n")
 		}
 	}
 
-	return bytes.TrimSpace(buff.Bytes())
+	b := bytes.TrimSpace(buff.Bytes())
+	b = append(b, byte('\n'))
+
+	return b
 }

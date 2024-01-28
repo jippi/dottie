@@ -138,9 +138,16 @@ func (s *Scanner) scanComment() token.Token {
 
 	s.skipWhitespace()
 
+	switch {
 	// We got an annotation!
-	if s.ch == '@' {
+	case s.ch == '@':
 		return s.scanCommentAnnotation(start)
+
+	// We got a group header
+	case s.peek(3) == "###":
+		s.untilEndOfLine()
+
+		return token.NewWithLiteral(token.GroupBanner, s.input[start:s.offset], 0, s.offset, s.lineNumber)
 	}
 
 	s.untilEndOfLine()

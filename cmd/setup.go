@@ -17,9 +17,9 @@ func setup(_ context.Context, cmd *cli.Command) error {
 	}
 
 	settings = &ast.RenderSettings{
-		FilterKeyPrefix: cmd.Root().String("filter-key-prefix"),
-		FilterGroup:     cmd.Root().String("filter-group"),
-		FilterCommented: cmd.Root().Bool("include-commented"),
+		FilterKeyPrefix:  cmd.Root().String("filter-key-prefix"),
+		FilterGroup:      cmd.Root().String("filter-group"),
+		IncludeCommented: cmd.Root().Bool("include-commented"),
 
 		ShowPretty:     cmd.Root().Bool("pretty"),
 		ShowBlankLines: cmd.Root().Bool("with-blank-lines"),

@@ -5,9 +5,9 @@ import (
 )
 
 type RenderSettings struct {
-	FilterKeyPrefix string
-	FilterGroup     string
-	FilterCommented bool
+	FilterKeyPrefix  string
+	FilterGroup      string
+	IncludeCommented bool
 
 	ShowPretty     bool
 	ShowComments   bool
@@ -20,25 +20,25 @@ func (f *RenderSettings) Match(assignment *Assignment) bool {
 		return false
 	}
 
-	if len(f.FilterGroup) > 0 && assignment.Group != nil && assignment.Group.Name != f.FilterGroup {
+	if !assignment.BelongsToGroup(*f) {
 		return false
 	}
 
-	if assignment.Commented && !f.FilterCommented {
+	if assignment.Commented && !f.IncludeCommented {
 		return false
 	}
 
 	return true
 }
 
-func (f *RenderSettings) Comments() bool {
+func (f *RenderSettings) WithComments() bool {
 	return f.ShowPretty || f.ShowComments
 }
 
-func (f *RenderSettings) Groups() bool {
+func (f *RenderSettings) WithGroups() bool {
 	return f.ShowPretty || f.ShowGroups
 }
 
-func (f *RenderSettings) BlankLines() bool {
+func (f *RenderSettings) WithBlankLines() bool {
 	return f.ShowPretty || f.ShowBlankLines
 }

@@ -3,7 +3,6 @@ package parser
 
 import (
 	"fmt"
-	"strings"
 
 	"dotfedi/pkg/ast"
 	"dotfedi/pkg/token"
@@ -38,8 +37,6 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	result := &ast.File{}
 
 	for p.token.Type != token.EOF {
-		// spew.Dump(p.token)
-
 		stmt, err := p.parseStatement()
 		if err != nil {
 			return nil, err
@@ -52,7 +49,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 				currentGroup.LastLine = p.token.LineNumber
 			}
 
-			// Change the group
+			// Change the current group
 			currentGroup = val
 
 			// Append the group
@@ -65,7 +62,6 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			// Assign the assignment to a grouping if such exists
 			if currentGroup != nil {
 				currentGroup.Statements = append(currentGroup.Statements, val)
-
 				val.Group = currentGroup
 			}
 
@@ -91,10 +87,9 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			comments = append(comments, val)
 
 		case *ast.Newline:
-			switch previousStatement.(type) {
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
-			case *ast.Assignment:
+			if previousStatement.Is(val) {
 				continue
 			}
 
@@ -104,6 +99,10 @@ func (p *Parser) Parse() (ast.Statement, error) {
 
 			// If there is a blank line, print all previous comments
 			for _, c := range comments {
+				if currentGroup != nil {
+					currentGroup.Statements = append(currentGroup.Statements, c)
+				}
+
 				result.Statements = append(result.Statements, c)
 			}
 
@@ -113,6 +112,10 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			// Attach the newline to a group for easier filtering
 			if currentGroup != nil {
 				val.Group = currentGroup
+			}
+
+			if currentGroup != nil {
+				currentGroup.Statements = append(currentGroup.Statements, val)
 			}
 
 			result.Statements = append(result.Statements, val)
@@ -136,6 +139,9 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.Comment, token.CommentAnnotation:
 		return p.parseCommentStatement()
 
+	case token.GroupBanner:
+		return p.parseGroupStatement()
+
 	case token.EOF:
 		return nil, nil
 
@@ -154,43 +160,49 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	}
 }
 
-func (p *Parser) parseCommentStatement() (ast.Statement, error) {
-	// If the comment doesn't look like a header, just treat it as a normal comment and move on
-	if !strings.Contains(p.token.Literal, "###") {
-		stm := &ast.Comment{
-			Value:           p.token.Literal,
-			LineNumber:      p.token.LineNumber,
-			Annotation:      p.token.Annotation,
-			AnnotationKey:   p.token.AnnotationKey,
-			AnnotationValue: p.token.AnnotationValue,
-		}
+func (p *Parser) parseGroupStatement() (ast.Statement, error) {
+	var group *ast.Group
 
-		p.nextToken()
-
-		return stm, nil
-	}
-
-	// If the comment block looks like a header group
-	group := &ast.Group{
-		FirstLine: p.token.LineNumber,
-	}
-
-	// Move forward
 	p.nextToken()
 	p.skipBlankLine()
 
 	switch p.token.Type {
 	case token.Comment:
-		break
+		group = &ast.Group{
+			Name:      p.token.Literal,
+			FirstLine: p.token.LineNumber,
+		}
 
 	default:
-		panic("invalid")
+		panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
 	}
-	group.Name = strings.TrimSpace(p.token.Literal)
 
-	p.skipGroupHeader()
+	p.nextToken()
+	p.skipBlankLine()
 
-	return group, nil
+	switch p.token.Type {
+	case token.GroupBanner:
+		p.nextToken()
+
+		return group, nil
+
+	default:
+		return p.unexpectedTokenPanic()
+	}
+}
+
+func (p *Parser) parseCommentStatement() (ast.Statement, error) {
+	stm := &ast.Comment{
+		Value:           p.token.Literal,
+		LineNumber:      p.token.LineNumber,
+		Annotation:      p.token.Annotation,
+		AnnotationKey:   p.token.AnnotationKey,
+		AnnotationValue: p.token.AnnotationValue,
+	}
+
+	p.nextToken()
+
+	return stm, nil
 }
 
 func (p *Parser) parseRowStatement() (ast.Statement, error) {
@@ -228,7 +240,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 		return stmt, err
 	}
 
-	return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
+	return p.unexpectedTokenPanic()
 }
 
 func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
@@ -245,6 +257,7 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 	value := p.token.Literal
 	quoted := p.token.QuotedBy
+
 	p.nextToken()
 
 	switch p.token.Type {
@@ -261,7 +274,9 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
+		_, _ = p.unexpectedTokenPanic()
+
+		return nil, nil
 	}
 }
 
@@ -284,18 +299,10 @@ func (p *Parser) skipBlankLine() {
 	}
 }
 
-func (p *Parser) skipGroupHeader() {
-	p.nextToken()
-
-	p.skipBlankLine()
-
-	switch p.token.Type {
-	case token.Comment:
-		break
-
-	default:
-		panic("invalid")
+func (p *Parser) unexpectedTokenPanic() (ast.Statement, error) {
+	if false {
+		return nil, nil
 	}
 
-	p.nextToken()
+	panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
 }

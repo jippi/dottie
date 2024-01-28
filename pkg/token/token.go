@@ -14,6 +14,7 @@ const (
 	EOF
 
 	// Special characters
+	GroupBanner       // # -- ### (3 or more hashtags)
 	Comment           // # -- # <anything>
 	CommentAnnotation // # -- # @<name> <value>
 	Assign            // = -- KEY=VALUE
@@ -32,6 +33,7 @@ var tokens = [...]string{
 	EOF:     "EOF",
 
 	// Special characters
+	GroupBanner:       "GROUP_HEADER",
 	Comment:           "COMMENT",
 	CommentAnnotation: "COMMENT_ANNOTATION",
 	Assign:            "ASSIGN",

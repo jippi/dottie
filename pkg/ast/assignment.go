@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 )
 
 const (
@@ -24,6 +25,18 @@ type Assignment struct {
 	Naked      bool
 	Complete   bool
 	Quoted     rune
+}
+
+func (s *Assignment) Is(other Statement) bool {
+	return reflect.TypeOf(s) == reflect.TypeOf(other)
+}
+
+func (s *Assignment) ShouldRender(config RenderSettings) bool {
+	return config.Match(s) && s.BelongsToGroup(config)
+}
+
+func (s *Assignment) BelongsToGroup(config RenderSettings) bool {
+	return s.Group == nil || s.Group.BelongsToGroup(config)
 }
 
 func (s *Assignment) statementNode() {}
@@ -51,7 +64,7 @@ func (s *Assignment) String() string {
 	var buff bytes.Buffer
 
 	for _, c := range s.Comments {
-		buff.WriteString(c.String())
+		buff.WriteString(c.Value)
 		buff.WriteString("\n")
 	}
 
