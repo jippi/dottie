@@ -37,7 +37,7 @@ func (s *File) Pairs() map[string]string {
 
 func (s *File) GetGroup(name string) *Group {
 	for _, grp := range s.Groups {
-		if grp.Comment == name {
+		if grp.Name == name {
 			return grp
 		}
 	}
@@ -58,25 +58,52 @@ func (s *File) Get(name string) *Assignment {
 }
 
 func (s *File) Render() []byte {
+	return s.RenderWithFilter(nil)
+}
+
+func (s *File) RenderWithFilter(f *RenderSettings) []byte {
 	var buff bytes.Buffer
 
 	for _, s := range s.Statements {
 		switch v := s.(type) {
 		case *Group:
-			buff.WriteString("################################################################################\n")
-			buff.WriteString("# " + v.Comment + "\n")
-			buff.WriteString("################################################################################\n")
+			if f == nil || f.Groups() {
+				buff.WriteString("################################################################################")
+				buff.WriteString("\n")
+
+				buff.WriteString("# " + v.Name)
+				buff.WriteString("\n")
+
+				buff.WriteString("################################################################################")
+				buff.WriteString("\n")
+			}
 
 		case *Comment:
-			buff.WriteString(v.String() + "\n")
+			if f == nil || f.Comments() {
+				buff.WriteString(v.String())
+				buff.WriteString("\n")
+			}
 
 		case *Assignment:
-			buff.WriteString(v.String() + "\n")
+			if f != nil && !f.Match(v) {
+				continue
+			}
+
+			if f == nil || f.Comments() {
+				buff.WriteString(v.String())
+				buff.WriteString("\n")
+				buff.WriteString("\n")
+
+				continue
+			}
+
+			buff.WriteString(v.Assignment())
+			buff.WriteString("\n")
 
 		case *Newline:
 			buff.WriteString("\n")
 		}
 	}
 
-	return buff.Bytes()
+	return bytes.TrimSpace(buff.Bytes())
 }

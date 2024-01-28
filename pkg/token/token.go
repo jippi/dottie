@@ -15,7 +15,7 @@ const (
 
 	// Special characters
 	Comment           // # -- # <anything>
-	CommentAnnotation // # -- # @type value
+	CommentAnnotation // # -- # @<name> <value>
 	Assign            // = -- KEY=VALUE
 
 	// The following tokens are related to variable assignments..
@@ -57,13 +57,15 @@ func (t Type) String() string {
 }
 
 type Token struct {
-	Type            Type
-	Literal         string
-	Offset          int
-	Length          int
-	LineNumber      int
-	Commented       bool
-	Quoted          rune
+	Type       Type
+	Literal    string
+	Offset     int
+	Length     int
+	LineNumber int
+	Commented  bool
+	Quoted     rune
+
+	Annotation      bool
 	AnnotationKey   string
 	AnnotationValue string
 }

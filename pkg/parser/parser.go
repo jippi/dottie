@@ -34,6 +34,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	// var statements []ast.Statement
 	var currentGroup *ast.Group
 	var comments []*ast.Comment
+	var previousStatement ast.Statement
 
 	result := &ast.File{}
 
@@ -89,23 +90,34 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			comments = append(comments, val)
 
 		case *ast.Newline:
-			if val.Blank {
-				// If there is a blank line, print all previous comments
-				for _, c := range comments {
-					result.Statements = append(result.Statements, c)
-				}
-
-				// Reset the accumulated comments slice
-				comments = nil
-
-				// Attach the newline to a group for easier filtering
-				if currentGroup != nil {
-					val.Group = currentGroup
-				}
-
-				result.Statements = append(result.Statements, val)
+			switch previousStatement.(type) {
+			// If the previous statement was an assignment, ignore the newline
+			// as we will be emitted that ourself later
+			case *ast.Assignment:
+				continue
 			}
+
+			if !val.Blank {
+				continue
+			}
+
+			// If there is a blank line, print all previous comments
+			for _, c := range comments {
+				result.Statements = append(result.Statements, c)
+			}
+
+			// Reset the accumulated comments slice
+			comments = nil
+
+			// Attach the newline to a group for easier filtering
+			if currentGroup != nil {
+				val.Group = currentGroup
+			}
+
+			result.Statements = append(result.Statements, val)
 		}
+
+		previousStatement = stmt
 	}
 
 	if currentGroup != nil {
@@ -120,7 +132,7 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	case token.Identifier:
 		return p.parseRowStatement()
 
-	case token.Comment:
+	case token.Comment, token.CommentAnnotation:
 		return p.parseCommentStatement()
 
 	case token.EOF:
@@ -147,6 +159,7 @@ func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 		stm := &ast.Comment{
 			Value:           p.token.Literal,
 			LineNumber:      p.token.LineNumber,
+			Annotation:      p.token.Annotation,
 			AnnotationKey:   p.token.AnnotationKey,
 			AnnotationValue: p.token.AnnotationValue,
 		}
@@ -172,7 +185,7 @@ func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 	default:
 		panic("invalid")
 	}
-	group.Comment = strings.TrimSpace(p.token.Literal)
+	group.Name = strings.TrimSpace(p.token.Literal)
 
 	p.skipGroupHeader()
 

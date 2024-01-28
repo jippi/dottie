@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"dotfedi/pkg/ast"
-	"dotfedi/pkg/filter"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/urfave/cli/v3"
@@ -21,8 +20,8 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 `
 
 var (
-	env     *ast.File
-	filters *filter.Filter
+	env      *ast.File
+	settings *ast.RenderSettings
 )
 
 func main() {
@@ -41,6 +40,7 @@ func main() {
 		Commands: []*cli.Command{
 			disableCommand,
 			enableCommand,
+			groupsCommand,
 			printCommand,
 			setCommand,
 			valueCommand,

@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -128,7 +127,7 @@ func (s *Scanner) scanComment() token.Token {
 	s.next()
 
 	// If a comment looks like "#KEY=VALUE" it's a commented/disabled KEY=VALUE pair
-	// so consume it as such instead
+	// so consume it as such instead of a comment
 	if isValidIdentifier(s.ch) {
 		res := s.scanIdentifier()
 		res.Offset = res.Offset - 1
@@ -137,44 +136,60 @@ func (s *Scanner) scanComment() token.Token {
 		return res
 	}
 
-	fmt.Println(string(s.ch))
+	s.consumeWhitespace()
 
-	var key string
-	var val string
-	var isAnnotationKey bool
-	var isAnnotationValue bool
-
+	// Normal comment handling here
 	for !(isEOF(s.ch) || isNewLine(s.ch)) {
 		s.next()
 
+		// Looks like we found a comment annotation
+		// so parse the line as such instead
 		if s.input[start:s.offset] == "# @" {
-			isAnnotationKey = true
-		}
-
-		if isAnnotationKey {
-			if unicode.IsSpace(s.ch) {
-				isAnnotationKey = false
-				isAnnotationValue = true
-
-				continue
-			}
-
-			key += string(s.ch)
-		}
-
-		if isAnnotationValue {
-			val += string(s.ch)
+			return s.scanCommentAnnotation()
 		}
 	}
 
 	lit := s.input[start:s.offset]
 	lit = strings.TrimPrefix(lit, "#")
 
-	comment := token.NewWithLiteral(token.Comment, lit, 0, s.offset, s.lineNumber)
+	return token.NewWithLiteral(token.Comment, lit, 0, s.offset, s.lineNumber)
+}
+
+func (s *Scanner) scanCommentAnnotation() token.Token {
+	start := s.offset
+
+	// Key
+	for isValidIdentifier(s.ch) {
+		s.next()
+	}
+
+	key := s.input[start:s.offset]
+
+	// Consume any space between key and value
+	s.consumeWhitespace()
+
+	// Value
+	valueStart := s.offset
+	for !isEOF(s.ch) && !isNewLine(s.ch) {
+		s.next()
+	}
+
+	value := s.input[valueStart:s.offset]
+
+	lit := s.input[start-2 : s.offset]
+
+	comment := token.NewWithLiteral(token.CommentAnnotation, lit, 0, s.offset, s.lineNumber)
+	comment.Annotation = true
 	comment.AnnotationKey = key
-	comment.AnnotationValue = strings.TrimSpace(val)
+	comment.AnnotationValue = value
 
 	return comment
+}
+
+func (s *Scanner) consumeWhitespace() {
+	for !isEOF(s.ch) && !isNewLine(s.ch) && unicode.IsSpace(s.ch) {
+		s.next()
+	}
 }
 
 func (s *Scanner) scanIllegalRune() token.Token {

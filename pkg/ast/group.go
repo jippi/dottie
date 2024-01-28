@@ -1,7 +1,7 @@
 package ast
 
 type Group struct {
-	Comment    string
+	Name       string
 	FirstLine  int
 	LastLine   int
 	Statements []Statement

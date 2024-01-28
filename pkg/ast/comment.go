@@ -8,6 +8,7 @@ import (
 type Comment struct {
 	Value           string
 	LineNumber      int
+	Annotation      bool
 	AnnotationKey   string
 	AnnotationValue string
 	Group           *Group

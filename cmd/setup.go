@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"dotfedi/pkg"
-	"dotfedi/pkg/filter"
+	"dotfedi/pkg/ast"
 
 	"github.com/urfave/cli/v3"
 )
@@ -16,10 +16,15 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	filters = &filter.Filter{
-		KeyPrefix: cmd.Root().String("filter-key-prefix"),
-		Group:     cmd.Root().String("filter-group"),
-		Commented: cmd.Root().Bool("include-commented"),
+	settings = &ast.RenderSettings{
+		FilterKeyPrefix: cmd.Root().String("filter-key-prefix"),
+		FilterGroup:     cmd.Root().String("filter-group"),
+		FilterCommented: cmd.Root().Bool("include-commented"),
+
+		ShowPretty:     cmd.Root().Bool("pretty"),
+		ShowBlankLines: cmd.Root().Bool("with-blank-lines"),
+		ShowComments:   cmd.Root().Bool("with-comments"),
+		ShowGroups:     cmd.Root().Bool("with-groups"),
 	}
 
 	return nil
