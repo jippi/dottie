@@ -27,6 +27,8 @@ type Assignment struct {
 	Quoted     rune
 }
 
+func (a *Assignment) statementNode() {}
+
 func (a *Assignment) Is(other Statement) bool {
 	if other == nil {
 		return false
@@ -66,8 +68,6 @@ func (a *Assignment) Render(config RenderSettings) string {
 
 	return buff.String()
 }
-
-func (a *Assignment) statementNode() {}
 
 func (a *Assignment) SetQuote(in string) {
 	switch in {
