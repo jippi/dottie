@@ -7,6 +7,8 @@ import (
 
 	"dotfedi/pkg/ast"
 	"dotfedi/pkg/token"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -39,6 +41,8 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	result := &ast.File{}
 
 	for p.token.Type != token.EOF {
+		spew.Dump(p.token)
+
 		stmt, err := p.parseStatement()
 		if err != nil {
 			return nil, err

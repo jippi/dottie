@@ -176,7 +176,7 @@ func (s *Scanner) scanCommentAnnotation() token.Token {
 
 	value := s.input[valueStart:s.offset]
 
-	lit := s.input[start-2 : s.offset]
+	lit := s.input[start-1 : s.offset]
 
 	comment := token.NewWithLiteral(token.CommentAnnotation, lit, 0, s.offset, s.lineNumber)
 	comment.Annotation = true

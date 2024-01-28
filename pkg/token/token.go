@@ -31,9 +31,12 @@ var tokens = [...]string{
 	Illegal: "Illegal",
 	EOF:     "EOF",
 
-	Comment: "#",
-	Assign:  "=",
+	// Special characters
+	Comment:           "COMMENT",
+	CommentAnnotation: "COMMENT_ANNOTATION",
+	Assign:            "ASSIGN",
 
+	// The following tokens are related to variable assignments..
 	Identifier: "IDENTIFIER",
 	Value:      "VALUE",
 	RawValue:   "RAW_VALUE",
