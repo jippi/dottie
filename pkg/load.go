@@ -10,17 +10,17 @@ import (
 	"dotfedi/pkg/scanner"
 )
 
-func Load(filename string) (rows *ast.File, err error) {
-	f, err := os.Open(filename)
+func Load(filename string) (rows *ast.Document, err error) {
+	r, err := os.Open(filename)
 	if err != nil {
 		return
 	}
-	defer f.Close()
+	defer r.Close()
 
-	return Parse(f)
+	return Parse(r)
 }
 
-func Save(filename string, env *ast.File) error {
+func Save(filename string, env *ast.Document) error {
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -32,24 +32,23 @@ func Save(filename string, env *ast.File) error {
 }
 
 // Parse reads an env file from io.Reader, returning a map of keys and values.
-func Parse(r io.Reader) (*ast.File, error) {
+func Parse(r io.Reader) (*ast.Document, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	s := scanner.New(string(input))
-	p := parser.New(s)
+	p := parser.New(scanner.New(string(input)))
 
 	statement, err := p.Parse()
 	if err != nil {
 		return nil, err
 	}
 
-	fileStmt, ok := statement.(*ast.File)
+	document, ok := statement.(*ast.Document)
 	if !ok {
 		return nil, fmt.Errorf("(A) unexpected statement: %T", statement)
 	}
 
-	return fileStmt, nil
+	return document, nil
 }

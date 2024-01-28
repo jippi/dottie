@@ -33,14 +33,10 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 
 			buff.WriteString(val.Render(config))
 
-			previous = stmt
-
 		case *Comment:
 			if !val.ShouldRender(config) {
 				continue
 			}
-
-			previous = stmt
 
 			buff.WriteString(val.Render(config))
 
@@ -63,8 +59,6 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 
 			buff.WriteString(val.Render(config))
 
-			previous = stmt
-
 		case *Newline:
 			if !val.ShouldRender(config) {
 				continue
@@ -75,15 +69,18 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				continue
 			}
 
-			previous = stmt
-
 			buff.WriteString(val.Render(config))
 		}
+
+		previous = stmt
 	}
 
 	str := buff.String()
-	str = strings.TrimRightFunc(str, unicode.IsSpace)
-	str += "\n"
+
+	if config.WithBlankLines() {
+		str = strings.TrimRightFunc(str, unicode.IsSpace)
+		str += "\n"
+	}
 
 	return str
 }

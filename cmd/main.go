@@ -20,7 +20,7 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 `
 
 var (
-	env      *ast.File
+	env      *ast.Document
 	settings *ast.RenderSettings
 )
 

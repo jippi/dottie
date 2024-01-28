@@ -28,6 +28,7 @@ var valueCommand = &cli.Command{
 		}
 
 		fmt.Println(existing.Value)
+
 		return nil
 	},
 }

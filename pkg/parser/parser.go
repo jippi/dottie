@@ -34,7 +34,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	var comments []*ast.Comment
 	var previousStatement ast.Statement
 
-	global := &ast.File{}
+	global := &ast.Document{}
 
 	for p.token.Type != token.EOF {
 		stmt, err := p.parseStatement()
