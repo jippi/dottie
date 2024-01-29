@@ -82,6 +82,8 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			comments = nil
 
 		case *ast.Comment:
+			global.Comments = append(global.Comments, val)
+
 			comments = append(comments, val)
 
 		case *ast.Newline:
@@ -251,6 +253,7 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 		LineNumber: p.token.LineNumber,
 		Naked:      true,
 		Commented:  p.token.Commented,
+		Quoted:     token.NoQuotes,
 	}, nil
 }
 

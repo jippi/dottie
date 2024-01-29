@@ -51,66 +51,24 @@ var setCommand = &cli.Command{
 			return fmt.Errorf("Missing required argument: KEY")
 		}
 
-		var group *ast.Group
-		value := cmd.Args().Get(1)
-
-		assignment := env.Get(key)
-		if assignment == nil {
-			if cmd.Bool("error-if-missing") {
-				return fmt.Errorf("Key [%s] does not exists", key)
-			}
-
-			group = env.GetGroup(ast.RenderSettings{FilterGroup: cmd.String("group")})
-			if group == nil {
-				group = &ast.Group{Name: cmd.String("group")}
-				env.Groups = append(env.Groups, group)
-			}
-
-			assignment = &ast.Assignment{
-				Key:   key,
-				Group: group,
-			}
-
-			switch {
-			case len(cmd.String("before")) > 0:
-				before := cmd.String("before")
-
-				var res []ast.Statement
-				for _, stmt := range group.Statements {
-					x, ok := stmt.(*ast.Assignment)
-					if !ok {
-						res = append(res, stmt)
-						continue
-					}
-
-					if x.Key == before {
-						res = append(res, assignment)
-					}
-
-					res = append(res, stmt)
-				}
-
-				group.Statements = res
-
-			default:
-				group.Statements = append(group.Statements, assignment)
-			}
+		options := ast.SetOptions{
+			ErrorIfMissing: cmd.Bool("error-if-missing"),
+			Before:         cmd.String("before"),
+			Group:          cmd.String("group"),
+			Comments:       cmd.StringSlice("comment"),
 		}
 
-		env.Assignments = append(env.Assignments, assignment)
+		assignment := ast.Assignment{
+			Key:       key,
+			Value:     cmd.Args().Get(1),
+			Commented: cmd.Bool("commented"),
+		}
 
-		assignment.Value = value
-		assignment.Commented = cmd.Bool("commented")
 		assignment.SetQuote(cmd.String("quote-style"))
 
-		if comments := cmd.StringSlice("comment"); len(comments) > 0 {
-			slice := make([]*ast.Comment, 0)
-
-			for _, v := range comments {
-				slice = append(slice, ast.NewComment(v))
-			}
-
-			assignment.Comments = slice
+		_, err := env.Set(&assignment, options)
+		if err != nil {
+			return err
 		}
 
 		return pkg.Save(cmd.String("file"), env)

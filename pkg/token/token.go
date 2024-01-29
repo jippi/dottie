@@ -5,6 +5,43 @@ import (
 	"strconv"
 )
 
+type QuoteType uint
+
+const (
+	DoubleQuotes QuoteType = iota
+	SingleQuotes
+	NoQuotes
+)
+
+var quotes = []rune{
+	SingleQuotes: '\'',
+	DoubleQuotes: '"',
+	NoQuotes:     0,
+}
+
+func (qt QuoteType) Is(in rune) bool {
+	return quotes[qt] == in
+}
+
+func (qt QuoteType) Rune() rune {
+	return quotes[qt]
+}
+
+// String returns the string corresponding to the token.
+func (qt QuoteType) String() string {
+	s := ""
+
+	if int(qt) < len(quotes) {
+		s = string(quotes[qt])
+	}
+
+	if s == "" {
+		s = "quote(" + string(qt.Rune()) + ")"
+	}
+
+	return s
+}
+
 // Type is the set of lexical tokens.
 type Type uint
 
@@ -27,8 +64,7 @@ const (
 	NewLine    // A new line symbol (\n)
 )
 
-// nolint:gochecknoglobals
-var tokens = [...]string{
+var tokens = []string{
 	Illegal: "Illegal",
 	EOF:     "EOF",
 
@@ -68,7 +104,7 @@ type Token struct {
 	Length     int
 	LineNumber int
 	Commented  bool
-	QuotedBy   rune
+	QuotedBy   QuoteType
 
 	Annotation      bool
 	AnnotationKey   string
@@ -79,7 +115,7 @@ func New(t Type, offset, line int) Token {
 	return NewWithLiteral(t, t.String(), 0, offset, line)
 }
 
-func NewWithLiteral(t Type, literal string, quote rune, offset, line int) Token {
+func NewWithLiteral(t Type, literal string, quote QuoteType, offset, line int) Token {
 	length := len(literal)
 
 	return Token{

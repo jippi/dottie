@@ -77,10 +77,10 @@ func (s *Scanner) NextToken() token.Token {
 		return s.scanComment()
 
 	case '"':
-		return s.scanQuotedValue(token.Value, s.ch)
+		return s.scanQuotedValue(token.Value, token.DoubleQuotes)
 
 	case '\'':
-		return s.scanQuotedValue(token.RawValue, s.ch)
+		return s.scanQuotedValue(token.RawValue, token.SingleQuotes)
 
 	default:
 		switch prev := s.prev(); prev {
@@ -144,7 +144,7 @@ func (s *Scanner) scanComment() token.Token {
 		return s.scanCommentAnnotation(start)
 
 	// We got a group header
-	case s.peek(3) == "###":
+	case s.peek(2) == "##":
 		s.untilEndOfLine()
 
 		return token.NewWithLiteral(token.GroupBanner, s.input[start:s.offset], 0, s.offset, s.lineNumber)
@@ -157,13 +157,13 @@ func (s *Scanner) scanComment() token.Token {
 }
 
 func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
-	start := s.offset
-
 	// Consume the @
 	s.next()
 
+	start := s.offset
+
 	// Key
-	for isValidIdentifier(s.ch) {
+	for !isWideSpace(s.ch) {
 		s.next()
 	}
 
@@ -206,7 +206,7 @@ func (s *Scanner) scanIllegalRune() token.Token {
 	offset := s.offset
 	s.next()
 
-	return token.NewWithLiteral(token.Illegal, literal, s.ch, offset, s.lineNumber)
+	return token.NewWithLiteral(token.Illegal, literal, token.NoQuotes, offset, s.lineNumber)
 }
 
 func (s *Scanner) scanUnquotedValue() token.Token {
@@ -218,22 +218,21 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 
 	lit := escape(s.input[start:s.offset])
 
-	return token.NewWithLiteral(token.Value, lit, 0, s.offset, s.lineNumber)
+	return token.NewWithLiteral(token.Value, lit, token.NoQuotes, s.offset, s.lineNumber)
 }
 
-func (s *Scanner) scanQuotedValue(tType token.Type, quote rune) token.Token {
+func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token.Token {
 	// opening quote already consumed
 	s.next()
 	start := s.offset
 
 	for {
 		if isEOF(s.ch) || isNewLine(s.ch) {
-			// TODO (titusjaka): return human-readable error instead
 			tType = token.Illegal
 			break
 		}
 
-		if s.ch == quote {
+		if quote.Is(s.ch) {
 			break
 		}
 
@@ -247,7 +246,7 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote rune) token.Token {
 		lit = escape(lit)
 	}
 
-	if s.ch == quote {
+	if quote.Is(s.ch) {
 		s.next()
 	}
 
@@ -354,6 +353,10 @@ func isNewLine(r rune) bool {
 
 func isEOF(r rune) bool {
 	return r == eof
+}
+
+func isWideSpace(r rune) bool {
+	return unicode.IsSpace(r) || isEOF(r) || isNewLine(r)
 }
 
 // ------------------------------------------------------------------------

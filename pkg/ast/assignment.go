@@ -4,12 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-)
 
-const (
-	SingleQuotes = '\''
-	DoubleQuotes = '"'
-	NoQuotes     = 0
+	"dotfedi/pkg/token"
 )
 
 type Assignment struct {
@@ -19,12 +15,12 @@ type Assignment struct {
 	Group     *Group     `json:"-"`
 	Commented bool       `json:"commented"`
 
-	FirstLine  int  `json:"first_line"`
-	LastLine   int  `json:"last_line"`
-	LineNumber int  `json:"line_number"`
-	Naked      bool `json:"naked"`
-	Complete   bool `json:"complete"`
-	Quoted     rune `json:"quote"`
+	FirstLine  int             `json:"first_line"`
+	LastLine   int             `json:"last_line"`
+	LineNumber int             `json:"line_number"`
+	Naked      bool            `json:"naked"`
+	Complete   bool            `json:"complete"`
+	Quoted     token.QuoteType `json:"quote"`
 }
 
 func (a *Assignment) statementNode() {}
@@ -72,18 +68,18 @@ func (a *Assignment) Render(config RenderSettings) string {
 func (a *Assignment) SetQuote(in string) {
 	switch in {
 	case "\"", "double":
-		a.Quoted = DoubleQuotes
+		a.Quoted = token.DoubleQuotes
 	case "'", "single":
-		a.Quoted = SingleQuotes
+		a.Quoted = token.SingleQuotes
 	case "none":
-		a.Quoted = NoQuotes
+		a.Quoted = token.NoQuotes
 	}
 }
 
 func (a *Assignment) Assignment() string {
-	if a.Quoted == NoQuotes {
+	if a.Quoted == token.NoQuotes {
 		return fmt.Sprintf("%s=%s", a.Key, a.Value)
 	}
 
-	return fmt.Sprintf("%s=%c%s%c", a.Key, a.Quoted, a.Value, a.Quoted)
+	return fmt.Sprintf("%s=%s%s%s", a.Key, a.Quoted, a.Value, a.Quoted)
 }
