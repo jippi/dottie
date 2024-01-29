@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"dotfedi/pkg"
 
@@ -15,6 +16,8 @@ var enableCommand = &cli.Command{
 	ArgsUsage: "KEY",
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		key := cmd.Args().Get(0)
+		fmt.Println(key)
+
 		existing := env.Get(key)
 		existing.Commented = false
 

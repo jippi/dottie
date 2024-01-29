@@ -13,18 +13,18 @@ const (
 )
 
 type Assignment struct {
-	Key       string
-	Value     string
-	Comments  []*Comment
-	Group     *Group
-	Commented bool
+	Key       string     `json:"key"`
+	Value     string     `json:"value"`
+	Comments  []*Comment `json:"comments"`
+	Group     *Group     `json:"-"`
+	Commented bool       `json:"commented"`
 
-	FirstLine  int
-	LastLine   int
-	LineNumber int
-	Naked      bool
-	Complete   bool
-	Quoted     rune
+	FirstLine  int  `json:"first_line"`
+	LastLine   int  `json:"last_line"`
+	LineNumber int  `json:"line_number"`
+	Naked      bool `json:"naked"`
+	Complete   bool `json:"complete"`
+	Quoted     rune `json:"quote"`
 }
 
 func (a *Assignment) statementNode() {}

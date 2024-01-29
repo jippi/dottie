@@ -3,9 +3,9 @@ package ast
 import "reflect"
 
 type Newline struct {
-	Blank      bool
-	LineNumber int
-	Group      *Group
+	Blank      bool   `json:"blank"`
+	LineNumber int    `json:"line_number"`
+	Group      *Group `json:"-"`
 }
 
 func (n *Newline) Is(other Statement) bool {

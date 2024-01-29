@@ -43,6 +43,7 @@ func main() {
 			groupsCommand,
 			printCommand,
 			setCommand,
+			jsonCommand,
 			valueCommand,
 		},
 	}

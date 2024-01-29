@@ -7,12 +7,12 @@ import (
 
 // Comment node represents a comment statement.
 type Comment struct {
-	Value           string
-	LineNumber      int
-	Annotation      bool
-	AnnotationKey   string
-	AnnotationValue string
-	Group           *Group
+	Value           string `json:"value"`
+	LineNumber      int    `json:"line_number"`
+	Annotation      bool   `json:"annotation"`
+	AnnotationKey   string `json:"annotation_key,omitempty"`
+	AnnotationValue string `json:"annotation_value,omitempty"`
+	Group           *Group `json:"-"`
 }
 
 func NewComment(value string) *Comment {

@@ -7,9 +7,9 @@ import (
 
 // Document node represents .env file statement, that contains assignments and comments.
 type Document struct {
-	Statements  []Statement
-	Groups      []*Group
-	Assignments []*Assignment
+	Statements  []Statement   `json:"statements"`
+	Groups      []*Group      `json:"groups"`
+	Assignments []*Assignment `json:"-"`
 }
 
 func (d *Document) Is(other Statement) bool {
