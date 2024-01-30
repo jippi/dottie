@@ -71,13 +71,13 @@ var updateCommand = &cli.Command{
 				continue
 			}
 
-			changed, err := mergedEnv.Set(&ast.Assignment{Key: stmt.Key, Value: stmt.Value}, ast.SetOptions{SkipIfSame: true})
+			changed, err := mergedEnv.Set(&ast.Assignment{Name: stmt.Name, Value: stmt.Value}, ast.SetOptions{SkipIfSame: true})
 			if err != nil {
 				return err
 			}
 
 			if changed {
-				fmt.Println("  ✅", stmt.Key)
+				fmt.Println("  ✅", stmt.Name)
 			}
 		}
 

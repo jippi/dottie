@@ -9,9 +9,9 @@ import (
 )
 
 type Group struct {
-	Name       string
-	Position   Position
-	Statements []Statement
+	Name       string      // Name of the group (within the header)
+	Statements []Statement // Statements within the group
+	Position   Position    // Positional information about the group
 }
 
 func (g *Group) statementNode() {

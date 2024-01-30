@@ -26,15 +26,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							CompleteStatement: true,
-							QuoteType:         token.NoQuotes,
+							Complete:  true,
+							QuoteType: token.NoQuotes,
 						},
 					},
 				},
@@ -45,15 +45,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							CompleteStatement: true,
-							QuoteType:         token.DoubleQuotes,
+							Complete:  true,
+							QuoteType: token.DoubleQuotes,
 						},
 					},
 				},
@@ -64,15 +64,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.SingleQuotes,
-							CompleteStatement: true,
+							QuoteType: token.SingleQuotes,
+							Complete:  true,
 						},
 					},
 				},
@@ -83,7 +83,7 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "",
 							Position: ast.Position{
 								Line:      1,
@@ -101,7 +101,7 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "",
 							Position: ast.Position{
 								Line:      1,
@@ -127,15 +127,15 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Key:   "name",
+							Name:  "name",
 							Value: "",
 							Position: ast.Position{
 								Line:      5,
 								FirstLine: 5,
 								LastLine:  5,
 							},
-							CompleteStatement: false,
-							QuoteType:         token.NoQuotes,
+							Complete:  false,
+							QuoteType: token.NoQuotes,
 						},
 						&ast.Newline{
 							Blank: true,
@@ -154,10 +154,10 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:               "DEBUG_HTTP_ADDR",
-							Value:             ":9090",
-							CompleteStatement: true,
-							QuoteType:         token.NoQuotes,
+							Name:      "DEBUG_HTTP_ADDR",
+							Value:     ":9090",
+							Complete:  true,
+							QuoteType: token.NoQuotes,
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -165,10 +165,10 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Key:               "DEBUG_HTTP_IDLE_TIMEOUT",
-							Value:             "0s",
-							CompleteStatement: true,
-							QuoteType:         token.NoQuotes,
+							Name:      "DEBUG_HTTP_IDLE_TIMEOUT",
+							Value:     "0s",
+							Complete:  true,
+							QuoteType: token.NoQuotes,
 							Position: ast.Position{
 								Line:      2,
 								FirstLine: 2,
@@ -176,10 +176,10 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Key:               "JAEGER_AGENT_ENDPOINT",
-							Value:             "jaeger-otlp-agent:6831",
-							CompleteStatement: true,
-							QuoteType:         token.NoQuotes,
+							Name:      "JAEGER_AGENT_ENDPOINT",
+							Value:     "jaeger-otlp-agent:6831",
+							Complete:  true,
+							QuoteType: token.NoQuotes,
 							Position: ast.Position{
 								Line:      3,
 								FirstLine: 3,
@@ -195,15 +195,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "DEBUG_HTTP_ADDR",
+							Name:  "DEBUG_HTTP_ADDR",
 							Value: ":9090",
 							Position: ast.Position{
 								Line:      2,
 								FirstLine: 1,
 								LastLine:  2,
 							},
-							QuoteType:         token.NoQuotes,
-							CompleteStatement: true,
+							QuoteType: token.NoQuotes,
+							Complete:  true,
 							Comments: []*ast.Comment{
 								{
 									Value: "# comment 1",
@@ -232,15 +232,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "bar\nbaz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							CompleteStatement: true,
-							QuoteType:         token.DoubleQuotes,
+							Complete:  true,
+							QuoteType: token.DoubleQuotes,
 						},
 					},
 				},
@@ -251,15 +251,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "bar\nbaz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.NoQuotes,
-							CompleteStatement: true,
+							QuoteType: token.NoQuotes,
+							Complete:  true,
 						},
 					},
 				},
@@ -270,15 +270,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "'d'",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.DoubleQuotes,
-							CompleteStatement: true,
+							QuoteType: token.DoubleQuotes,
+							Complete:  true,
 						},
 					},
 				},
@@ -289,15 +289,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "foobar=",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.NoQuotes,
-							CompleteStatement: true,
+							QuoteType: token.NoQuotes,
+							Complete:  true,
 						},
 					},
 				},
@@ -308,15 +308,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "bar # this is foo",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							CompleteStatement: true,
-							QuoteType:         token.NoQuotes,
+							Complete:  true,
+							QuoteType: token.NoQuotes,
 						},
 					},
 				},
@@ -327,15 +327,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "bar#baz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.DoubleQuotes,
-							CompleteStatement: true,
+							QuoteType: token.DoubleQuotes,
+							Complete:  true,
 						},
 					},
 				},
@@ -346,15 +346,15 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Key:   "FOO",
+							Name:  "FOO",
 							Value: "bar#baz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							QuoteType:         token.SingleQuotes,
-							CompleteStatement: true,
+							QuoteType: token.SingleQuotes,
+							Complete:  true,
 						},
 					},
 				},

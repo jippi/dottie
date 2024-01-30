@@ -59,7 +59,7 @@ var setCommand = &cli.Command{
 		}
 
 		assignment := ast.Assignment{
-			Key:    key,
+			Name:   key,
 			Value:  cmd.Args().Get(1),
 			Active: cmd.Bool("commented"),
 		}

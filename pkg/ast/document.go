@@ -8,9 +8,9 @@ import (
 
 // Document node represents .env file statement, that contains assignments and comments.
 type Document struct {
-	Statements []Statement `json:"statements"`
-	Groups     []*Group    `json:"groups"`
-	Comments   []*Comment  `json:"-"`
+	Statements  []Statement `json:"statements"` // Statements belonging to the root of the document
+	Groups      []*Group    `json:"groups"`     // Groups within the document
+	Annotations []*Comment  `json:"-"`          // Global annotations for configuration of dottie
 }
 
 func (d *Document) Is(other Statement) bool {
@@ -56,7 +56,7 @@ func (d *Document) GetGroup(config RenderSettings) *Group {
 
 func (d *Document) Get(name string) *Assignment {
 	for _, assign := range d.Assignments() {
-		if assign.Key == name {
+		if assign.Name == name {
 			return assign
 		}
 	}
@@ -76,7 +76,7 @@ type SetOptions struct {
 func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 	var group *Group
 
-	existing := doc.Get(input.Key)
+	existing := doc.Get(input.Name)
 
 	if options.SkipIfSet && existing != nil && len(existing.Value) > 0 && existing.Value != "__CHANGE_ME__" && input.Value != "__CHANGE_ME__" {
 		return false, nil
@@ -89,7 +89,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 	// The key does not exists!
 	if existing == nil {
 		if options.ErrorIfMissing {
-			return false, fmt.Errorf("Key [%s] does not exists", input.Key)
+			return false, fmt.Errorf("Key [%s] does not exists", input.Name)
 		}
 
 		group = doc.GetGroup(RenderSettings{FilterGroup: options.Group})
@@ -102,7 +102,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		}
 
 		existing = &Assignment{
-			Key:   input.Key,
+			Name:  input.Name,
 			Group: group,
 		}
 
@@ -118,7 +118,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 					continue
 				}
 
-				if x.Key == before {
+				if x.Name == before {
 					res = append(res, existing)
 				}
 
@@ -148,7 +148,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 }
 
 func (d *Document) GetConfig(name string) (string, error) {
-	for _, comment := range d.Comments {
+	for _, comment := range d.Annotations {
 		if !comment.Annotation {
 			continue
 		}
@@ -165,7 +165,7 @@ func (d *Document) GetConfig(name string) (string, error) {
 
 func (d *Document) GetPosition(name string) (int, *Assignment) {
 	for i, assign := range d.Assignments() {
-		if assign.Key == name {
+		if assign.Name == name {
 			return i, assign
 		}
 	}

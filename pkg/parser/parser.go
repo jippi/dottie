@@ -82,7 +82,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 
 		case *ast.Comment:
 			if val.Annotation {
-				global.Comments = append(global.Comments, val)
+				global.Annotations = append(global.Annotations, val)
 			}
 
 			comments = append(comments, val)
@@ -274,7 +274,7 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 	defer p.nextToken()
 
 	return &ast.Assignment{
-		Key:       name,
+		Name:      name,
 		Active:    p.token.Commented,
 		QuoteType: token.NoQuotes,
 		Position: ast.Position{
@@ -296,11 +296,11 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		defer p.nextToken()
 
 		return &ast.Assignment{
-			Key:               name,
-			Value:             value,
-			CompleteStatement: true,
-			Active:            p.token.Commented,
-			QuoteType:         quoted,
+			Name:      name,
+			Value:     value,
+			Complete:  true,
+			Active:    p.token.Commented,
+			QuoteType: quoted,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,
 				Line:      p.token.LineNumber,

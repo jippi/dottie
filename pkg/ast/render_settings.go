@@ -16,7 +16,7 @@ type RenderSettings struct {
 }
 
 func (rs *RenderSettings) Match(assignment *Assignment) bool {
-	if len(rs.FilterKeyPrefix) > 0 && !strings.HasPrefix(assignment.Key, rs.FilterKeyPrefix) {
+	if len(rs.FilterKeyPrefix) > 0 && !strings.HasPrefix(assignment.Name, rs.FilterKeyPrefix) {
 		return false
 	}
 
