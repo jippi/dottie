@@ -28,7 +28,7 @@ func WithLineNumber(in uint) Option {
 	}
 }
 
-func WithQuoteType(in QuoteType) Option {
+func WithQuoteType(in Quote) Option {
 	return func(t *Token) {
 		t.QuoteType = in
 	}

@@ -9,14 +9,14 @@ import (
 )
 
 type Assignment struct {
-	Name      string          `json:"key"`       // Name of the key (left hand side of the "=" sign)
-	Value     string          `json:"value"`     // Value of the key (right hand side of the "=" sign)
-	Complete  bool            `json:"complete"`  // The key/value had no value/content after the "=" sign
-	Active    bool            `json:"commented"` // The assignment was commented out (#KEY=VALUE)
-	QuoteType token.QuoteType `json:"quote"`     // The style of quotes used for the assignment
-	Group     *Group          `json:"-"`         // The (optional) group this assignment belongs to
-	Comments  []*Comment      `json:"comments"`  // Comments attached to the assignment (e.g. doc block before it)
-	Position  Position        `json:"position"`  // Information about position of the assignment in the file
+	Name      string      `json:"key"`       // Name of the key (left hand side of the "=" sign)
+	Value     string      `json:"value"`     // Value of the key (right hand side of the "=" sign)
+	Complete  bool        `json:"complete"`  // The key/value had no value/content after the "=" sign
+	Active    bool        `json:"commented"` // The assignment was commented out (#KEY=VALUE)
+	QuoteType token.Quote `json:"quote"`     // The style of quotes used for the assignment
+	Group     *Group      `json:"-"`         // The (optional) group this assignment belongs to
+	Comments  []*Comment  `json:"comments"`  // Comments attached to the assignment (e.g. doc block before it)
+	Position  Position    `json:"position"`  // Information about position of the assignment in the file
 }
 
 func (a *Assignment) statementNode() {}
