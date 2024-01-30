@@ -134,7 +134,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 
 	existing.Value = input.Value
 	existing.Active = input.Active
-	existing.QuoteStyle = input.QuoteStyle
+	existing.QuoteType = input.QuoteType
 
 	if comments := options.Comments; len(comments) > 0 {
 		existing.Comments = nil

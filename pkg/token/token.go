@@ -104,7 +104,7 @@ type Token struct {
 	Length     int
 	LineNumber int
 	Commented  bool
-	QuotedBy   QuoteType
+	QuoteType  QuoteType
 
 	Annotation      bool
 	AnnotationKey   string
@@ -124,6 +124,6 @@ func NewWithLiteral(t Type, literal string, quote QuoteType, offset, line int) T
 		Offset:     offset - length,
 		Length:     length,
 		LineNumber: line,
-		QuotedBy:   quote,
+		QuoteType:  quote,
 	}
 }

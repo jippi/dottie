@@ -19,7 +19,7 @@ type Assignment struct {
 	FirstLine         int             `json:"first_line"`
 	LastLine          int             `json:"last_line"`
 	CompleteStatement bool            `json:"complete"`
-	QuoteStyle        token.QuoteType `json:"quote"`
+	QuoteType         token.QuoteType `json:"quote"`
 }
 
 func (a *Assignment) statementNode() {}
@@ -67,18 +67,18 @@ func (a *Assignment) Render(config RenderSettings) string {
 func (a *Assignment) SetQuote(in string) {
 	switch in {
 	case "\"", "double":
-		a.QuoteStyle = token.DoubleQuotes
+		a.QuoteType = token.DoubleQuotes
 	case "'", "single":
-		a.QuoteStyle = token.SingleQuotes
+		a.QuoteType = token.SingleQuotes
 	case "none":
-		a.QuoteStyle = token.NoQuotes
+		a.QuoteType = token.NoQuotes
 	}
 }
 
 func (a *Assignment) Assignment() string {
-	if a.QuoteStyle == token.NoQuotes {
+	if a.QuoteType == token.NoQuotes {
 		return fmt.Sprintf("%s=%s", a.Key, a.Value)
 	}
 
-	return fmt.Sprintf("%s=%s%s%s", a.Key, a.QuoteStyle, a.Value, a.QuoteStyle)
+	return fmt.Sprintf("%s=%s%s%s", a.Key, a.QuoteType, a.Value, a.QuoteType)
 }

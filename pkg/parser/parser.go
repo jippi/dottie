@@ -265,13 +265,13 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 		Key:        name,
 		LineNumber: p.token.LineNumber,
 		Active:     p.token.Commented,
-		QuoteStyle: token.NoQuotes,
+		QuoteType:  token.NoQuotes,
 	}, nil
 }
 
 func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 	value := p.token.Literal
-	quoted := p.token.QuotedBy
+	quoted := p.token.QuoteType
 
 	p.nextToken()
 
@@ -285,7 +285,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 			LineNumber:        p.token.LineNumber,
 			CompleteStatement: true,
 			Active:            p.token.Commented,
-			QuoteStyle:        quoted,
+			QuoteType:         quoted,
 		}, nil
 
 	default:
