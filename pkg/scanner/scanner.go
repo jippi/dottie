@@ -58,7 +58,11 @@ func New(input string) *Scanner {
 func (s *Scanner) NextToken() token.Token {
 	switch s.rune {
 	case eof:
-		return token.New(token.EOF, s.offset, s.lineNumber)
+		return token.New(
+			token.EOF,
+			token.WithOffset(s.offset),
+			token.WithLineNumber(s.lineNumber),
+		)
 
 	case '\n':
 		return s.scanNewLine()
@@ -66,12 +70,21 @@ func (s *Scanner) NextToken() token.Token {
 	case ' ', '\t', '\r', '\v', '\f':
 		defer s.next()
 
-		return token.NewWithLiteral(token.Space, string(s.rune), 0, s.offset, s.lineNumber)
+		return token.New(
+			token.Space,
+			token.WithLiteralRune(s.rune),
+			token.WithOffset(s.offset),
+			token.WithLineNumber(s.lineNumber),
+		)
 
 	case '=':
 		defer s.next()
 
-		return token.New(token.Assign, s.offset, s.lineNumber)
+		return token.New(
+			token.Assign,
+			token.WithOffset(s.offset),
+			token.WithLineNumber(s.lineNumber),
+		)
 
 	case '#':
 		return s.scanComment()
@@ -106,7 +119,12 @@ func (s *Scanner) scanNewLine() token.Token {
 
 	s.next()
 
-	return token.NewWithLiteral(token.NewLine, "\n", 0, s.offset, s.lineNumber-1)
+	return token.New(
+		token.NewLine,
+		token.WithLiteral("\n"),
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber-1),
+	)
 }
 
 func (s *Scanner) scanIdentifier() token.Token {
@@ -118,7 +136,12 @@ func (s *Scanner) scanIdentifier() token.Token {
 
 	literal := s.input[start:s.offset]
 
-	return token.NewWithLiteral(token.Identifier, literal, 0, s.offset, s.lineNumber)
+	return token.New(
+		token.Identifier,
+		token.WithLiteral(literal),
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber),
+	)
 }
 
 func (s *Scanner) scanComment() token.Token {
@@ -147,13 +170,23 @@ func (s *Scanner) scanComment() token.Token {
 	case s.peek(2) == "##":
 		s.untilEndOfLine()
 
-		return token.NewWithLiteral(token.GroupBanner, s.input[start:s.offset], 0, s.offset, s.lineNumber)
+		return token.New(
+			token.GroupBanner,
+			token.WithLiteral(s.input[start:s.offset]),
+			token.WithOffset(s.offset),
+			token.WithLineNumber(s.lineNumber),
+		)
 	}
 
 	s.untilEndOfLine()
 	lit := s.input[start:s.offset]
 
-	return token.NewWithLiteral(token.Comment, lit, 0, s.offset, s.lineNumber)
+	return token.New(
+		token.Comment,
+		token.WithLiteral(lit),
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber),
+	)
 }
 
 func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
@@ -178,15 +211,13 @@ func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
 
 	value := s.input[valueStart:s.offset]
 
-	// Full line
-	lit := s.input[offset:s.offset]
-
-	comment := token.NewWithLiteral(token.CommentAnnotation, lit, 0, s.offset, s.lineNumber)
-	comment.Annotation = true
-	comment.AnnotationKey = key
-	comment.AnnotationValue = value
-
-	return comment
+	return token.New(
+		token.CommentAnnotation,
+		token.WithLiteral(s.input[offset:s.offset]), // full line
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber),
+		token.WithAnnotation(key, value),
+	)
 }
 
 func (s *Scanner) skipWhitespace() {
@@ -202,11 +233,14 @@ func (s *Scanner) untilEndOfLine() {
 }
 
 func (s *Scanner) scanIllegalRune() token.Token {
-	literal := string(s.rune)
-	offset := s.offset
-	s.next()
+	defer s.next()
 
-	return token.NewWithLiteral(token.Illegal, literal, token.NoQuotes, offset, s.lineNumber)
+	return token.New(
+		token.Illegal,
+		token.WithLiteralRune(s.rune),
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber),
+	)
 }
 
 func (s *Scanner) scanUnquotedValue() token.Token {
@@ -218,7 +252,13 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 
 	lit := escape(s.input[start:s.offset])
 
-	return token.NewWithLiteral(token.Value, lit, token.NoQuotes, s.offset, s.lineNumber)
+	return token.New(
+		token.Value,
+		token.WithLiteral(lit),
+		token.WithQuoteType(token.NoQuotes),
+		token.WithOffset(s.offset),
+		token.WithLineNumber(s.lineNumber),
+	)
 }
 
 func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token.Token {
@@ -251,7 +291,13 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token
 		s.next()
 	}
 
-	return token.NewWithLiteral(tType, lit, quote, offset, s.lineNumber)
+	return token.New(
+		tType,
+		token.WithLiteral(lit),
+		token.WithQuoteType(quote),
+		token.WithOffset(offset),
+		token.WithLineNumber(s.lineNumber),
+	)
 }
 
 // ========================================================================

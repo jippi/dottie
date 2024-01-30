@@ -81,7 +81,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			comments = nil
 
 		case *ast.Comment:
-			if val.Annotation {
+			if val.Annotation != nil {
 				global.Annotations = append(global.Annotations, val)
 			}
 
@@ -216,10 +216,8 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 
 func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 	stm := &ast.Comment{
-		Value:           p.token.Literal,
-		Annotation:      p.token.Annotation,
-		AnnotationKey:   p.token.AnnotationKey,
-		AnnotationValue: p.token.AnnotationValue,
+		Value:      p.token.Literal,
+		Annotation: p.token.Annotation,
 		Position: ast.Position{
 			Line:      p.token.LineNumber,
 			FirstLine: p.token.LineNumber,

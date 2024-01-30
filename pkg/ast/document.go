@@ -149,15 +149,15 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 
 func (d *Document) GetConfig(name string) (string, error) {
 	for _, comment := range d.Annotations {
-		if !comment.Annotation {
+		if comment.Annotation == nil {
 			continue
 		}
 
-		if comment.AnnotationKey != name {
+		if comment.Annotation.Key != name {
 			continue
 		}
 
-		return comment.AnnotationValue, nil
+		return comment.Annotation.Value, nil
 	}
 
 	return "", fmt.Errorf("could not find config key: [%s]", name)

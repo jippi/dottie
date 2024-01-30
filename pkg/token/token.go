@@ -50,13 +50,19 @@ const (
 	Illegal Type = iota
 	EOF
 
+	//
 	// Special characters
+	//
+
 	GroupBanner       // # -- ### (3 or more hashtags)
 	Comment           // # -- # <anything>
 	CommentAnnotation // # -- # @<name> <value>
 	Assign            // = -- KEY=VALUE
 
+	//
 	// The following tokens are related to variable assignments..
+	//
+
 	Identifier // Name of the variable
 	Value      // Value is an interpreted value of the variable, if it contains special characters, they will be escaped
 	RawValue   // RawValue is used as-is. Special characters are not escaped.
@@ -68,13 +74,19 @@ var tokens = []string{
 	Illegal: "Illegal",
 	EOF:     "EOF",
 
+	//
 	// Special characters
+	//
+
 	GroupBanner:       "GROUP_HEADER",
 	Comment:           "COMMENT",
 	CommentAnnotation: "COMMENT_ANNOTATION",
 	Assign:            "ASSIGN",
 
+	//
 	// The following tokens are related to variable assignments..
+	//
+
 	Identifier: "IDENTIFIER",
 	Value:      "VALUE",
 	RawValue:   "RAW_VALUE",
@@ -97,6 +109,11 @@ func (t Type) String() string {
 	return s
 }
 
+type Annotation struct {
+	Key   string
+	Value string
+}
+
 type Token struct {
 	Type       Type
 	Literal    string
@@ -105,25 +122,20 @@ type Token struct {
 	LineNumber uint
 	Commented  bool
 	QuoteType  QuoteType
-
-	Annotation      bool
-	AnnotationKey   string
-	AnnotationValue string
+	Annotation *Annotation
 }
 
-func New(t Type, offset int, line uint) Token {
-	return NewWithLiteral(t, t.String(), 0, offset, line)
-}
-
-func NewWithLiteral(t Type, literal string, quote QuoteType, offset int, line uint) Token {
-	length := len(literal)
-
-	return Token{
-		Type:       t,
-		Literal:    literal,
-		Offset:     offset - length,
-		Length:     length,
-		LineNumber: line,
-		QuoteType:  quote,
+func New(t Type, options ...Option) Token {
+	token := &Token{
+		Type:    t,
+		Literal: t.String(),
 	}
+
+	for _, o := range options {
+		o(token)
+	}
+
+	token.Offset = token.Offset - token.Length
+
+	return *token
 }

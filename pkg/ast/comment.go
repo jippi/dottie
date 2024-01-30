@@ -3,16 +3,16 @@ package ast
 import (
 	"bytes"
 	"reflect"
+
+	"dotfedi/pkg/token"
 )
 
 // Comment node represents a comment statement.
 type Comment struct {
-	Value           string   `json:"value"`                      // The actual comment value
-	Annotation      bool     `json:"annotation"`                 // If the comment was detected to be an annotation
-	AnnotationKey   string   `json:"annotation_key,omitempty"`   // The annotation key (first segment of [# @KEY VALUE])
-	AnnotationValue string   `json:"annotation_value,omitempty"` // The annotation value (second segment of [# @KEY VALUE])
-	Group           *Group   `json:"-"`                          // The (optional) group the comment belongs to
-	Position        Position `json:"position"`                   // Information about position of the assignment in the file
+	Value      string            `json:"value"`      // The actual comment value
+	Annotation *token.Annotation `json:"annotation"` // If the comment was detected to be an annotation
+	Group      *Group            `json:"-"`          // The (optional) group the comment belongs to
+	Position   Position          `json:"position"`   // Information about position of the assignment in the file
 }
 
 func NewComment(value string) *Comment {
