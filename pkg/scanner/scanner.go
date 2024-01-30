@@ -29,7 +29,7 @@ type Scanner struct {
 	prevOffset int  // position before current character
 	offset     int  // character offset
 	peekOffset int  // position after current character
-	lineNumber int  // current line number
+	lineNumber uint // current line number
 }
 
 // New returns new Scanner.
@@ -294,20 +294,20 @@ func (s *Scanner) prev() rune {
 }
 
 // Reads a single Unicode character and returns the rune and its width in bytes.
-func (s *Scanner) scanRune(offset int) (r rune, width int) {
-	r = rune(s.input[offset])
-	width = 1
+func (s *Scanner) scanRune(offset int) (rune, int) {
+	r := rune(s.input[offset])
+	width := 1
 
 	switch {
 	case r >= utf8.RuneSelf:
 		// not ASCII
 		r, width = utf8.DecodeRune([]byte(s.input[offset:]))
 		if r == utf8.RuneError && width == 1 {
-			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
+			panic("illegal UTF-8 encoding on position " + strconv.Itoa(int(offset)))
 		}
 
 		if r == bom && s.offset > 0 {
-			panic("illegal byte order mark on position " + strconv.Itoa(offset))
+			panic("illegal byte order mark on position " + strconv.Itoa(int(offset)))
 		}
 	}
 

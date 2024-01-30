@@ -102,7 +102,7 @@ type Token struct {
 	Literal    string
 	Offset     int
 	Length     int
-	LineNumber int
+	LineNumber uint
 	Commented  bool
 	QuoteType  QuoteType
 
@@ -111,11 +111,11 @@ type Token struct {
 	AnnotationValue string
 }
 
-func New(t Type, offset, line int) Token {
+func New(t Type, offset int, line uint) Token {
 	return NewWithLiteral(t, t.String(), 0, offset, line)
 }
 
-func NewWithLiteral(t Type, literal string, quote QuoteType, offset, line int) Token {
+func NewWithLiteral(t Type, literal string, quote QuoteType, offset int, line uint) Token {
 	length := len(literal)
 
 	return Token{

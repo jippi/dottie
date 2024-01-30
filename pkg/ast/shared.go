@@ -14,6 +14,12 @@ type Statement interface {
 	Render(RenderSettings) string
 }
 
+type Position struct {
+	Line      uint
+	FirstLine uint
+	LastLine  uint
+}
+
 func renderStatements(statements []Statement, config RenderSettings) string {
 	var buf bytes.Buffer
 	var prev Statement

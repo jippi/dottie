@@ -10,8 +10,7 @@ import (
 
 type Group struct {
 	Name       string
-	FirstLine  int
-	LastLine   int
+	Position   Position
 	Statements []Statement
 }
 

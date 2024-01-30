@@ -8,7 +8,7 @@ import (
 // Comment node represents a comment statement.
 type Comment struct {
 	Value           string `json:"value"`
-	LineNumber      int    `json:"line_number"`
+	LineNumber      uint   `json:"line_number"`
 	Annotation      bool   `json:"annotation"`
 	AnnotationKey   string `json:"annotation_key,omitempty"`
 	AnnotationValue string `json:"annotation_value,omitempty"`

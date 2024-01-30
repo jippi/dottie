@@ -22,7 +22,7 @@ var groupsCommand = &cli.Command{
 		fmt.Println()
 
 		for _, group := range groups {
-			fmt.Printf("  '%s' with alias '%s' (line %d to %d)", group, slug.Make(group.String()), group.FirstLine, group.LastLine)
+			fmt.Printf("  '%s' with alias '%s' (line %d to %d)", group, slug.Make(group.String()), group.Position.FirstLine, group.Position.LastLine)
 			fmt.Println()
 		}
 

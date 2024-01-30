@@ -9,17 +9,15 @@ import (
 )
 
 type Assignment struct {
-	Key      string     `json:"key"`
-	Value    string     `json:"value"`
-	Comments []*Comment `json:"comments"`
-	Group    *Group     `json:"-"`
-	Active   bool       `json:"commented"`
+	Key               string     `json:"key"`
+	Value             string     `json:"value"`
+	CompleteStatement bool       `json:"complete"`
+	Comments          []*Comment `json:"comments"`
+	Group             *Group     `json:"-"`
+	Active            bool       `json:"commented"`
 
-	LineNumber        int             `json:"line_number"`
-	FirstLine         int             `json:"first_line"`
-	LastLine          int             `json:"last_line"`
-	CompleteStatement bool            `json:"complete"`
-	QuoteType         token.QuoteType `json:"quote"`
+	Position  Position
+	QuoteType token.QuoteType `json:"quote"`
 }
 
 func (a *Assignment) statementNode() {}

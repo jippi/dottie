@@ -45,7 +45,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 		case *ast.Group:
 			// Track the last line of this group
 			if group != nil {
-				group.LastLine = p.token.LineNumber
+				group.Position.LastLine = p.token.LineNumber
 			}
 
 			// Change the current group
@@ -62,12 +62,12 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			val.Comments = comments
 
 			if len(val.Comments) > 0 {
-				val.FirstLine = val.Comments[0].LineNumber
+				val.Position.FirstLine = val.Comments[0].LineNumber
 			} else {
-				val.FirstLine = val.LineNumber
+				val.Position.FirstLine = val.Position.Line
 			}
 
-			val.LastLine = val.LineNumber
+			val.Position.LastLine = val.Position.Line
 
 			// Assign the assignment to a grouping if such exists
 			if group != nil {
@@ -128,7 +128,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 	}
 
 	if group != nil {
-		group.LastLine = p.token.LineNumber
+		group.Position.LastLine = p.token.LineNumber
 	}
 
 	if len(comments) > 0 {
@@ -162,8 +162,12 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 
 	case token.NewLine:
 		res := &ast.Newline{
-			Blank:      p.wasEmptyLine(),
-			LineNumber: p.token.LineNumber,
+			Blank: p.wasEmptyLine(),
+			Position: ast.Position{
+				Line:      p.token.LineNumber,
+				FirstLine: p.token.LineNumber,
+				LastLine:  p.token.LineNumber,
+			},
 		}
 
 		p.nextToken()
@@ -184,8 +188,12 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 	switch p.token.Type {
 	case token.Comment:
 		group = &ast.Group{
-			Name:      p.token.Literal,
-			FirstLine: p.token.LineNumber,
+			Name: p.token.Literal,
+			Position: ast.Position{
+				FirstLine: p.token.LineNumber,
+				Line:      p.token.LineNumber,
+				LastLine:  p.token.LineNumber,
+			},
 		}
 
 	default:
@@ -262,10 +270,14 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 	defer p.nextToken()
 
 	return &ast.Assignment{
-		Key:        name,
-		LineNumber: p.token.LineNumber,
-		Active:     p.token.Commented,
-		QuoteType:  token.NoQuotes,
+		Key:       name,
+		Active:    p.token.Commented,
+		QuoteType: token.NoQuotes,
+		Position: ast.Position{
+			FirstLine: p.token.LineNumber,
+			Line:      p.token.LineNumber,
+			LastLine:  p.token.LineNumber,
+		},
 	}, nil
 }
 
@@ -282,10 +294,14 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		return &ast.Assignment{
 			Key:               name,
 			Value:             value,
-			LineNumber:        p.token.LineNumber,
 			CompleteStatement: true,
 			Active:            p.token.Commented,
 			QuoteType:         quoted,
+			Position: ast.Position{
+				FirstLine: p.token.LineNumber,
+				Line:      p.token.LineNumber,
+				LastLine:  p.token.LineNumber,
+			},
 		}, nil
 
 	default:
