@@ -272,9 +272,9 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 	defer p.nextToken()
 
 	return &ast.Assignment{
-		Name:      name,
-		Active:    p.token.Commented,
-		QuoteType: token.NoQuotes,
+		Name:   name,
+		Active: p.token.Commented,
+		Quote:  token.NoQuotes,
 		Position: ast.Position{
 			FirstLine: p.token.LineNumber,
 			Line:      p.token.LineNumber,
@@ -294,11 +294,11 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		defer p.nextToken()
 
 		return &ast.Assignment{
-			Name:      name,
-			Value:     value,
-			Complete:  true,
-			Active:    p.token.Commented,
-			QuoteType: quoted,
+			Name:     name,
+			Value:    value,
+			Complete: true,
+			Active:   p.token.Commented,
+			Quote:    quoted,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,
 				Line:      p.token.LineNumber,
