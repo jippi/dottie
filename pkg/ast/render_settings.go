@@ -24,7 +24,7 @@ func (rs *RenderSettings) Match(assignment *Assignment) bool {
 		return false
 	}
 
-	if assignment.Commented && !rs.IncludeCommented {
+	if assignment.Active && !rs.IncludeCommented {
 		return false
 	}
 

@@ -67,7 +67,7 @@ var updateCommand = &cli.Command{
 		// Take current assignments and set them in the new doc
 		fmt.Println("Updating .env.merged with key/value pairs from .env")
 		for _, stmt := range env.Assignments() {
-			if stmt.Commented {
+			if stmt.Active {
 				continue
 			}
 

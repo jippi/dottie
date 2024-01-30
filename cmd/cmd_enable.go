@@ -19,7 +19,7 @@ var enableCommand = &cli.Command{
 		fmt.Println(key)
 
 		existing := env.Get(key)
-		existing.Commented = false
+		existing.Active = false
 
 		return pkg.Save(cmd.String("file"), env)
 	},

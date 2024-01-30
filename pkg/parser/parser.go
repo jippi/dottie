@@ -250,7 +250,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	}
 
 	if stmt != nil {
-		stmt.Commented = shadow
+		stmt.Active = shadow
 
 		return stmt, err
 	}
@@ -264,9 +264,8 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 	return &ast.Assignment{
 		Key:        name,
 		LineNumber: p.token.LineNumber,
-		Naked:      true,
-		Commented:  p.token.Commented,
-		Quoted:     token.NoQuotes,
+		Active:     p.token.Commented,
+		QuoteStyle: token.NoQuotes,
 	}, nil
 }
 
@@ -281,12 +280,12 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		defer p.nextToken()
 
 		return &ast.Assignment{
-			Key:        name,
-			Value:      value,
-			LineNumber: p.token.LineNumber,
-			Complete:   true,
-			Commented:  p.token.Commented,
-			Quoted:     quoted,
+			Key:               name,
+			Value:             value,
+			LineNumber:        p.token.LineNumber,
+			CompleteStatement: true,
+			Active:            p.token.Commented,
+			QuoteStyle:        quoted,
 		}, nil
 
 	default:

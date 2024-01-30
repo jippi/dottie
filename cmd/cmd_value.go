@@ -23,7 +23,7 @@ var valueCommand = &cli.Command{
 			return fmt.Errorf("Key [%s] does not exists", key)
 		}
 
-		if existing.Commented && !cmd.Bool("include-commented") {
+		if existing.Active && !cmd.Bool("include-commented") {
 			return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
 		}
 

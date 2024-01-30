@@ -9,24 +9,23 @@ import (
 )
 
 type Assignment struct {
-	Key       string     `json:"key"`
-	Value     string     `json:"value"`
-	Comments  []*Comment `json:"comments"`
-	Group     *Group     `json:"-"`
-	Commented bool       `json:"commented"`
+	Key      string     `json:"key"`
+	Value    string     `json:"value"`
+	Comments []*Comment `json:"comments"`
+	Group    *Group     `json:"-"`
+	Active   bool       `json:"commented"`
 
-	FirstLine  int             `json:"first_line"`
-	LastLine   int             `json:"last_line"`
-	LineNumber int             `json:"line_number"`
-	Naked      bool            `json:"naked"`
-	Complete   bool            `json:"complete"`
-	Quoted     token.QuoteType `json:"quote"`
+	LineNumber        int             `json:"line_number"`
+	FirstLine         int             `json:"first_line"`
+	LastLine          int             `json:"last_line"`
+	CompleteStatement bool            `json:"complete"`
+	QuoteStyle        token.QuoteType `json:"quote"`
 }
 
 func (a *Assignment) statementNode() {}
 
 func (a *Assignment) Is(other Statement) bool {
-	if other == nil {
+	if other == nil || a == nil {
 		return false
 	}
 
@@ -55,7 +54,7 @@ func (a *Assignment) Render(config RenderSettings) string {
 		}
 	}
 
-	if a.Commented {
+	if a.Active {
 		buff.WriteString("#")
 	}
 
@@ -68,18 +67,18 @@ func (a *Assignment) Render(config RenderSettings) string {
 func (a *Assignment) SetQuote(in string) {
 	switch in {
 	case "\"", "double":
-		a.Quoted = token.DoubleQuotes
+		a.QuoteStyle = token.DoubleQuotes
 	case "'", "single":
-		a.Quoted = token.SingleQuotes
+		a.QuoteStyle = token.SingleQuotes
 	case "none":
-		a.Quoted = token.NoQuotes
+		a.QuoteStyle = token.NoQuotes
 	}
 }
 
 func (a *Assignment) Assignment() string {
-	if a.Quoted == token.NoQuotes {
+	if a.QuoteStyle == token.NoQuotes {
 		return fmt.Sprintf("%s=%s", a.Key, a.Value)
 	}
 
-	return fmt.Sprintf("%s=%s%s%s", a.Key, a.Quoted, a.Value, a.Quoted)
+	return fmt.Sprintf("%s=%s%s%s", a.Key, a.QuoteStyle, a.Value, a.QuoteStyle)
 }
