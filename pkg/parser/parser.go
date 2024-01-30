@@ -317,6 +317,4 @@ func (p *Parser) skipBlankLine() {
 
 func (p *Parser) unexpectedToken() (ast.Statement, error) {
 	return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
-
-	panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
 }
