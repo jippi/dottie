@@ -9,15 +9,14 @@ import (
 )
 
 type Assignment struct {
-	Key               string     `json:"key"`
-	Value             string     `json:"value"`
-	CompleteStatement bool       `json:"complete"`
-	Comments          []*Comment `json:"comments"`
-	Group             *Group     `json:"-"`
-	Active            bool       `json:"commented"`
-
-	Position  Position
-	QuoteType token.QuoteType `json:"quote"`
+	Key               string          `json:"key"`
+	Value             string          `json:"value"`
+	CompleteStatement bool            `json:"complete"`
+	Active            bool            `json:"commented"`
+	QuoteType         token.QuoteType `json:"quote"`
+	Group             *Group          `json:"-"`
+	Position          Position        `json:"position"`
+	Comments          []*Comment      `json:"comments"`
 }
 
 func (a *Assignment) statementNode() {}

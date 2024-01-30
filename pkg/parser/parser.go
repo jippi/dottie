@@ -62,7 +62,7 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			val.Comments = comments
 
 			if len(val.Comments) > 0 {
-				val.Position.FirstLine = val.Comments[0].LineNumber
+				val.Position.FirstLine = val.Comments[0].Position.Line
 			} else {
 				val.Position.FirstLine = val.Position.Line
 			}
@@ -217,10 +217,14 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 	stm := &ast.Comment{
 		Value:           p.token.Literal,
-		LineNumber:      p.token.LineNumber,
 		Annotation:      p.token.Annotation,
 		AnnotationKey:   p.token.AnnotationKey,
 		AnnotationValue: p.token.AnnotationValue,
+		Position: ast.Position{
+			Line:      p.token.LineNumber,
+			FirstLine: p.token.LineNumber,
+			LastLine:  p.token.LineNumber,
+		},
 	}
 
 	p.nextToken()

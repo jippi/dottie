@@ -206,14 +206,22 @@ func TestParser_Parse(t *testing.T) {
 							CompleteStatement: true,
 							Comments: []*ast.Comment{
 								{
-									Value:      "# comment 1",
-									LineNumber: 1,
+									Value: "# comment 1",
+									Position: ast.Position{
+										Line:      1,
+										FirstLine: 1,
+										LastLine:  1,
+									},
 								},
 							},
 						},
 						&ast.Comment{
-							Value:      "# comment 2",
-							LineNumber: 3,
+							Value: "# comment 2",
+							Position: ast.Position{
+								Line:      3,
+								FirstLine: 3,
+								LastLine:  3,
+							},
 						},
 					},
 				},
