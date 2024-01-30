@@ -9,7 +9,6 @@ import (
 	"dotfedi/pkg/token"
 )
 
-// nolint:gochecknoglobals // TODO (titusjaka): rewrite this code in future.
 var escaper = strings.NewReplacer(
 	`\n`, "\n",
 	`\t`, "\t",
@@ -26,11 +25,11 @@ const (
 // Scanner converts a sequence of characters into a sequence of tokens.
 type Scanner struct {
 	input      string
-	ch         rune // current character
+	rune       rune // current character
 	prevOffset int  // position before current character
 	offset     int  // character offset
 	peekOffset int  // position after current character
-	lineNumber int
+	lineNumber int  // current line number
 }
 
 // New returns new Scanner.
@@ -41,7 +40,8 @@ func New(input string) *Scanner {
 	}
 
 	s.next()
-	if s.ch == bom {
+
+	if s.rune == bom {
 		s.next() // ignore BOM at the beginning of the file
 	}
 
@@ -56,7 +56,7 @@ func New(input string) *Scanner {
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
 func (s *Scanner) NextToken() token.Token {
-	switch s.ch {
+	switch s.rune {
 	case eof:
 		return token.New(token.EOF, s.offset, s.lineNumber)
 
@@ -66,7 +66,7 @@ func (s *Scanner) NextToken() token.Token {
 	case ' ', '\t', '\r', '\v', '\f':
 		defer s.next()
 
-		return token.NewWithLiteral(token.Space, string(s.ch), 0, s.offset, s.lineNumber)
+		return token.NewWithLiteral(token.Space, string(s.rune), 0, s.offset, s.lineNumber)
 
 	case '=':
 		defer s.next()
@@ -85,7 +85,7 @@ func (s *Scanner) NextToken() token.Token {
 	default:
 		switch prev := s.prev(); prev {
 		case '\n', bom:
-			if isValidIdentifier(s.ch) {
+			if isValidIdentifier(s.rune) {
 				return s.scanIdentifier()
 			}
 
@@ -112,7 +112,7 @@ func (s *Scanner) scanNewLine() token.Token {
 func (s *Scanner) scanIdentifier() token.Token {
 	start := s.offset
 
-	for isLetter(s.ch) || isDigit(s.ch) || isSymbol(s.ch) {
+	for isLetter(s.rune) || isDigit(s.rune) || isSymbol(s.rune) {
 		s.next()
 	}
 
@@ -128,7 +128,7 @@ func (s *Scanner) scanComment() token.Token {
 
 	// If a comment looks like "#KEY=VALUE" it's a commented/disabled KEY=VALUE pair
 	// so consume it as such instead of a comment
-	if isValidIdentifier(s.ch) {
+	if isValidIdentifier(s.rune) {
 		res := s.scanIdentifier()
 		res.Offset = res.Offset - 1
 		res.Commented = true
@@ -140,7 +140,7 @@ func (s *Scanner) scanComment() token.Token {
 
 	switch {
 	// We got an annotation!
-	case s.ch == '@':
+	case s.rune == '@':
 		return s.scanCommentAnnotation(start)
 
 	// We got a group header
@@ -163,7 +163,7 @@ func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
 	start := s.offset
 
 	// Key
-	for !isWideSpace(s.ch) {
+	for !isWideSpace(s.rune) {
 		s.next()
 	}
 
@@ -190,19 +190,19 @@ func (s *Scanner) scanCommentAnnotation(offset int) token.Token {
 }
 
 func (s *Scanner) skipWhitespace() {
-	for !isEOF(s.ch) && !isNewLine(s.ch) && unicode.IsSpace(s.ch) {
+	for !isEOF(s.rune) && !isNewLine(s.rune) && unicode.IsSpace(s.rune) {
 		s.next()
 	}
 }
 
 func (s *Scanner) untilEndOfLine() {
-	for !isEOF(s.ch) && !isNewLine(s.ch) {
+	for !isEOF(s.rune) && !isNewLine(s.rune) {
 		s.next()
 	}
 }
 
 func (s *Scanner) scanIllegalRune() token.Token {
-	literal := string(s.ch)
+	literal := string(s.rune)
 	offset := s.offset
 	s.next()
 
@@ -212,7 +212,7 @@ func (s *Scanner) scanIllegalRune() token.Token {
 func (s *Scanner) scanUnquotedValue() token.Token {
 	start := s.offset
 
-	for !isEOF(s.ch) && !isNewLine(s.ch) {
+	for !isEOF(s.rune) && !isNewLine(s.rune) {
 		s.next()
 	}
 
@@ -228,12 +228,12 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token
 	start := s.offset
 
 	for {
-		if isEOF(s.ch) || isNewLine(s.ch) {
+		if isEOF(s.rune) || isNewLine(s.rune) {
 			tType = token.Illegal
 			break
 		}
 
-		if quote.Is(s.ch) {
+		if quote.Is(s.rune) {
 			break
 		}
 
@@ -247,7 +247,7 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token
 		lit = escape(lit)
 	}
 
-	if quote.Is(s.ch) {
+	if quote.Is(s.rune) {
 		s.next()
 	}
 
@@ -268,10 +268,10 @@ func (s *Scanner) next() {
 		r, width := s.scanRune(s.offset)
 
 		s.peekOffset += width
-		s.ch = r
+		s.rune = r
 	} else {
 		s.offset = len(s.input)
-		s.ch = eof
+		s.rune = eof
 	}
 
 	if s.offset == 0 {
@@ -304,10 +304,13 @@ func (s *Scanner) scanRune(offset int) (r rune, width int) {
 		r, width = utf8.DecodeRune([]byte(s.input[offset:]))
 		if r == utf8.RuneError && width == 1 {
 			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
-		} else if r == bom && s.offset > 0 {
+		}
+
+		if r == bom && s.offset > 0 {
 			panic("illegal byte order mark on position " + strconv.Itoa(offset))
 		}
 	}
+
 	return r, width
 }
 
