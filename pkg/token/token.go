@@ -21,6 +21,7 @@ func New(t Type, options ...Option) Token {
 		o(token)
 	}
 
+	token.Length = len(token.Literal)
 	token.Offset = token.Offset - token.Length
 
 	return *token
