@@ -7,7 +7,7 @@ type Token struct {
 	Length     int
 	LineNumber uint
 	Commented  bool
-	QuoteType  Quote
+	Quote      Quote
 	Annotation *Annotation
 }
 
