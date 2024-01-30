@@ -1,4 +1,3 @@
-// Package parser implements a parser for the .env files.
 package parser
 
 import (
@@ -64,6 +63,8 @@ func (p *Parser) Parse() (ast.Statement, error) {
 
 			if len(val.Comments) > 0 {
 				val.FirstLine = val.Comments[0].LineNumber
+			} else {
+				val.FirstLine = val.LineNumber
 			}
 
 			val.LastLine = val.LineNumber
@@ -76,20 +77,18 @@ func (p *Parser) Parse() (ast.Statement, error) {
 				global.Statements = append(global.Statements, stmt)
 			}
 
-			global.Assignments = append(global.Assignments, val)
-
 			// Reset comment block
 			comments = nil
 
 		case *ast.Comment:
-			global.Comments = append(global.Comments, val)
+			// global.Comments = append(global.Comments, val)
 
 			comments = append(comments, val)
 
 		case *ast.Newline:
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
-			if previousStatement.Is(val) {
+			if val.Is(previousStatement) {
 				continue
 			}
 
@@ -130,6 +129,18 @@ func (p *Parser) Parse() (ast.Statement, error) {
 		group.LastLine = p.token.LineNumber
 	}
 
+	if len(comments) > 0 {
+		if group != nil {
+			for _, c := range comments {
+				group.Statements = append(group.Statements, c)
+			}
+		} else {
+			for _, c := range comments {
+				global.Statements = append(global.Statements, c)
+			}
+		}
+	}
+
 	return global, nil
 }
 
@@ -158,7 +169,7 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 		return res, nil
 
 	default:
-		panic(fmt.Errorf("(B) unexpected statement: %s(%q)", p.token.Type, p.token.Literal))
+		return nil, fmt.Errorf("(B) unexpected statement: %s(%q)", p.token.Type, p.token.Literal)
 	}
 }
 
@@ -189,7 +200,7 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 		return group, nil
 
 	default:
-		return p.unexpectedTokenPanic()
+		return p.unexpectedToken()
 	}
 }
 
@@ -242,7 +253,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 		return stmt, err
 	}
 
-	return p.unexpectedTokenPanic()
+	return p.unexpectedToken()
 }
 
 func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
@@ -265,7 +276,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
-		p.nextToken()
+		defer p.nextToken()
 
 		return &ast.Assignment{
 			Key:        name,
@@ -277,9 +288,9 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		}, nil
 
 	default:
-		_, _ = p.unexpectedTokenPanic()
+		_, err := p.unexpectedToken()
 
-		return nil, nil
+		return nil, err
 	}
 }
 
@@ -302,10 +313,8 @@ func (p *Parser) skipBlankLine() {
 	}
 }
 
-func (p *Parser) unexpectedTokenPanic() (ast.Statement, error) {
-	if false {
-		return nil, nil
-	}
+func (p *Parser) unexpectedToken() (ast.Statement, error) {
+	return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
 
 	panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
 }

@@ -15,6 +15,7 @@ var printCommand = &cli.Command{
 	Action: func(_ context.Context, _ *cli.Command) error {
 		spew.Config.DisablePointerMethods = true
 		spew.Config.DisableMethods = true
+		// spew.Dump(env)
 
 		fmt.Println(env.Render(*settings))
 

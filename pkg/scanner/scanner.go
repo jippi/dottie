@@ -224,6 +224,7 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 func (s *Scanner) scanQuotedValue(tType token.Type, quote token.QuoteType) token.Token {
 	// opening quote already consumed
 	s.next()
+
 	start := s.offset
 
 	for {

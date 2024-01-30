@@ -8,10 +8,9 @@ import (
 
 // Document node represents .env file statement, that contains assignments and comments.
 type Document struct {
-	Statements  []Statement   `json:"statements"`
-	Groups      []*Group      `json:"groups"`
-	Assignments []*Assignment `json:"-"`
-	Comments    []*Comment    `json:"-"`
+	Statements []Statement `json:"statements"`
+	Groups     []*Group    `json:"groups"`
+	Comments   []*Comment  `json:"-"`
 }
 
 func (d *Document) Is(other Statement) bool {
@@ -25,7 +24,7 @@ func (d *Document) BelongsToGroup(config RenderSettings) bool {
 func (d *Document) statementNode() {
 }
 
-func (d *Document) AllAssignments() []*Assignment {
+func (d *Document) Assignments() []*Assignment {
 	var values []*Assignment
 
 	for _, stmt := range d.Statements {
@@ -56,7 +55,7 @@ func (d *Document) GetGroup(config RenderSettings) *Group {
 }
 
 func (d *Document) Get(name string) *Assignment {
-	for _, assign := range d.Assignments {
+	for _, assign := range d.Assignments() {
 		if assign.Key == name {
 			return assign
 		}
@@ -133,8 +132,6 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		}
 	}
 
-	doc.Assignments = append(doc.Assignments, existing)
-
 	existing.Value = input.Value
 	existing.Commented = input.Commented
 	existing.Quoted = input.Quoted
@@ -167,7 +164,7 @@ func (d *Document) GetConfig(name string) (string, error) {
 }
 
 func (d *Document) GetPosition(name string) (int, *Assignment) {
-	for i, assign := range d.Assignments {
+	for i, assign := range d.Assignments() {
 		if assign.Key == name {
 			return i, assign
 		}
