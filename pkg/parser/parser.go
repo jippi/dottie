@@ -81,7 +81,9 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			comments = nil
 
 		case *ast.Comment:
-			// global.Comments = append(global.Comments, val)
+			if val.Annotation {
+				global.Comments = append(global.Comments, val)
+			}
 
 			comments = append(comments, val)
 
