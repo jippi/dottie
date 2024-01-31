@@ -25,6 +25,8 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 	var prev Statement
 	var line *Newline
 
+	var printed bool
+
 	for _, stmt := range statements {
 		switch val := stmt.(type) {
 
@@ -38,9 +40,12 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				buf.WriteString("\n")
 			}
 
+			printed = true
 			buf.WriteString(output)
 
 		case *Comment:
+			printed = true
+
 			buf.WriteString(val.Render(config))
 
 		case *Assignment:
@@ -64,6 +69,7 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				}
 			}
 
+			printed = true
 			buf.WriteString(output)
 
 		case *Newline:
@@ -81,6 +87,11 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 		}
 
 		prev = stmt
+	}
+
+	// If nothing "useful" was printed, don't bother outputting the groups buffer
+	if !printed {
+		return ""
 	}
 
 	str := buf.String()

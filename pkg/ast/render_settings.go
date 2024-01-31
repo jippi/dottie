@@ -40,5 +40,5 @@ func (rs *RenderSettings) WithGroups() bool {
 }
 
 func (rs *RenderSettings) WithBlankLines() bool {
-	return rs.ShowPretty || rs.ShowBlankLines
+	return rs.ShowPretty || (rs.ShowBlankLines && rs.ShowComments)
 }

@@ -40,7 +40,9 @@ func (g *Group) Render(config RenderSettings) string {
 
 	var buff bytes.Buffer
 
-	if config.WithGroups() {
+	res := renderStatements(g.Statements, config)
+
+	if config.WithGroups() && len(res) > 0 {
 		buff.WriteString("################################################################################")
 		buff.WriteString("\n")
 
@@ -52,7 +54,7 @@ func (g *Group) Render(config RenderSettings) string {
 	}
 
 	// Render the statements attached to the group
-	buff.WriteString(renderStatements(g.Statements, config))
+	buff.WriteString(res)
 
 	return buff.String()
 }
