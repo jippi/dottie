@@ -260,7 +260,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	}
 
 	if stmt != nil {
-		stmt.Active = shadow
+		stmt.Active = !shadow
 
 		return stmt, err
 	}

@@ -2,8 +2,11 @@ module dotfedi
 
 go 1.21
 
+replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240201233924-0b97b35ef326
+
 require (
 	github.com/davecgh/go-spew v1.1.1
+	github.com/go-playground/validator/v10 v10.17.0
 	github.com/gosimple/slug v1.13.1
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/stretchr/testify v1.8.4
@@ -18,6 +21,9 @@ require (
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
+	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -31,6 +37,7 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
+	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

@@ -45,6 +45,7 @@ func main() {
 			printCommand,
 			setCommand,
 			updateCommand,
+			validateCommand,
 			valueCommand,
 		},
 	}

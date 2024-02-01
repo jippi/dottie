@@ -72,6 +72,20 @@ func (a *Assignment) SetQuote(in string) {
 	}
 }
 
+func (a *Assignment) ValidationRules() string {
+	for _, comment := range a.Comments {
+		if comment.Annotation == nil {
+			continue
+		}
+
+		if comment.Annotation.Key == "dottie/validate" {
+			return comment.Annotation.Value
+		}
+	}
+
+	return ""
+}
+
 func (a *Assignment) Assignment() string {
 	if a.Quote == token.NoQuotes {
 		return fmt.Sprintf("%s=%s", a.Name, a.Value)
