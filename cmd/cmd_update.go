@@ -71,7 +71,7 @@ var updateCommand = &cli.Command{
 				continue
 			}
 
-			changed, err := mergedEnv.Set(&ast.Assignment{Name: stmt.Name, Value: stmt.Value}, ast.SetOptions{SkipIfSame: true})
+			changed, err := mergedEnv.Set(&ast.Assignment{Name: stmt.Name, Literal: stmt.Literal}, ast.SetOptions{SkipIfSame: true})
 			if err != nil {
 				return err
 			}

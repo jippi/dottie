@@ -5,6 +5,8 @@ import (
 
 	"dotfedi/pkg/ast"
 	"dotfedi/pkg/token"
+
+	"github.com/compose-spec/compose-go/template"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -28,7 +30,7 @@ func New(scanner Scanner) *Parser {
 }
 
 // Parse parses the .env file and returns an ast.Statement.
-func (p *Parser) Parse() (ast.Statement, error) {
+func (p *Parser) Parse() (*ast.Document, error) {
 	var group *ast.Group
 	var comments []*ast.Comment
 	var previousStatement ast.Statement
@@ -58,6 +60,11 @@ func (p *Parser) Parse() (ast.Statement, error) {
 			global.Statements = append(global.Statements, val)
 
 		case *ast.Assignment:
+			val.Value, err = template.SubstituteWithOptions(val.Literal, global.GetInterpolation)
+			if err != nil {
+				panic(err)
+			}
+
 			// Assign accumulated comments to this assignment
 			val.Comments = comments
 
@@ -235,7 +242,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	var stmt *ast.Assignment
 
 	name := p.token.Literal
-	shadow := p.token.Commented
+	active := !p.token.Commented
 
 	p.nextToken()
 
@@ -260,7 +267,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	}
 
 	if stmt != nil {
-		stmt.Active = !shadow
+		stmt.Active = active
 
 		return stmt, err
 	}
@@ -295,7 +302,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 
 		return &ast.Assignment{
 			Name:     name,
-			Value:    value,
+			Literal:  value,
 			Complete: true,
 			Active:   p.token.Commented,
 			Quote:    quoted,

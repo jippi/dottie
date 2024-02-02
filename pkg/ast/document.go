@@ -3,6 +3,7 @@ package ast
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/go-playground/validator/v10"
@@ -66,6 +67,25 @@ func (d *Document) Get(name string) *Assignment {
 	return nil
 }
 
+func (d *Document) GetInterpolation(in string) (string, bool) {
+	// Lookup in process environment
+	if val, ok := os.LookupEnv(in); ok {
+		return val, ok
+	}
+
+	// Search the currently available assignments in the document
+	assignment := d.Get(in)
+	if assignment == nil {
+		return "", false
+	}
+
+	if !assignment.Active {
+		return "", false
+	}
+
+	return assignment.Value, true
+}
+
 type SetOptions struct {
 	ErrorIfMissing bool
 	SkipIfSet      bool
@@ -80,11 +100,11 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 
 	existing := doc.Get(input.Name)
 
-	if options.SkipIfSet && existing != nil && len(existing.Value) > 0 && existing.Value != "__CHANGE_ME__" && input.Value != "__CHANGE_ME__" {
+	if options.SkipIfSet && existing != nil && len(existing.Literal) > 0 && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
 		return false, nil
 	}
 
-	if options.SkipIfSame && existing != nil && len(existing.Value) > 0 && existing.Value == input.Value {
+	if options.SkipIfSame && existing != nil && len(existing.Literal) > 0 && existing.Literal == input.Literal {
 		return false, nil
 	}
 
@@ -134,7 +154,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		}
 	}
 
-	existing.Value = input.Value
+	existing.Literal = input.Literal
 	existing.Active = input.Active
 	existing.Quote = input.Quote
 
@@ -200,7 +220,7 @@ func (d *Document) Validate() map[string]any {
 			continue
 		}
 
-		data[assignment.Name] = assignment.Value
+		data[assignment.Name] = assignment.Literal
 		rules[assignment.Name] = validationRules
 	}
 

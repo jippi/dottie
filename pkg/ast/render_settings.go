@@ -13,18 +13,20 @@ type RenderSettings struct {
 	ShowComments   bool
 	ShowGroups     bool
 	ShowBlankLines bool
+
+	Interpolate bool
 }
 
 func (rs *RenderSettings) Match(assignment *Assignment) bool {
+	if !assignment.Active && !rs.IncludeCommented {
+		return false
+	}
+
 	if len(rs.FilterKeyPrefix) > 0 && !strings.HasPrefix(assignment.Name, rs.FilterKeyPrefix) {
 		return false
 	}
 
 	if !assignment.BelongsToGroup(*rs) {
-		return false
-	}
-
-	if assignment.Active && !rs.IncludeCommented {
 		return false
 	}
 

@@ -1,7 +1,6 @@
 package pkg
 
 import (
-	"fmt"
 	"io"
 	"os"
 
@@ -38,17 +37,5 @@ func Parse(r io.Reader) (*ast.Document, error) {
 		return nil, err
 	}
 
-	p := parser.New(scanner.New(string(input)))
-
-	statement, err := p.Parse()
-	if err != nil {
-		return nil, err
-	}
-
-	document, ok := statement.(*ast.Document)
-	if !ok {
-		return nil, fmt.Errorf("(A) unexpected statement: %T", statement)
-	}
-
-	return document, nil
+	return parser.New(scanner.New(string(input))).Parse()
 }

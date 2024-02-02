@@ -10,7 +10,8 @@ import (
 
 type Assignment struct {
 	Name     string      `json:"key"`       // Name of the key (left hand side of the "=" sign)
-	Value    string      `json:"value"`     // Value of the key (right hand side of the "=" sign)
+	Literal  string      `json:"literal"`   // Value of the key (right hand side of the "=" sign)
+	Value    string      `json:"value"`     // Value of the key (after interpolation)
 	Complete bool        `json:"complete"`  // The key/value had no value/content after the "=" sign
 	Active   bool        `json:"commented"` // The assignment was commented out (#KEY=VALUE)
 	Quote    token.Quote `json:"quote"`     // The style of quotes used for the assignment
@@ -51,11 +52,11 @@ func (a *Assignment) Render(config RenderSettings) string {
 		}
 	}
 
-	if a.Active {
+	if !a.Active {
 		buff.WriteString("#")
 	}
 
-	buff.WriteString(a.Assignment())
+	buff.WriteString(a.Assignment(config))
 	buff.WriteString("\n")
 
 	return buff.String()
@@ -86,10 +87,15 @@ func (a *Assignment) ValidationRules() string {
 	return ""
 }
 
-func (a *Assignment) Assignment() string {
-	if a.Quote == token.NoQuotes {
-		return fmt.Sprintf("%s=%s", a.Name, a.Value)
+func (a *Assignment) Assignment(config RenderSettings) string {
+	val := a.Literal
+	if config.Interpolate {
+		val = a.Value
 	}
 
-	return fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, a.Value, a.Quote)
+	if a.Quote == token.NoQuotes {
+		return fmt.Sprintf("%s=%s", a.Name, val)
+	}
+
+	return fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, val, a.Quote)
 }

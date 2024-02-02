@@ -27,7 +27,7 @@ var valueCommand = &cli.Command{
 			return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
 		}
 
-		fmt.Println(existing.Value)
+		fmt.Println(existing.Literal)
 
 		return nil
 	},
