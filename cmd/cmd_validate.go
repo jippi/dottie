@@ -28,7 +28,7 @@ var validateCommand = &cli.Command{
 			// actual validation error
 			case validator.ValidationErrors:
 				for _, rule := range err {
-					fmt.Println("Field [", rule.Namespace(), "] failed validation rule [", rule.ActualTag(), "]", rule.Param())
+					fmt.Println("Field [", rule.Field(), "] failed validation rule [", rule.ActualTag(), "]", rule.Param())
 				}
 
 			default:
