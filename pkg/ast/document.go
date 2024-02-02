@@ -83,7 +83,7 @@ func (d *Document) GetInterpolation(in string) (string, bool) {
 		return "", false
 	}
 
-	return assignment.Value, true
+	return assignment.Interpolated, true
 }
 
 type SetOptions struct {

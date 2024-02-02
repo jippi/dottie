@@ -26,9 +26,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "value",
-							Value:   "value",
+							Name:         "name",
+							Literal:      "value",
+							Interpolated: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -47,9 +47,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "value",
-							Value:   "value",
+							Name:         "name",
+							Literal:      "value",
+							Interpolated: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -68,9 +68,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "value",
-							Value:   "value",
+							Name:         "name",
+							Literal:      "value",
+							Interpolated: "value",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -89,10 +89,10 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "",
-							Value:   "",
-							Active:  true,
+							Name:         "name",
+							Literal:      "",
+							Interpolated: "",
+							Active:       true,
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -109,9 +109,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "",
-							Value:   "",
+							Name:         "name",
+							Literal:      "",
+							Interpolated: "",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -137,9 +137,9 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Name:    "name",
-							Literal: "",
-							Value:   "",
+							Name:         "name",
+							Literal:      "",
+							Interpolated: "",
 							Position: ast.Position{
 								Line:      5,
 								FirstLine: 5,
@@ -166,12 +166,12 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:     "DEBUG_HTTP_ADDR",
-							Literal:  ":9090",
-							Value:    ":9090",
-							Complete: true,
-							Active:   true,
-							Quote:    token.NoQuotes,
+							Name:         "DEBUG_HTTP_ADDR",
+							Literal:      ":9090",
+							Interpolated: ":9090",
+							Complete:     true,
+							Active:       true,
+							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -179,12 +179,12 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Name:     "DEBUG_HTTP_IDLE_TIMEOUT",
-							Literal:  "0s",
-							Value:    "0s",
-							Complete: true,
-							Active:   true,
-							Quote:    token.NoQuotes,
+							Name:         "DEBUG_HTTP_IDLE_TIMEOUT",
+							Literal:      "0s",
+							Interpolated: "0s",
+							Complete:     true,
+							Active:       true,
+							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								Line:      2,
 								FirstLine: 2,
@@ -192,12 +192,12 @@ func TestParser_Parse(t *testing.T) {
 							},
 						},
 						&ast.Assignment{
-							Name:     "JAEGER_AGENT_ENDPOINT",
-							Literal:  "jaeger-otlp-agent:6831",
-							Value:    "jaeger-otlp-agent:6831",
-							Complete: true,
-							Active:   true,
-							Quote:    token.NoQuotes,
+							Name:         "JAEGER_AGENT_ENDPOINT",
+							Literal:      "jaeger-otlp-agent:6831",
+							Interpolated: "jaeger-otlp-agent:6831",
+							Complete:     true,
+							Active:       true,
+							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								Line:      3,
 								FirstLine: 3,
@@ -213,9 +213,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "DEBUG_HTTP_ADDR",
-							Literal: ":9090",
-							Value:   ":9090",
+							Name:         "DEBUG_HTTP_ADDR",
+							Literal:      ":9090",
+							Interpolated: ":9090",
 							Position: ast.Position{
 								Line:      2,
 								FirstLine: 1,
@@ -252,9 +252,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "bar\nbaz",
-							Value:   "bar\nbaz",
+							Name:         "FOO",
+							Literal:      "bar\nbaz",
+							Interpolated: "bar\nbaz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -273,9 +273,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "bar\nbaz",
-							Value:   "bar\nbaz",
+							Name:         "FOO",
+							Literal:      "bar\nbaz",
+							Interpolated: "bar\nbaz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -294,9 +294,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "'d'",
-							Value:   "'d'",
+							Name:         "FOO",
+							Literal:      "'d'",
+							Interpolated: "'d'",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -315,9 +315,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "foobar=",
-							Value:   "foobar=",
+							Name:         "FOO",
+							Literal:      "foobar=",
+							Interpolated: "foobar=",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -336,9 +336,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "bar # this is foo",
-							Value:   "bar # this is foo",
+							Name:         "FOO",
+							Literal:      "bar # this is foo",
+							Interpolated: "bar # this is foo",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -357,9 +357,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "bar#baz",
-							Value:   "bar#baz",
+							Name:         "FOO",
+							Literal:      "bar#baz",
+							Interpolated: "bar#baz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
@@ -378,9 +378,9 @@ func TestParser_Parse(t *testing.T) {
 				expected: &ast.Document{
 					Statements: []ast.Statement{
 						&ast.Assignment{
-							Name:    "FOO",
-							Literal: "bar#baz",
-							Value:   "bar#baz",
+							Name:         "FOO",
+							Literal:      "bar#baz",
+							Interpolated: "bar#baz",
 							Position: ast.Position{
 								Line:      1,
 								FirstLine: 1,
