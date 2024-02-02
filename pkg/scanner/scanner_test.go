@@ -1,9 +1,10 @@
 package scanner_test
 
 import (
-	"dotfedi/pkg/scanner"
-	"dotfedi/pkg/token"
 	"testing"
+
+	"github.com/jippi/dottie/pkg/scanner"
+	"github.com/jippi/dottie/pkg/token"
 
 	"github.com/stretchr/testify/assert"
 )

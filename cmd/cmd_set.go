@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"dotfedi/pkg"
-	"dotfedi/pkg/ast"
+	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 
 	"github.com/urfave/cli/v3"
 )

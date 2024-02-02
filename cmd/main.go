@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"dotfedi/pkg/ast"
+	"github.com/jippi/dottie/pkg/ast"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/urfave/cli/v3"

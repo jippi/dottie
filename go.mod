@@ -1,4 +1,4 @@
-module dotfedi
+module github.com/jippi/dottie
 
 go 1.21
 

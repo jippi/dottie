@@ -3,10 +3,10 @@ package parser_test
 import (
 	"testing"
 
-	"dotfedi/pkg/ast"
-	"dotfedi/pkg/parser"
-	"dotfedi/pkg/scanner"
-	"dotfedi/pkg/token"
+	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/parser"
+	"github.com/jippi/dottie/pkg/scanner"
+	"github.com/jippi/dottie/pkg/token"
 
 	"github.com/stretchr/testify/require"
 )

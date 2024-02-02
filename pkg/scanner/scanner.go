@@ -6,7 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"dotfedi/pkg/token"
+	"github.com/jippi/dottie/pkg/token"
 )
 
 var escaper = strings.NewReplacer(

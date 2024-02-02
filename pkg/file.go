@@ -4,9 +4,9 @@ import (
 	"io"
 	"os"
 
-	"dotfedi/pkg/ast"
-	"dotfedi/pkg/parser"
-	"dotfedi/pkg/scanner"
+	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/parser"
+	"github.com/jippi/dottie/pkg/scanner"
 )
 
 func Load(filename string) (rows *ast.Document, err error) {

@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"dotfedi/pkg/ast"
-	"dotfedi/pkg/token"
+	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/token"
 
 	"github.com/compose-spec/compose-go/template"
 )

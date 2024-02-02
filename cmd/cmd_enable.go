@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"dotfedi/pkg"
+	"github.com/jippi/dottie/pkg"
 
 	"github.com/urfave/cli/v3"
 )

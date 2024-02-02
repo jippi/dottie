@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"dotfedi/pkg/token"
+	"github.com/jippi/dottie/pkg/token"
 )
 
 type Assignment struct {

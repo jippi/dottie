@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"reflect"
 
-	"dotfedi/pkg/token"
+	"github.com/jippi/dottie/pkg/token"
 )
 
 // Comment node represents a comment statement.
