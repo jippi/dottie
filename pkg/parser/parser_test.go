@@ -402,7 +402,7 @@ func TestParser_Parse(t *testing.T) {
 				t.Parallel()
 
 				s := scanner.New(tt.input)
-				p := parser.New(s)
+				p := parser.New(s, "-")
 
 				stmts, err := p.Parse()
 				require.NoError(t, err)
@@ -445,7 +445,7 @@ func TestParser_Parse(t *testing.T) {
 				t.Parallel()
 
 				s := scanner.New(tt.input)
-				p := parser.New(s)
+				p := parser.New(s, "-")
 
 				stmts, err := p.Parse()
 				require.Error(t, err, "expected an error")

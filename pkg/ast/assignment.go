@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/jippi/dottie/pkg/token"
 )
@@ -36,6 +37,23 @@ func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
 
 func (a *Assignment) HasComments() bool {
 	return len(a.Comments) > 0
+}
+
+func (a *Assignment) RenderDocumentation(withoutPrefix bool) string {
+	var buff bytes.Buffer
+
+	for _, c := range a.Comments {
+		val := c.Value
+
+		if withoutPrefix {
+			val = strings.TrimPrefix(val, "# ")
+		}
+
+		buff.WriteString(val)
+		buff.WriteString("\n")
+	}
+
+	return buff.String()
 }
 
 func (a *Assignment) Render(config RenderSettings) string {

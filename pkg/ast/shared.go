@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -15,9 +16,14 @@ type Statement interface {
 }
 
 type Position struct {
+	File      string
 	Line      uint
 	FirstLine uint
 	LastLine  uint
+}
+
+func (p Position) String() string {
+	return fmt.Sprintf("%s:%d", p.File, p.Line)
 }
 
 func renderStatements(statements []Statement, config RenderSettings) string {

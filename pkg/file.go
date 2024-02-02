@@ -16,7 +16,7 @@ func Load(filename string) (rows *ast.Document, err error) {
 	}
 	defer r.Close()
 
-	return Parse(r)
+	return Parse(r, filename)
 }
 
 func Save(filename string, env *ast.Document) error {
@@ -31,11 +31,11 @@ func Save(filename string, env *ast.Document) error {
 }
 
 // Parse reads an env file from io.Reader, returning a map of keys and values.
-func Parse(r io.Reader) (*ast.Document, error) {
+func Parse(r io.Reader, filename string) (*ast.Document, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return parser.New(scanner.New(string(input))).Parse()
+	return parser.New(scanner.New(string(input)), filename).Parse()
 }

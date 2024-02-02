@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-
-	"github.com/go-playground/validator/v10"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
@@ -204,36 +202,4 @@ func (d *Document) RenderFull() string {
 
 func (d *Document) Render(config RenderSettings) string {
 	return renderStatements(d.Statements, config)
-}
-
-func (d *Document) Validate() []any {
-	data := map[string]any{}
-	rules := map[string]any{}
-	order := []string{}
-
-	for _, assignment := range d.Assignments() {
-		if !assignment.Active {
-			continue
-		}
-
-		validationRules := assignment.ValidationRules()
-		if len(validationRules) == 0 {
-			continue
-		}
-
-		data[assignment.Name] = assignment.Interpolated
-		rules[assignment.Name] = validationRules
-		order = append(order, assignment.Name)
-	}
-
-	outcome := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
-
-	result := []any{}
-	for _, key := range order {
-		if x, ok := outcome[key]; ok {
-			result = append(result, x)
-		}
-	}
-
-	return result
 }

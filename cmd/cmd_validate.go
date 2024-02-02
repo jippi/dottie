@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/tui"
+	"github.com/jippi/dottie/pkg/validation"
 	"github.com/urfave/cli/v3"
 )
 
@@ -12,30 +15,42 @@ var validateCommand = &cli.Command{
 	Name:   "validate",
 	Usage:  "Validate .env file",
 	Before: setup,
-	Action: func(_ context.Context, _ *cli.Command) error {
-		res := env.Validate()
+	Action: func(_ context.Context, cmd *cli.Command) error {
+		res := validation.Validate(env)
 		if len(res) == 0 {
-			fmt.Println("all god")
+			tui.Theme.Success.StderrPrinter().Box("No validation errors found")
+
 			return nil
 		}
 
+		stderr := tui.Theme.Danger.StderrPrinter()
+		stderr.Box(fmt.Sprintf("%d validation errors found", len(res)))
+		stderr.Println()
+
 		for _, errIsh := range res {
-			switch err := errIsh.(type) {
-			// user configuration error
-			case validator.InvalidValidationError:
-				fmt.Println("invalid validation rules:", err.Error())
-
-			// actual validation error
-			case validator.ValidationErrors:
-				for _, rule := range err {
-					fmt.Println("Field [", rule.Field(), "] failed validation rule [", rule.ActualTag(), "]", rule.Param())
-				}
-
-			default:
-				panic(fmt.Sprintf("unknown error type for field type: %T", err))
-			}
+			validation.Explain(env, errIsh)
 		}
 
-		return fmt.Errorf("validation error")
+		env, err := pkg.Load(cmd.String("file"))
+		if err != nil {
+			return fmt.Errorf("failed to reload .env file: %w", err)
+		}
+
+		newRes := validation.Validate(env)
+		if len(newRes) == 0 {
+			tui.Theme.Success.StderrPrinter().Println("All validation errors fixed")
+
+			return nil
+		}
+
+		diff := len(res) - len(newRes)
+		if diff > 0 {
+			tui.Theme.Warning.StderrPrinter().Box(
+				fmt.Sprintf("%d validation errors left", len(newRes)),
+				tui.Theme.Success.StderrPrinter().Sprintf("%d validation errors was fixed", diff),
+			)
+		}
+
+		return errors.New("Validation failed")
 	},
 }

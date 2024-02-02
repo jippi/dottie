@@ -16,16 +16,18 @@ type Scanner interface {
 
 // Parser takes a Scanner and builds an abstract syntax tree.
 type Parser struct {
+	filename      string
 	scanner       Scanner
 	token         token.Token
 	previousToken token.Token
 }
 
 // New returns new Parser.
-func New(scanner Scanner) *Parser {
+func New(scanner Scanner, filename string) *Parser {
 	return &Parser{
-		scanner: scanner,
-		token:   scanner.NextToken(),
+		filename: filename,
+		scanner:  scanner,
+		token:    scanner.NextToken(),
 	}
 }
 
@@ -45,6 +47,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 		switch val := stmt.(type) {
 		case *ast.Group:
+			val.Position.File = p.filename
+
 			// Track the last line of this group
 			if group != nil {
 				group.Position.LastLine = p.token.LineNumber
@@ -60,6 +64,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			global.Statements = append(global.Statements, val)
 
 		case *ast.Assignment:
+			val.Position.File = p.filename
+
 			val.Interpolated, err = template.Substitute(val.Literal, global.GetInterpolation)
 			if err != nil {
 				panic(err)
@@ -88,6 +94,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			comments = nil
 
 		case *ast.Comment:
+			val.Position.File = p.filename
+
 			if val.Annotation != nil {
 				global.Annotations = append(global.Annotations, val)
 			}
@@ -95,6 +103,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			comments = append(comments, val)
 
 		case *ast.Newline:
+			val.Position.File = p.filename
+
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
 			if val.Is(previousStatement) {
