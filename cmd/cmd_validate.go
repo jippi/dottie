@@ -19,20 +19,20 @@ var validateCommand = &cli.Command{
 			return nil
 		}
 
-		for field, errIsh := range res {
+		for _, errIsh := range res {
 			switch err := errIsh.(type) {
 			// user configuration error
 			case validator.InvalidValidationError:
-				fmt.Println("[", field, "] invalid validation rules", err.Error())
+				fmt.Println("invalid validation rules:", err.Error())
 
 			// actual validation error
 			case validator.ValidationErrors:
 				for _, rule := range err {
-					fmt.Println("Field [", field, "] failed validation rule [", rule.ActualTag(), "]", rule.Param())
+					fmt.Println("Field [", rule.Namespace(), "] failed validation rule [", rule.ActualTag(), "]", rule.Param())
 				}
 
 			default:
-				panic("unknown error type for field [" + field + "]")
+				panic(fmt.Sprintf("unknown error type for field type: %T", err))
 			}
 		}
 

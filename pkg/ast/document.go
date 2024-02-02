@@ -206,9 +206,10 @@ func (d *Document) Render(config RenderSettings) string {
 	return renderStatements(d.Statements, config)
 }
 
-func (d *Document) Validate() map[string]any {
+func (d *Document) Validate() []any {
 	data := map[string]any{}
 	rules := map[string]any{}
+	order := []string{}
 
 	for _, assignment := range d.Assignments() {
 		if !assignment.Active {
@@ -220,9 +221,19 @@ func (d *Document) Validate() map[string]any {
 			continue
 		}
 
-		data[assignment.Name] = assignment.Literal
+		data[assignment.Name] = assignment.Interpolated
 		rules[assignment.Name] = validationRules
+		order = append(order, assignment.Name)
 	}
 
-	return validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
+	outcome := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
+
+	result := []any{}
+	for _, key := range order {
+		if x, ok := outcome[key]; ok {
+			result = append(result, x)
+		}
+	}
+
+	return result
 }

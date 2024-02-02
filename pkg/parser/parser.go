@@ -60,7 +60,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			global.Statements = append(global.Statements, val)
 
 		case *ast.Assignment:
-			val.Interpolated, err = template.SubstituteWithOptions(val.Literal, global.GetInterpolation)
+			val.Interpolated, err = template.Substitute(val.Literal, global.GetInterpolation)
 			if err != nil {
 				panic(err)
 			}

@@ -2,7 +2,7 @@ module github.com/jippi/dottie
 
 go 1.21
 
-replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240201233924-0b97b35ef326
+replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
 
 require (
 	github.com/compose-spec/compose-go v1.20.2
