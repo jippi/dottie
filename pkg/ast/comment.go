@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
 )
 
 // Comment node represents a comment statement.
@@ -38,12 +39,26 @@ func (c *Comment) Render(config RenderSettings) string {
 		return ""
 	}
 
-	var buff bytes.Buffer
+	var buf bytes.Buffer
 
-	buff.WriteString(c.Value)
-	buff.WriteString("\n")
+	if config.WithColors() {
+		out := tui.Theme.Success.Printer(tui.RendererWithTTY(&buf))
+		if c.Annotation != nil {
+			out.Print("# ")
+			out.ApplyStyle(tui.Bold).Print("@", c.Annotation.Key)
+			out.Print(" ")
+			out.Println(c.Annotation.Value)
+		} else {
+			out.Println(c.Value)
+		}
 
-	return buff.String()
+		return buf.String()
+	}
+
+	buf.WriteString(c.Value)
+	buf.WriteString("\n")
+
+	return buf.String()
 }
 
 func (c *Comment) statementNode() {

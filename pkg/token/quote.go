@@ -24,6 +24,11 @@ func (qt Quote) Rune() rune {
 
 // String returns the string corresponding to the token.
 func (qt Quote) String() string {
+	// the NoQuotes rune (0) are *not* the same as an empty string, so we handle it specially here
+	if qt == NoQuotes {
+		return ""
+	}
+
 	s := ""
 
 	if int(qt) < len(quotes) {

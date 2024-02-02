@@ -61,7 +61,7 @@ var setCommand = &cli.Command{
 		assignment := ast.Assignment{
 			Name:    key,
 			Literal: cmd.Args().Get(1),
-			Active:  cmd.Bool("commented"),
+			Active:  !cmd.Bool("commented"),
 		}
 
 		assignment.SetQuote(cmd.String("quote-style"))

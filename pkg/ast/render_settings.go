@@ -13,6 +13,7 @@ type RenderSettings struct {
 	ShowComments   bool
 	ShowGroups     bool
 	ShowBlankLines bool
+	ShowColors     bool
 
 	Interpolate bool
 }
@@ -43,4 +44,8 @@ func (rs *RenderSettings) WithGroups() bool {
 
 func (rs *RenderSettings) WithBlankLines() bool {
 	return rs.ShowPretty || (rs.ShowBlankLines && rs.ShowComments)
+}
+
+func (rs *RenderSettings) WithColors() bool {
+	return rs.ShowColors
 }

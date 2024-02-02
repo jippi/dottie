@@ -25,6 +25,7 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		ShowBlankLines: cmd.Root().Bool("with-blank-lines"),
 		ShowComments:   cmd.Root().Bool("with-comments"),
 		ShowGroups:     cmd.Root().Bool("with-groups"),
+		ShowColors:     cmd.Root().Bool("colors"),
 	}
 
 	return nil

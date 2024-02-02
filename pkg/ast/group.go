@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/jippi/dottie/pkg/tui"
 )
 
 type Group struct {
@@ -38,23 +39,30 @@ func (g *Group) Render(config RenderSettings) string {
 		return ""
 	}
 
-	var buff bytes.Buffer
+	var buf bytes.Buffer
 
 	res := renderStatements(g.Statements, config)
 
 	if config.WithGroups() && len(res) > 0 {
-		buff.WriteString("################################################################################")
-		buff.WriteString("\n")
+		if config.WithColors() {
+			out := tui.Theme.Info.Printer(tui.RendererWithTTY(&buf))
+			out.Println("################################################################################")
+			out.ApplyStyle(tui.Bold).Println(g.Name)
+			out.Println("################################################################################")
+		} else {
+			buf.WriteString("################################################################################")
+			buf.WriteString("\n")
 
-		buff.WriteString(g.Name)
-		buff.WriteString("\n")
+			buf.WriteString(g.Name)
+			buf.WriteString("\n")
 
-		buff.WriteString("################################################################################")
-		buff.WriteString("\n")
+			buf.WriteString("################################################################################")
+			buf.WriteString("\n")
+		}
 	}
 
 	// Render the statements attached to the group
-	buff.WriteString(res)
+	buf.WriteString(res)
 
-	return buff.String()
+	return buf.String()
 }

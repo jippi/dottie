@@ -195,8 +195,12 @@ func (d *Document) GetPosition(name string) (int, *Assignment) {
 
 func (d *Document) RenderFull() string {
 	return d.Render(RenderSettings{
-		ShowPretty:       true,
 		IncludeCommented: true,
+		ShowBlankLines:   true,
+		ShowColors:       false,
+		ShowComments:     true,
+		ShowGroups:       true,
+		Interpolate:      false,
 	})
 }
 

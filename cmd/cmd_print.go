@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"os"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -18,7 +19,7 @@ var printCommand = &cli.Command{
 
 		settings.Interpolate = true
 
-		fmt.Println(env.Render(*settings))
+		tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println(env.Render(*settings))
 
 		return nil
 	},

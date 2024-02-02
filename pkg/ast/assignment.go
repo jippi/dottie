@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
 )
 
 type Assignment struct {
@@ -61,23 +62,27 @@ func (a *Assignment) Render(config RenderSettings) string {
 		return ""
 	}
 
-	var buff bytes.Buffer
+	var buf bytes.Buffer
 
 	if config.WithComments() {
 		for _, c := range a.Comments {
-			buff.WriteString(c.Value)
-			buff.WriteString("\n")
+			buf.WriteString(c.Render(config))
 		}
 	}
 
 	if !a.Active {
-		buff.WriteString("#")
+		if config.WithColors() {
+			out := tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf))
+			out.Print("#")
+		} else {
+			buf.WriteString("#")
+		}
 	}
 
-	buff.WriteString(a.Assignment(config))
-	buff.WriteString("\n")
+	buf.WriteString(a.Assignment(config))
+	buf.WriteString("\n")
 
-	return buff.String()
+	return buf.String()
 }
 
 func (a *Assignment) SetQuote(in string) {
@@ -107,13 +112,23 @@ func (a *Assignment) ValidationRules() string {
 
 func (a *Assignment) Assignment(config RenderSettings) string {
 	val := a.Literal
+
 	if config.Interpolate {
 		val = a.Interpolated
 	}
 
-	if a.Quote == token.NoQuotes {
-		return fmt.Sprintf("%s=%s", a.Name, val)
+	if config.WithColors() {
+		var buf bytes.Buffer
+
+		tui.Theme.Primary.Printer(tui.RendererWithTTY(&buf)).Print(a.Name)
+		tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf)).Print("=")
+		tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(a.Quote)
+		tui.Theme.Warning.Printer(tui.RendererWithTTY(&buf)).Print(val)
+		tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(a.Quote)
+
+		return buf.String()
 	}
 
+	// panic(a.Quote)
 	return fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, val, a.Quote)
 }

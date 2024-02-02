@@ -8,8 +8,14 @@ import (
 	"github.com/teacat/noire"
 )
 
-func Renderer(w io.Writer) *lipgloss.Renderer {
-	return lipgloss.NewRenderer(w, termenv.WithTTY(true))
+func Renderer(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
+	return lipgloss.NewRenderer(w, opts...)
+}
+
+func RendererWithTTY(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
+	opts = append(opts, termenv.WithTTY(true))
+
+	return lipgloss.NewRenderer(w, opts...)
 }
 
 func ShadeColor(in string, percent float64) lipgloss.Color {
