@@ -194,19 +194,6 @@ brews:
       fish_completion.install "completions/dottie.fish"
       man1.install "manpages/dottie.1.gz"
 
-# nix:
-#   - name: goreleaser
-#     repository:
-#       owner: goreleaser
-#       name: nur
-#     homepage: https://goreleaser.com
-#     description: Deliver Go binaries as fast and easily as possible
-#     path: pkgs/goreleaser/default.nix
-#     license: mit
-#     extra_install: |-
-#       installManPage ./manpages/goreleaser.1.gz
-#       installShellCompletion ./completions/*
-
 # winget:
 #   - name: dottie
 #     publisher: jippi
@@ -313,7 +300,7 @@ snapcrafts:
     publish: true
     license: MIT
     grade: stable
-    confinement: classic
+    confinement: devmode
     disable: "{{ if .IsNightly }}true{{ end }}"
 
 sboms:
