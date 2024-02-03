@@ -154,7 +154,7 @@ tasks:
       - task: dottie:test:deb
       - task: dottie:test:rpm
 
-  dottie:
+  goreleaser:
     desc: Run GoReleaser either in snapshot or release mode
     deps:
       - build
