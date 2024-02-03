@@ -72,6 +72,7 @@ jobs:
             ~/.cache/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          save-always: true
           restore-keys: |
             ${{ runner.os }}-go-
 
