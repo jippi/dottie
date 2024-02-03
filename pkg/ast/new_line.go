@@ -1,6 +1,8 @@
 package ast
 
-import "reflect"
+import (
+	"reflect"
+)
 
 type Newline struct {
 	Blank    bool   `json:"blank"`

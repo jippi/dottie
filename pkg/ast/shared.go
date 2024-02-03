@@ -30,25 +30,13 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 	var (
 		buf     bytes.Buffer
 		prev    Statement
-		line    *Newline
 		printed bool
 	)
 
 	for _, stmt := range statements {
 		switch val := stmt.(type) {
 		case *Group:
-			output := val.Render(config)
-			if len(output) == 0 {
-				continue
-			}
-
-			if config.WithBlankLines() && !prev.Is(line) {
-				buf.WriteString("\n")
-			}
-
-			buf.WriteString(output)
-
-			printed = true
+			panic("group should never happen in renderStatements")
 
 		case *Comment:
 			printed = true
@@ -65,12 +53,9 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 			// which mean they are too close in the document, so we will
 			// attempt to inject some new-lines to give them some space
 			if config.WithBlankLines() && val.Is(prev) {
-				switch {
 				// only allow cuddling of assignments if they both have no comments
-				case val.HasComments() || assignmentHasComments(prev):
+				if val.HasComments() || assignmentHasComments(prev) {
 					buf.WriteString("\n")
-
-				default:
 				}
 			}
 

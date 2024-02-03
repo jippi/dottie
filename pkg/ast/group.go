@@ -41,9 +41,9 @@ func (g *Group) Render(config RenderSettings) string {
 
 	var buf bytes.Buffer
 
-	res := renderStatements(g.Statements, config)
+	rendered := renderStatements(g.Statements, config)
 
-	if config.WithGroups() && len(res) > 0 {
+	if config.WithGroups() && len(rendered) > 0 {
 		if config.WithColors() {
 			out := tui.Theme.Info.Printer(tui.RendererWithTTY(&buf))
 			out.Println("################################################################################")
@@ -62,7 +62,7 @@ func (g *Group) Render(config RenderSettings) string {
 	}
 
 	// Render the statements attached to the group
-	buf.WriteString(res)
+	buf.WriteString(rendered)
 
 	return buf.String()
 }

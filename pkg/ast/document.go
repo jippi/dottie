@@ -2,6 +2,7 @@
 package ast
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"reflect"
@@ -112,22 +113,16 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 			return false, fmt.Errorf("Key [%s] does not exists", input.Name)
 		}
 
-		group = doc.GetGroup(RenderSettings{FilterGroup: options.Group})
-		if group == nil {
-			group = &Group{
-				Name: input.Group.Name,
-			}
-
-			doc.Groups = append(doc.Groups, group)
-		}
+		group = doc.EnsureGroup(options.Group)
 
 		existing = &Assignment{
-			Name:  input.Name,
-			Group: group,
+			Name:    input.Name,
+			Literal: input.Literal,
+			Active:  input.Active,
+			Group:   group,
 		}
 
-		switch {
-		case len(options.Before) > 0:
+		if len(options.Before) > 0 {
 			before := options.Before
 
 			var res []Statement
@@ -148,9 +143,20 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 			}
 
 			group.Statements = res
+		}
 
-		default:
+		if group != nil {
 			group.Statements = append(group.Statements, existing)
+		} else {
+			idx := len(doc.Statements) - 1
+
+			// if laste statement is a newline, replace it with the new assignment
+			if idx > 1 && doc.Statements[idx].Is(&Newline{}) {
+				doc.Statements[idx] = existing
+			} else {
+				// otherwise append it
+				doc.Statements = append(doc.Statements, existing)
+			}
 		}
 	}
 
@@ -167,6 +173,22 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (doc *Document) EnsureGroup(name string) *Group {
+	if len(name) == 0 {
+		return nil
+	}
+
+	group := doc.GetGroup(RenderSettings{FilterGroup: name})
+
+	if group == nil && len(name) > 0 {
+		group = &Group{
+			Name: "# " + name,
+		}
+	}
+
+	return group
 }
 
 func (d *Document) GetConfig(name string) (string, error) {
@@ -198,14 +220,35 @@ func (d *Document) GetPosition(name string) (int, *Assignment) {
 func (d *Document) RenderFull() string {
 	return d.Render(RenderSettings{
 		IncludeCommented: true,
+		Interpolate:      false,
 		ShowBlankLines:   true,
 		ShowColors:       false,
 		ShowComments:     true,
 		ShowGroups:       true,
-		Interpolate:      false,
 	})
 }
 
 func (d *Document) Render(config RenderSettings) string {
-	return renderStatements(d.Statements, config)
+	var buf bytes.Buffer
+
+	root := renderStatements(d.Statements, config)
+	if len(root) > 0 {
+		buf.WriteString(root)
+	}
+
+	hasOutput := config.WithGroups() && len(root) > 0
+
+	for _, group := range d.Groups {
+		output := group.Render(config)
+
+		if hasOutput && len(output) > 0 {
+			buf.WriteString("\n")
+		}
+
+		hasOutput = config.WithGroups() && len(output) > 0
+
+		buf.WriteString(output)
+	}
+
+	return buf.String()
 }

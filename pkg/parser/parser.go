@@ -62,9 +62,6 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			// Append the group
 			global.Groups = append(global.Groups, group)
 
-			// Append it to the statements list
-			global.Statements = append(global.Statements, val)
-
 		case *ast.Assignment:
 			val.Position.File = p.filename
 

@@ -27,9 +27,6 @@ var (
 func main() {
 	__load()
 
-	// spew.Config.DisableMethods = true
-	// spew.Config.DisablePointerMethods = true
-
 	origHelpPrinterCustom := cli.HelpPrinterCustom
 	defer func() {
 		cli.HelpPrinterCustom = origHelpPrinterCustom
@@ -66,5 +63,8 @@ func main() {
 }
 
 func __load() {
+	spew.Config.DisablePointerMethods = true
+	spew.Config.DisableMethods = true
+
 	spew.Dump()
 }

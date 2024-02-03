@@ -14,6 +14,35 @@
 * Filtering by key/prefix/groups when printing keys.
 * Literal (what you see is what you get) or interpolated (shell-like interpolation of variables) modes.
 
+## Example
+
+```shell
+# Crate a new env file
+touch env.test
+
+# Create a key/pair value
+dottie --file env.test set my_key value
+
+# Create another key/pair value with two comments (one is validation that the value must be a number)
+dottie --file env.test set --comment 'first line' --comment '@dottie/validate number' my_int 123
+
+# Check validation (success)
+dottie --file env.test validate
+
+# Print the file
+dottie --file env.test print
+
+# Print the file (but pretty)
+dottie --file env.test print --pretty
+
+# Change the "my_int" key to a non-number
+# NOTE: the comments are kept even if they are omitted here
+dottie --file env.test set my_int test
+
+# Test validation again
+dottie --file env.test validate
+```
+
 ## Install
 
 ### homebrew tap

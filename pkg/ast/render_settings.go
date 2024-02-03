@@ -9,11 +9,11 @@ type RenderSettings struct {
 	FilterGroup      string
 	IncludeCommented bool
 
-	ShowPretty     bool
-	ShowComments   bool
-	ShowGroups     bool
 	ShowBlankLines bool
 	ShowColors     bool
+	ShowComments   bool
+	ShowGroups     bool
+	ShowPretty     bool
 
 	Interpolate bool
 }
