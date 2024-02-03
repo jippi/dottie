@@ -82,8 +82,8 @@ var updateCommand = &cli.Command{
 		}
 
 		fmt.Println()
-
 		fmt.Println("Saving .env.merged")
+
 		return pkg.Save(".env.merged", mergedEnv)
 	},
 }

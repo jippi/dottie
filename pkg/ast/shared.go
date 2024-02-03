@@ -27,15 +27,15 @@ func (p Position) String() string {
 }
 
 func renderStatements(statements []Statement, config RenderSettings) string {
-	var buf bytes.Buffer
-	var prev Statement
-	var line *Newline
-
-	var printed bool
+	var (
+		buf     bytes.Buffer
+		prev    Statement
+		line    *Newline
+		printed bool
+	)
 
 	for _, stmt := range statements {
 		switch val := stmt.(type) {
-
 		case *Group:
 			output := val.Render(config)
 			if len(output) == 0 {
@@ -46,8 +46,9 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 				buf.WriteString("\n")
 			}
 
-			printed = true
 			buf.WriteString(output)
+
+			printed = true
 
 		case *Comment:
 			printed = true
@@ -65,18 +66,17 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 			// attempt to inject some new-lines to give them some space
 			if config.WithBlankLines() && val.Is(prev) {
 				switch {
-
 				// only allow cuddling of assignments if they both have no comments
 				case val.HasComments() || assignmentHasComments(prev):
 					buf.WriteString("\n")
 
 				default:
-					// NOOP
 				}
 			}
 
-			printed = true
 			buf.WriteString(output)
+
+			printed = true
 
 		case *Newline:
 			output := val.Render(config)

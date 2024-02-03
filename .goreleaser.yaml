@@ -1,0 +1,20 @@
+dockers:
+  - image_templates:
+      - 'jippi/dottie:{{ .Tag }}-amd64'
+    use: buildx
+    build_flag_templates:
+      - '--pull'
+      - '--platform=linux/amd64'
+  - image_templates:
+      - 'myorg/myuser:{{ .Tag }}-arm64'
+    use: buildx
+    build_flag_templates:
+      - '--pull'
+      - '--platform=linux/arm64'
+    goarch: arm64
+
+docker_manifests:
+  - name_template: 'jippi/dottie:{{ .Tag }}'
+    image_templates:
+      - 'jippi/dottie:{{ .Tag }}-amd64'
+      - 'jippi/dottie:{{ .Tag }}-arm64'

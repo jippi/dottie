@@ -52,6 +52,7 @@ func main() {
 
 	cli.HelpPrinterCustom = func(out io.Writer, templ string, data interface{}, customFuncs map[string]interface{}) {
 		origHelpPrinterCustom(out, templ, data, customFuncs)
+
 		if data != app {
 			origHelpPrinterCustom(app.Writer, globalOptionsTemplate, app, nil)
 		}

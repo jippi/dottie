@@ -19,6 +19,7 @@ var jsonCommand = &cli.Command{
 		}
 
 		fmt.Println(string(b))
+
 		return nil
 	},
 }

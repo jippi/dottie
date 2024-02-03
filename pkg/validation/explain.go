@@ -75,16 +75,19 @@ func AskToCreateDirectory(path string) {
 		Run()
 	if err != nil {
 		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled: " + err.Error())
+
 		return
 	}
 
 	if !confirm {
 		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled")
+
 		return
 	}
 
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		tui.Theme.Danger.StderrPrinter().Println("    Could not create directory: " + err.Error())
+
 		return
 	}
 
@@ -104,12 +107,14 @@ func AskToSetValue(env *ast.Document, assignment *ast.Assignment) {
 		Run()
 	if err != nil {
 		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled: " + err.Error())
+
 		return
 	}
 
 	assignment.Literal = value
 	if err := pkg.Save(assignment.Position.File, env); err != nil {
 		tui.Theme.Danger.StderrPrinter().Println("    Could not update key with value [" + value + "]: " + err.Error())
+
 		return
 	}
 

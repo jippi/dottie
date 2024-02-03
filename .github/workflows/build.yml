@@ -1,0 +1,77 @@
+name: build
+
+on:
+  push:
+    branches:
+      - "main"
+
+  pull_request:
+    paths:
+      - "go.*"
+      - "**/*.go"
+      - "Taskfile.yml"
+      - "Dockerfile"
+      - ".github/workflows/*.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  govulncheck:
+    uses: caarlos0/meta/.github/workflows/govulncheck.yml@main
+
+  semgrep:
+    uses: caarlos0/meta/.github/workflows/semgrep.yml@main
+
+  ruleguard:
+    uses: caarlos0/meta/.github/workflows/ruleguard.yml@main
+    with:
+      args: "-disable largeloopcopy"
+
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_CLI_EXPERIMENTAL: "enabled"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: setup-snapcraft
+        # FIXME: the mkdirs are a hack for https://github.com/goreleaser/goreleaser/issues/1715
+        run: |
+          sudo apt-get update
+          sudo apt-get -yq --no-install-suggests --no-install-recommends install snapcraft
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+      - uses: crazy-max/ghaction-upx@v3
+        with:
+          install-only: true
+      - uses: cachix/install-nix-action@v25
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v4
+        with:
+          go-version: stable
+      - uses: sigstore/cosign-installer@v3.4.0
+      - uses: anchore/sbom-action/download-syft@v0.15.8
+      - name: setup-validate-krew-manifest
+        run: go install sigs.k8s.io/krew/cmd/validate-krew-manifest@latest
+      - name: setup-tparse
+        run: go install github.com/mfridman/tparse@latest
+      - name: setup
+        run: |
+          task setup
+          task build
+      - name: test
+        run: ./scripts/test.sh
+      - uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044 # v4
+        with:
+          file: ./coverage.txt
+      - run: ./goreleaser check
+      - run: git diff

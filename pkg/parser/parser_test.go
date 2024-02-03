@@ -15,6 +15,8 @@ func TestParser_Parse(t *testing.T) {
 	t.Parallel()
 
 	t.Run("parse assigment successful", func(t *testing.T) {
+		t.Parallel()
+
 		tests := []struct {
 			name     string
 			input    string
@@ -30,6 +32,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "value",
 							Interpolated: "value",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -51,6 +54,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "value",
 							Interpolated: "value",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -72,6 +76,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "value",
 							Interpolated: "value",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -94,6 +99,7 @@ func TestParser_Parse(t *testing.T) {
 							Interpolated: "",
 							Active:       true,
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -113,6 +119,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "",
 							Interpolated: "",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -131,6 +138,7 @@ func TestParser_Parse(t *testing.T) {
 						&ast.Newline{
 							Blank: true,
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -141,6 +149,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "",
 							Interpolated: "",
 							Position: ast.Position{
+								File:      "-",
 								Line:      5,
 								FirstLine: 5,
 								LastLine:  5,
@@ -152,6 +161,7 @@ func TestParser_Parse(t *testing.T) {
 						&ast.Newline{
 							Blank: true,
 							Position: ast.Position{
+								File:      "-",
 								Line:      6,
 								FirstLine: 6,
 								LastLine:  6,
@@ -173,6 +183,7 @@ func TestParser_Parse(t *testing.T) {
 							Active:       true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -186,6 +197,7 @@ func TestParser_Parse(t *testing.T) {
 							Active:       true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
+								File:      "-",
 								Line:      2,
 								FirstLine: 2,
 								LastLine:  2,
@@ -199,6 +211,7 @@ func TestParser_Parse(t *testing.T) {
 							Active:       true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
+								File:      "-",
 								Line:      3,
 								FirstLine: 3,
 								LastLine:  3,
@@ -217,6 +230,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      ":9090",
 							Interpolated: ":9090",
 							Position: ast.Position{
+								File:      "-",
 								Line:      2,
 								FirstLine: 1,
 								LastLine:  2,
@@ -228,6 +242,7 @@ func TestParser_Parse(t *testing.T) {
 								{
 									Value: "# comment 1",
 									Position: ast.Position{
+										File:      "-",
 										Line:      1,
 										FirstLine: 1,
 										LastLine:  1,
@@ -238,6 +253,7 @@ func TestParser_Parse(t *testing.T) {
 						&ast.Comment{
 							Value: "# comment 2",
 							Position: ast.Position{
+								File:      "-",
 								Line:      3,
 								FirstLine: 3,
 								LastLine:  3,
@@ -256,6 +272,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "bar\nbaz",
 							Interpolated: "bar\nbaz",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -277,6 +294,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "bar\nbaz",
 							Interpolated: "bar\nbaz",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -298,6 +316,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "'d'",
 							Interpolated: "'d'",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -319,6 +338,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "foobar=",
 							Interpolated: "foobar=",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -340,6 +360,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "bar # this is foo",
 							Interpolated: "bar # this is foo",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -361,6 +382,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "bar#baz",
 							Interpolated: "bar#baz",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
@@ -382,6 +404,7 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "bar#baz",
 							Interpolated: "bar#baz",
 							Position: ast.Position{
+								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,

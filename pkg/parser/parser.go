@@ -33,9 +33,11 @@ func New(scanner Scanner, filename string) *Parser {
 
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse() (*ast.Document, error) {
-	var group *ast.Group
-	var comments []*ast.Comment
-	var previousStatement ast.Statement
+	var (
+		group             *ast.Group
+		comments          []*ast.Comment
+		previousStatement ast.Statement
+	)
 
 	global := &ast.Document{}
 
@@ -248,8 +250,10 @@ func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 }
 
 func (p *Parser) parseRowStatement() (ast.Statement, error) {
-	var err error
-	var stmt *ast.Assignment
+	var (
+		err  error
+		stmt *ast.Assignment
+	)
 
 	name := p.token.Literal
 	active := !p.token.Commented
@@ -258,18 +262,24 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
-		stmt, err = p.parseNakedAssign(name)
+		stmt = p.parseNakedAssign(name)
 
 	case token.Assign:
 		p.nextToken()
 
 		switch p.token.Type {
 		case token.NewLine, token.EOF:
-			stmt, err = p.parseNakedAssign(name)
+			stmt = p.parseNakedAssign(name)
 
 		case token.Value, token.RawValue:
 			stmt, err = p.parseCompleteAssign(name)
+
+		default:
+			_, err = p.unexpectedToken()
 		}
+
+	default:
+		_, err = p.unexpectedToken()
 	}
 
 	if err != nil {
@@ -285,7 +295,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	return p.unexpectedToken()
 }
 
-func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
+func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
 	defer p.nextToken()
 
 	return &ast.Assignment{
@@ -297,7 +307,7 @@ func (p *Parser) parseNakedAssign(name string) (*ast.Assignment, error) {
 			Line:      p.token.LineNumber,
 			LastLine:  p.token.LineNumber,
 		},
-	}, nil
+	}
 }
 
 func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {

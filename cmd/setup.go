@@ -11,6 +11,7 @@ import (
 
 func setup(_ context.Context, cmd *cli.Command) error {
 	var err error
+
 	env, err = pkg.Load(cmd.String("file"))
 	if err != nil {
 		return err

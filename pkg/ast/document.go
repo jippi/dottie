@@ -131,10 +131,12 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 			before := options.Before
 
 			var res []Statement
+
 			for _, stmt := range group.Statements {
 				x, ok := stmt.(*Assignment)
 				if !ok {
 					res = append(res, stmt)
+
 					continue
 				}
 

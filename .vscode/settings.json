@@ -1,0 +1,17 @@
+{
+  "files.eol": "\n",
+  "go.buildTags": "mage",
+  "go.formatTool": "gofumpt",
+  "go.formatFlags": [
+    "-extra"
+  ],
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "package",
+  "go.lintFlags": [
+    "--fast",
+    "--fix"
+  ],
+  "[go]": {
+    "editor.formatOnSave": true,
+  }
+}

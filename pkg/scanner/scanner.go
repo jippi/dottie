@@ -270,6 +270,7 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Tok
 	for {
 		if isEOF(s.rune) || isNewLine(s.rune) {
 			tType = token.Illegal
+
 			break
 		}
 
@@ -332,6 +333,7 @@ func (s *Scanner) prev() rune {
 
 	case s.prevOffset < len(s.input):
 		r, _ := s.scanRune(s.prevOffset)
+
 		return r
 
 	default:
@@ -349,11 +351,11 @@ func (s *Scanner) scanRune(offset int) (rune, int) {
 		// not ASCII
 		r, width = utf8.DecodeRune([]byte(s.input[offset:]))
 		if r == utf8.RuneError && width == 1 {
-			panic("illegal UTF-8 encoding on position " + strconv.Itoa(int(offset)))
+			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
 		}
 
 		if r == bom && s.offset > 0 {
-			panic("illegal byte order mark on position " + strconv.Itoa(int(offset)))
+			panic("illegal byte order mark on position " + strconv.Itoa(offset))
 		}
 	}
 
@@ -394,6 +396,7 @@ func isSymbol(r rune) bool {
 	case '_', '.', ',', '-':
 		return true
 	}
+
 	return false
 }
 

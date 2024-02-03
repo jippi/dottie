@@ -32,12 +32,14 @@ func Validate(d *ast.Document) []ValidationError {
 
 		data[assignment.Name] = assignment.Interpolated
 		rules[assignment.Name] = validationRules
+
 		fieldOrder = append(fieldOrder, assignment.Name)
 	}
 
 	errors := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
 
 	result := []ValidationError{}
+
 	for _, field := range fieldOrder {
 		if err, ok := errors[field]; ok {
 			result = append(result, ValidationError{
