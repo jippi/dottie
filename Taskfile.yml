@@ -166,7 +166,7 @@ tasks:
 
   nightly:
     cmds:
-      - gh run list --workflow=nightly-oss.yml
-      - gh workflow run nightly-oss.yml
+      - gh run list --workflow=nightly.yml
+      - gh workflow run nightly.yml
       - sleep 30
       - gh run watch
