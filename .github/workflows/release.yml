@@ -90,13 +90,18 @@ jobs:
             ./dist/*.apk
           key: ${{ github.ref }}
 
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - uses: sigstore/cosign-installer@v3.4.0
 
       - uses: anchore/sbom-action/download-syft@v0.15.8
-
-      - uses: crazy-max/ghaction-upx@v3
-        with:
-          install-only: true
 
       - name: ghcr-login
         if: startsWith(github.ref, 'refs/tags/v')
@@ -122,4 +127,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
           SNAPCRAFT_STORE_CREDENTIALS: "${{ secrets.SNAPCRAFT_LOGIN }}"
+          FURY_PUSH_TOKEN: "${{ secrets.FURY_PUSH_TOKEN }}"
         run: task goreleaser
