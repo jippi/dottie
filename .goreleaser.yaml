@@ -300,7 +300,6 @@ snapcrafts:
     publish: true
     license: MIT
     grade: stable
-    confinement: devmode
     disable: "{{ if .IsNightly }}true{{ end }}"
 
 sboms:
