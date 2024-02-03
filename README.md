@@ -8,19 +8,6 @@
 brew install jippi/tap/dottie
 ```
 
-### snapcraft
-
-```shell
-sudo snap install dottie
-```
-
-### scoop
-
-```shell
-scoop bucket add dottie https://github.com/jippi/scoop-bucket.git
-scoop install dottie
-```
-
 ### apt
 
 ```shell
@@ -38,6 +25,19 @@ baseurl=https://pkg.jippi.dev/yum/
 enabled=1
 gpgcheck=0' | sudo tee /etc/yum.repos.d/dottie.repo
 sudo yum install dottie
+```
+
+### snapcraft
+
+```shell
+sudo snap install dottie
+```
+
+### scoop
+
+```shell
+scoop bucket add dottie https://github.com/jippi/scoop-bucket.git
+scoop install dottie
 ```
 
 ### aur
