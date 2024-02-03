@@ -179,7 +179,7 @@ archives:
 brews:
   - repository:
       owner: jippi
-      name: dottie-homebrew-tap
+      name: homebrew-tap
     folder: Formula
     goarm: "7"
     homepage: https://github.com/jippi/dottie
@@ -220,21 +220,21 @@ aurs:
       # man pages
       install -Dm644 "./manpages/dottie.1.gz" "${pkgdir}/usr/share/man/man1/dottie.1.gz"
 
-# scoops:
-#   - repository:
-#       owner: jippi
-#       name: dottie-scoop
-#     folder: bucket
-#     homepage: https://github.com/jippi/dottie
-#     description: Hello world
-#     license: MIT
+scoops:
+  - repository:
+      owner: jippi
+      name: scoop-bucket
+    folder: bucket
+    homepage: https://github.com/jippi/dottie
+    description: Make working with .env files easier
+    license: MIT
 
 nfpms:
   - file_name_template: "{{ .ConventionalFileName }}"
     id: packages
     homepage: https://github.com/jippi/dottie
     description: |-
-      Hello World
+      Make working with .env files easier
     maintainer: Christian Winther <dottie@jippi.dev>
     license: MIT
     vendor: dottie
