@@ -183,7 +183,7 @@ brews:
     folder: Formula
     goarm: "7"
     homepage: https://github.com/jippi/dottie
-    description: Hello World
+    description: Makes working with .env files easy
     license: MIT
     test: |
       system "#{bin}/dottie -v"

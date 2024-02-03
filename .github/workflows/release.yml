@@ -118,7 +118,8 @@ jobs:
 
       - name: goreleaser-release
         env:
+          AUR_KEY: "${{ secrets.AUR_KEY }}"
+          FURY_PUSH_TOKEN: "${{ secrets.FURY_PUSH_TOKEN }}"
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           SNAPCRAFT_STORE_CREDENTIALS: "${{ secrets.SNAPCRAFT_LOGIN }}"
-          FURY_PUSH_TOKEN: "${{ secrets.FURY_PUSH_TOKEN }}"
         run: task goreleaser
