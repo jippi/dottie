@@ -77,7 +77,7 @@ tasks:
   dottie:test:pkg:
     desc: Test a package
     cmds:
-      - docker run --platform linux/{{ .Platform }} --rm --workdir /tmp -v $PWD/dist:/tmp {{ .Image }} sh -c '{{ .Cmd }} && goreleaser --version'
+      - docker run --platform linux/{{ .Platform }} --rm --workdir /tmp -v $PWD/dist:/tmp {{ .Image }} sh -c '{{ .Cmd }} && dottie'
 
   dottie:test:rpm:
     desc: Tests rpm packages
@@ -88,17 +88,17 @@ tasks:
         vars:
           Platform: "386"
           Image: centos:centos7
-          Cmd: "{{.rpm}} goreleaser-*.i386.rpm"
+          Cmd: "{{.rpm}} dottie-*.i386.rpm"
       - task: dottie:test:pkg
         vars:
           Platform: "amd64"
           Image: fedora
-          Cmd: "{{.rpm}} goreleaser-*.x86_64.rpm"
+          Cmd: "{{.rpm}} dottie-*.x86_64.rpm"
       - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: fedora
-          Cmd: "{{.rpm}} goreleaser-*.aarch64.rpm"
+          Cmd: "{{.rpm}} dottie-*.aarch64.rpm"
 
   dottie:test:deb:
     desc: Tests deb packages
@@ -109,17 +109,17 @@ tasks:
         vars:
           Platform: "amd64"
           Image: ubuntu
-          Cmd: "{{.dpkg}} goreleaser*_amd64.deb"
+          Cmd: "{{.dpkg}} dottie*_amd64.deb"
       - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: ubuntu
-          Cmd: "{{.dpkg}} goreleaser*_arm64.deb"
+          Cmd: "{{.dpkg}} dottie*_arm64.deb"
       - task: dottie:test:pkg
         vars:
           Platform: "arm/7"
           Image: ubuntu
-          Cmd: "{{.dpkg}} goreleaser*_armhf.deb"
+          Cmd: "{{.dpkg}} dottie*_armhf.deb"
 
   dottie:test:apk:
     desc: Tests apk packages
@@ -130,22 +130,22 @@ tasks:
         vars:
           Platform: "386"
           Image: alpine
-          Cmd: "{{.apk}} goreleaser*_x86.apk"
+          Cmd: "{{.apk}} dottie*_x86.apk"
       - task: dottie:test:pkg
         vars:
           Platform: "amd64"
           Image: alpine
-          Cmd: "{{.apk}} goreleaser*_x86_64.apk"
+          Cmd: "{{.apk}} dottie*_x86_64.apk"
       - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: alpine
-          Cmd: "{{.apk}} goreleaser*_aarch64.apk"
+          Cmd: "{{.apk}} dottie*_aarch64.apk"
       - task: dottie:test:pkg
         vars:
           Platform: "arm/7"
           Image: alpine
-          Cmd: "{{.apk}} goreleaser*_armv7.apk"
+          Cmd: "{{.apk}} dottie*_armv7.apk"
 
   dottie:test:
     desc: Test built linux packages
