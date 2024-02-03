@@ -189,54 +189,36 @@ brews:
       system "#{bin}/dottie -v"
     dependencies: []
     extra_install: |-
-      bash_completion.install "completions/dottie.bash" => "goreleaser"
-      zsh_completion.install "completions/dottie.zsh" => "_goreleaser"
+      bash_completion.install "completions/dottie.bash" => "dottie"
+      zsh_completion.install "completions/dottie.zsh" => "_dottie"
       fish_completion.install "completions/dottie.fish"
       man1.install "manpages/dottie.1.gz"
 
-# winget:
-#   - name: dottie
-#     publisher: jippi
-#     license: MIT
-#     homepage: https://github.com/jippi/dottie
-#     short_description: Hello World
-#     repository:
-#       owner: goreleaser
-#       name: winget-pkgs
-#       branch: "goreleaser-{{.Version}}"
-#       pull_request:
-#         enabled: true
-#         draft: true
-#         base:
-#           owner: microsoft
-#           name: winget-pkgs
-#           branch: master
+aurs:
+  - homepage: https://github.com/jippi/dottie
+    description: Makes working with .env files easy
+    maintainers:
+      - "Christian Winther <dottie at jippi dot dev>"
+    license: MIT
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/dottie-bin.git"
+    package: |-
+      # bin
+      install -Dm755 "./dottie" "${pkgdir}/usr/bin/dottie"
 
-# aurs:
-#   - homepage: https://github.com/jippi/dottie
-#     description: Hello World
-#     maintainers:
-#       - "Christian Winther <dottie at jippi dot dev>"
-#     license: MIT
-#     private_key: "{{ .Env.AUR_KEY }}"
-#     git_url: "ssh://aur@aur.archlinux.org/goreleaser-bin.git"
-#     package: |-
-#       # bin
-#       install -Dm755 "./goreleaser" "${pkgdir}/usr/bin/goreleaser"
+      # license
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/dottie/LICENSE"
 
-#       # license
-#       install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/goreleaser/LICENSE"
+      # completions
+      mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
+      mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
+      mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
+      install -Dm644 "./completions/dottie.bash" "${pkgdir}/usr/share/bash-completion/completions/dottie"
+      install -Dm644 "./completions/dottie.zsh" "${pkgdir}/usr/share/zsh/site-functions/_dottie"
+      install -Dm644 "./completions/dottie.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/dottie.fish"
 
-#       # completions
-#       mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
-#       mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
-#       mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
-#       install -Dm644 "./completions/goreleaser.bash" "${pkgdir}/usr/share/bash-completion/completions/goreleaser"
-#       install -Dm644 "./completions/goreleaser.zsh" "${pkgdir}/usr/share/zsh/site-functions/_goreleaser"
-#       install -Dm644 "./completions/goreleaser.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/goreleaser.fish"
-
-#       # man pages
-#       install -Dm644 "./manpages/goreleaser.1.gz" "${pkgdir}/usr/share/man/man1/goreleaser.1.gz"
+      # man pages
+      install -Dm644 "./manpages/dottie.1.gz" "${pkgdir}/usr/share/man/man1/dottie.1.gz"
 
 # scoops:
 #   - repository:
