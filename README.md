@@ -1,5 +1,19 @@
 # Dottie
 
+## About
+
+`dottie` (`dot` ⚫ `tie` 👔 or `dotty`) is a tool for working with dot-env (`.env`) files more enjoyable and safe.
+
+* Grouping of keys into logical sections
+* Rich validation of key/value pairs via comment "annotations"
+* Update/sync/migrate a `.env` file from an upstream/external source for easy upgrades/migrations.
+* Create/Read/Update/Delete commands for easy programmatic manipulation of the `.env` file.
+* JSON representation of the `.env` file for templating or external consumption.
+* Enable (uncomment) and Disable (comment) KEY/VALUE pairs.
+* Colorized / pretty / dense / export output.
+* Filtering by key/prefix/groups when printing keys.
+* Literal (what you see is what you get) or interpolated (shell-like interpolation of variables) modes.
+
 ## Install
 
 ### homebrew tap
