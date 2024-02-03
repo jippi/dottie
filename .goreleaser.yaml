@@ -1,20 +1,360 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=jcroql
+version: 1
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod tidy
+    - ./scripts/completions.sh
+    - ./scripts/manpages.sh
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+gomod:
+  proxy: true
+
+report_sizes: true
+
+git:
+  ignore_tags:
+    - "{{ if not .IsNightly }}nightly{{ end }}"
+
+metadata:
+  mod_timestamp: "{{ .CommitTimestamp }}"
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+      - ppc64
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X main.builtBy=goreleaser -X main.treeState={{ .IsGitDirty }}
+
+universal_binaries:
+  - replace: false
+
+# temporarely disables until we add better filters for platforms et al, and test more.
+# upx:
+#   - enabled: true
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^test:"
+      - "^chore"
+      - "merge conflict"
+      - Merge pull request
+      - Merge remote-tracking branch
+      - Merge branch
+      - go mod tidy
+  groups:
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix|chore)\(deps\)!?:.+$'
+      order: 300
+    - title: "New Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 100
+    - title: "Security updates"
+      regexp: '^.*?sec(\([[:word:]]+\))??!?:.+$'
+      order: 150
+    - title: "Bug fixes"
+      regexp: '^.*?(fix|refactor)(\([[:word:]]+\))??!?:.+$'
+      order: 200
+    - title: "Documentation updates"
+      regexp: ^.*?docs?(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: "Build process updates"
+      regexp: ^.*?(build|ci)(\([[:word:]]+\))??!?:.+$
+      order: 400
+    - title: Other work
+      order: 9999
+
 dockers:
   - image_templates:
-      - 'jippi/dottie:{{ .Tag }}-amd64'
+      # - "jippi/dotti:v{{ .Version }}-amd64"
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-amd64"
+    dockerfile: Dockerfile
     use: buildx
     build_flag_templates:
-      - '--pull'
-      - '--platform=linux/amd64'
+      - "--pull"
+      - "--label=io.artifacthub.package.readme-url=https://raw.githubusercontent.com/jippi/dotti/main/README.md"
+      - "--label=io.artifacthub.package.logo-url=https://goreleaser.com/static/avatar.png"
+      - '--label=io.artifacthub.package.maintainers=[{"name":"Carlos Alexandro Becker","email":"carlos@carlosbecker.dev"}]'
+      - "--label=io.artifacthub.package.license=MIT"
+      - "--label=org.opencontainers.image.description=Deliver Go binaries as fast and easily as possible"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/amd64"
+    extra_files:
+      - scripts/entrypoint.sh
   - image_templates:
-      - 'myorg/myuser:{{ .Tag }}-arm64'
+      - "jippi/dotti:v{{ .Version }}-arm64"
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-arm64"
+    dockerfile: Dockerfile
     use: buildx
     build_flag_templates:
-      - '--pull'
-      - '--platform=linux/arm64'
+      - "--pull"
+      - "--label=io.artifacthub.package.readme-url=https://raw.githubusercontent.com/jippi/dotti/main/README.md"
+      - "--label=io.artifacthub.package.logo-url=https://goreleaser.com/static/avatar.png"
+      - '--label=io.artifacthub.package.maintainers=[{"name":"Carlos Alexandro Becker","email":"carlos@carlosbecker.dev"}]'
+      - "--label=io.artifacthub.package.license=MIT"
+      - "--label=org.opencontainers.image.description=Deliver Go binaries as fast and easily as possible"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--platform=linux/arm64"
     goarch: arm64
+    extra_files:
+      - scripts/entrypoint.sh
 
 docker_manifests:
-  - name_template: 'jippi/dottie:{{ .Tag }}'
+  # - name_template: "jippi/dotti:v{{ .Version }}"
+  #   image_templates:
+  #     - "jippi/dotti:v{{ .Version }}-amd64"
+  #     - "jippi/dotti:v{{ .Version }}-arm64"
+  - name_template: "ghcr.io/jippi/dotti:v{{ .Version }}"
     image_templates:
-      - 'jippi/dottie:{{ .Tag }}-amd64'
-      - 'jippi/dottie:{{ .Tag }}-arm64'
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-amd64"
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-arm64"
+  # - name_template: "{{ if not .IsNightly }}jippi/dotti:latest{{ end }}"
+  #   image_templates:
+  #     - "jippi/dotti:v{{ .Version }}-amd64"
+  #     - "jippi/dotti:v{{ .Version }}-arm64"
+  - name_template: "{{ if not .IsNightly }}ghcr.io/jippi/dotti:latest{{ end }}"
+    image_templates:
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-amd64"
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-arm64"
+  # - name_template: "{{ if .IsNightly }}jippi/dotti:nightly{{ end }}"
+  #   image_templates:
+  #     - "jippi/dotti:v{{ .Version }}-amd64"
+  #     - "jippi/dotti:v{{ .Version }}-arm64"
+  - name_template: "{{ if .IsNightly }}ghcr.io/jippi/dotti:nightly{{ end }}"
+    image_templates:
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-amd64"
+      - "ghcr.io/jippi/dotti:v{{ .Version }}-arm64"
+
+archives:
+  - name_template: >-
+      {{- .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds_info:
+      group: root
+      owner: root
+    files:
+      - README.md
+      - LICENSE.md
+      - completions/*
+      - manpages/*
+
+brews:
+  - repository:
+      owner: jippi
+      name: dotti-homebrew-tap
+    folder: Formula
+    goarm: "7"
+    homepage: https://github.com/jippi/dotti
+    description: Hello World
+    license: MIT
+    test: |
+      system "#{bin}/dotti -v"
+    dependencies:
+      - name: go
+        type: optional
+      - name: git
+        type: optional
+    extra_install: |-
+      bash_completion.install "completions/dotti.bash" => "goreleaser"
+      zsh_completion.install "completions/dotti.zsh" => "_goreleaser"
+      fish_completion.install "completions/dotti.fish"
+      man1.install "manpages/dotti.1.gz"
+
+# nix:
+#   - name: goreleaser
+#     repository:
+#       owner: goreleaser
+#       name: nur
+#     homepage: https://goreleaser.com
+#     description: Deliver Go binaries as fast and easily as possible
+#     path: pkgs/goreleaser/default.nix
+#     license: mit
+#     extra_install: |-
+#       installManPage ./manpages/goreleaser.1.gz
+#       installShellCompletion ./completions/*
+
+# winget:
+#   - name: dotti
+#     publisher: jippi
+#     license: MIT
+#     homepage: https://github.com/jippi/dotti
+#     short_description: Hello World
+#     repository:
+#       owner: goreleaser
+#       name: winget-pkgs
+#       branch: "goreleaser-{{.Version}}"
+#       pull_request:
+#         enabled: true
+#         draft: true
+#         base:
+#           owner: microsoft
+#           name: winget-pkgs
+#           branch: master
+
+# aurs:
+#   - homepage: https://github.com/jippi/dotti
+#     description: Hello World
+#     maintainers:
+#       - "Christian Winther <dotti at jippi dot dev>"
+#     license: MIT
+#     private_key: "{{ .Env.AUR_KEY }}"
+#     git_url: "ssh://aur@aur.archlinux.org/goreleaser-bin.git"
+#     package: |-
+#       # bin
+#       install -Dm755 "./goreleaser" "${pkgdir}/usr/bin/goreleaser"
+
+#       # license
+#       install -Dm644 "./LICENSE.md" "${pkgdir}/usr/share/licenses/goreleaser/LICENSE"
+
+#       # completions
+#       mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
+#       mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
+#       mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
+#       install -Dm644 "./completions/goreleaser.bash" "${pkgdir}/usr/share/bash-completion/completions/goreleaser"
+#       install -Dm644 "./completions/goreleaser.zsh" "${pkgdir}/usr/share/zsh/site-functions/_goreleaser"
+#       install -Dm644 "./completions/goreleaser.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/goreleaser.fish"
+
+#       # man pages
+#       install -Dm644 "./manpages/goreleaser.1.gz" "${pkgdir}/usr/share/man/man1/goreleaser.1.gz"
+
+# scoops:
+#   - repository:
+#       owner: jippi
+#       name: dotti-scoop
+#     folder: bucket
+#     homepage: https://github.com/jippi/dotti
+#     description: Hello world
+#     license: MIT
+
+nfpms:
+  - file_name_template: "{{ .ConventionalFileName }}"
+    id: packages
+    homepage: https://github.com/jippi/dotti
+    description: |-
+      Hello World
+    maintainer: Christian Winther <dotti@jippi.dev>
+    license: MIT
+    vendor: Dotti
+    bindir: /usr/bin
+    section: utils
+    contents:
+      - src: ./completions/dotti.bash
+        dst: /usr/share/bash-completion/completions/dotti
+        file_info:
+          mode: 0644
+      - src: ./completions/dotti.fish
+        dst: /usr/share/fish/vendor_completions.d/dotti.fish
+        file_info:
+          mode: 0644
+      - src: ./completions/dotti.zsh
+        dst: /usr/share/zsh/vendor-completions/_dotti
+        file_info:
+          mode: 0644
+      - src: ./manpages/dotti.1.gz
+        dst: /usr/share/man/man1/dotti.1.gz
+        file_info:
+          mode: 0644
+      - src: ./LICENSE.md
+        dst: /usr/share/doc/dotti/copyright
+        file_info:
+          mode: 0644
+    formats:
+      - apk
+      - deb
+      - rpm
+      - archlinux
+    dependencies:
+      - git
+    recommends:
+      - golang
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
+        - changelog-file-missing-in-native-package
+
+snapcrafts:
+  - name_template: "{{ .ProjectName }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    summary: Make .env file management easier
+    description: |
+      Hello world
+    grade: stable
+    confinement: classic
+    publish: true
+    disable: "{{ if .IsNightly }}true{{ end }}"
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - cmd: cosign
+    certificate: "${artifact}.pem"
+    output: true
+    artifacts: checksum
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - --yes
+
+docker_signs:
+  - cmd: cosign
+    artifacts: manifests
+    output: true
+    args:
+      - "sign"
+      - "${artifact}@${digest}"
+      - --yes
+
+milestones:
+  - close: true
+
+release:
+  name_template: "v{{ .Version }}"
+  footer: |
+    **Full Changelog**: https://github.com/jippi/dotti/compare/{{ .PreviousTag }}...{{ if .IsNightly }}nightly{{ else }}{{ .Tag }}{{ end }}

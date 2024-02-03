@@ -36,7 +36,9 @@ func main() {
 	}()
 
 	app := &cli.Command{
-		Flags: globalFlags,
+		Flags:                      globalFlags,
+		EnableShellCompletion:      true,
+		ShellCompletionCommandName: "completions",
 		Commands: []*cli.Command{
 			disableCommand,
 			enableCommand,
