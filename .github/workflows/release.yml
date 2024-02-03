@@ -123,6 +123,10 @@ jobs:
       # - name: snapcraft-login
       #   if: startsWith(github.ref, 'refs/tags/v')
       #   run: snapcraft login --with <(echo "${{ secrets.SNAPCRAFT_LOGIN }}")
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          install-only: true
       - name: goreleaser-release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}

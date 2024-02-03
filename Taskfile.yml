@@ -162,7 +162,7 @@ tasks:
       SNAPSHOT:
         sh: 'if [[ $GITHUB_REF != refs/tags/v* ]]; then echo "--snapshot"; fi'
     cmds:
-      - ./goreleaser release --clean --timeout 60m {{ .SNAPSHOT }}
+      - goreleaser release --clean --timeout 60m {{ .SNAPSHOT }}
 
   nightly:
     cmds:

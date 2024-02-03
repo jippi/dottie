@@ -5,5 +5,5 @@ rm -rf completions
 mkdir completions
 
 for sh in bash fish ps zsh; do
-  go run ./cmd/ completion "$sh" >"completions/dottie.$sh"
+  go run ./cmd/ completions "$sh" >"completions/dottie.$sh"
 done

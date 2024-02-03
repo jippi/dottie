@@ -1,0 +1,8 @@
+# syntax=docker/dockerfile:1
+# See https://hub.docker.com/r/docker/dockerfile
+
+FROM scratch
+
+ENTRYPOINT ["/dottie"]
+
+COPY dottie /

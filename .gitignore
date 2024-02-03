@@ -10,3 +10,6 @@ dottie.exe
 .task/
 .idea/
 .direnv
+
+manpages/
+completions/
