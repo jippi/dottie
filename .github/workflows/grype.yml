@@ -1,13 +1,16 @@
-name: "grype"
+name: Grype
 
 on:
   push:
-    branches: ["main"]
-    tags: ["v*"]
-
+    branches:
+      - "main"
+    tags:
+      - "v*"
   pull_request:
 
 jobs:
+  # ------------------------------
+
   scan-source:
     name: scan-source
     runs-on: ubuntu-latest
@@ -19,7 +22,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: anchore/scan-action@v3
         with:
           path: "."
           fail-build: true
+
+  # ------------------------------

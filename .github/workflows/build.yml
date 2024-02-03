@@ -10,23 +10,31 @@ on:
       - "go.*"
       - "**/*.go"
       - "Taskfile.yml"
-      - "Dockerfile"
+      - "Dockerfile.release"
       - ".github/workflows/*.yml"
 
 permissions:
   contents: read
 
 jobs:
+  # ------------------------------
+
   govulncheck:
     uses: caarlos0/meta/.github/workflows/govulncheck.yml@main
 
+  # ------------------------------
+
   semgrep:
     uses: caarlos0/meta/.github/workflows/semgrep.yml@main
+
+  # ------------------------------
 
   ruleguard:
     uses: caarlos0/meta/.github/workflows/ruleguard.yml@main
     with:
       args: "-disable largeloopcopy"
+
+  # ------------------------------
 
   test:
     runs-on: ubuntu-latest

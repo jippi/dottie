@@ -13,6 +13,8 @@ permissions:
   packages: write
 
 jobs:
+  # ------------------------------
+
   goreleaser-check-pkgs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
@@ -107,16 +109,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: snapcraft-login
         if: startsWith(github.ref, 'refs/tags/v')
         run: snapcraft login --with <(echo "${{ secrets.SNAPCRAFT_LOGIN }}")
+
       - name: Install GoReleaser
         uses: goreleaser/goreleaser-action@v5
         with:
           install-only: true
+
       - name: goreleaser-release
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
-          # AUR_KEY: ${{ secrets.AUR_KEY }}
         run: task goreleaser

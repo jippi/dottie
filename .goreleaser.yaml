@@ -338,9 +338,6 @@ docker_signs:
       - "${artifact}@${digest}"
       - --yes
 
-milestones:
-  - close: true
-
 release:
   name_template: "v{{ .Version }}"
   footer: |

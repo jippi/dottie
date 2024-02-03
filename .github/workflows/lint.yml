@@ -13,17 +13,23 @@ permissions:
   pull-requests: read # for golangci/golangci-lint-action to fetch pull requests
 
 jobs:
+  # ------------------------------
+
   golangci-lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-go@v5
         with:
           go-version: stable
           cache: false
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           args: --timeout=5m
           only-new-issues: true
+
+  # ------------------------------
