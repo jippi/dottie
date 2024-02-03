@@ -5,8 +5,8 @@
 dist/
 bin/
 coverage.txt
-dotti
-dotti.exe
+dottie
+dottie.exe
 .task/
 .idea/
 .direnv

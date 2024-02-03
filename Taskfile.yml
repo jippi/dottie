@@ -22,9 +22,9 @@ tasks:
     sources:
       - ./**/*.go
     generates:
-      - ./dotti
+      - ./dottie
     cmds:
-      - go build -o dotti ./cmd/
+      - go build -o dottie ./cmd/
 
   test:
     desc: Run tests
@@ -74,87 +74,87 @@ tasks:
       - echo {{.NEXT}}
       - git push origin --tags
 
-  dotti:test:pkg:
+  dottie:test:pkg:
     desc: Test a package
     cmds:
       - docker run --platform linux/{{ .Platform }} --rm --workdir /tmp -v $PWD/dist:/tmp {{ .Image }} sh -c '{{ .Cmd }} && goreleaser --version'
 
-  dotti:test:rpm:
+  dottie:test:rpm:
     desc: Tests rpm packages
     vars:
       rpm: "rpm --nodeps -ivh"
     cmds:
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "386"
           Image: centos:centos7
           Cmd: "{{.rpm}} goreleaser-*.i386.rpm"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "amd64"
           Image: fedora
           Cmd: "{{.rpm}} goreleaser-*.x86_64.rpm"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: fedora
           Cmd: "{{.rpm}} goreleaser-*.aarch64.rpm"
 
-  dotti:test:deb:
+  dottie:test:deb:
     desc: Tests deb packages
     vars:
       dpkg: "dpkg --ignore-depends=git -i"
     cmds:
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "amd64"
           Image: ubuntu
           Cmd: "{{.dpkg}} goreleaser*_amd64.deb"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: ubuntu
           Cmd: "{{.dpkg}} goreleaser*_arm64.deb"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "arm/7"
           Image: ubuntu
           Cmd: "{{.dpkg}} goreleaser*_armhf.deb"
 
-  dotti:test:apk:
+  dottie:test:apk:
     desc: Tests apk packages
     vars:
       apk: "apk add --allow-untrusted -U"
     cmds:
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "386"
           Image: alpine
           Cmd: "{{.apk}} goreleaser*_x86.apk"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "amd64"
           Image: alpine
           Cmd: "{{.apk}} goreleaser*_x86_64.apk"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "arm64"
           Image: alpine
           Cmd: "{{.apk}} goreleaser*_aarch64.apk"
-      - task: dotti:test:pkg
+      - task: dottie:test:pkg
         vars:
           Platform: "arm/7"
           Image: alpine
           Cmd: "{{.apk}} goreleaser*_armv7.apk"
 
-  dotti:test:
+  dottie:test:
     desc: Test built linux packages
     cmds:
-      - task: dotti:test:apk
-      - task: dotti:test:deb
-      - task: dotti:test:rpm
+      - task: dottie:test:apk
+      - task: dottie:test:deb
+      - task: dottie:test:rpm
 
-  dotti:
+  dottie:
     desc: Run GoReleaser either in snapshot or release mode
     deps:
       - build
