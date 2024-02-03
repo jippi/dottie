@@ -16,72 +16,76 @@
 
 ## Example
 
+> [!WARNING]
+> Run these example commands in a directory without an existing `.env` file
+
 ```shell
 # Crate a new env file
-touch env.test
+touch .env
 
 # Create a key/pair value
-dottie --file env.test set my_key value
+dottie set my_key value
 
 # Create another key (PORT) with value "3306"
 #  * One comment
 #  * One validation rule that the value must be a number
 #  * "none" quote style from the default "double"
-dottie --file env.test set \
+dottie set \
   --comment 'A port for some service' \
   --comment '@dottie/validate number' \
   --quote-style none \
   PORT 3306
 
 # Check validation (success)
-dottie --file env.test validate
+dottie validate
 
 # Print the file
-dottie --file env.test print
+dottie print
 
 # Print the file (but pretty)
-dottie --file env.test print --pretty
+dottie print --pretty
 
 # Change the "PORT" value to a "test" (a non-number).
 # NOTE: the comments are kept in the file, even if they are omitted here
-dottie --file env.test set PORT test
+dottie set PORT test
 
 # Test validation again (it now fails)
-dottie --file env.test validate
+dottie validate
 
 # Fix the port value
-dottie --file env.test set PORT 3306
+dottie set PORT 3306
 
 # Create a new key/value pair in a group named "database"
 # NOTE: the group will be created on-demand if it does not exists
-dottie --file env.test set \
+dottie set \
   --group database \
   --comment 'the hostname to the database' \
   DB_HOST "db"
 
 # Create a "DB_PORT" key pair in the same "database" group as before
 # NOTE: this value refer to the 'PORT' key we set above via interpolation
-dottie --file env.test set \
+dottie set \
   --group database \
   --comment 'the port for the database' \
   --comment '@dottie/validate number' \
   DB_PORT '${PORT}'
 
 # Print the file again
-dottie --file env.test print --pretty
+dottie print --pretty
 
 # Disable the DB_PORT key
-dottie --file env.test disable DB_PORT
+dottie disable DB_PORT
 
 # Print the file again
 # NOTE: the DB_PORT key/value is now gone
-dottie --file env.test print --pretty
+dottie print --pretty
 
 # Print the file again, but include commented disabled keys
-dottie --file env.test print --pretty --include-commented
+# NOTE: the DB_PORT key/value is printed (but still disabled)
+dottie print --pretty --include-commented
 
 # Enable the DB_PORT key again
-dottie --file env.test enable DB_PORT
+dottie enable DB_PORT
 ```
 
 ## Install
