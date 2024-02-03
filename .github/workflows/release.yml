@@ -49,7 +49,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     strategy:
       matrix:
-        format: [deb, rpm, apk]
+        format:
+          - deb
+          - rpm
+          - apk
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,7 +69,7 @@ jobs:
             ./dist/*.rpm
             ./dist/*.apk
           key: ${{ github.ref }}
-      - run: task goreleaser:test:${{ matrix.format }}
+      - run: task dottie:test:${{ matrix.format }}
 
   goreleaser:
     runs-on: ubuntu-latest
