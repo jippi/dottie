@@ -121,4 +121,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
+          SNAPCRAFT_STORE_CREDENTIALS: "${{ secrets.SNAPCRAFT_LOGIN }}"
         run: task goreleaser
