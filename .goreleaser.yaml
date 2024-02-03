@@ -345,3 +345,10 @@ release:
   name_template: "v{{ .Version }}"
   footer: |
     **Full Changelog**: https://github.com/jippi/dottie/compare/{{ .PreviousTag }}...{{ if .IsNightly }}nightly{{ else }}{{ .Tag }}{{ end }}
+
+publishers:
+  - name: gemfury-repo
+    dir: "{{ dir .ArtifactPath }}"
+    cmd: curl -s -F p1=@{{ .ArtifactName }} https://{{ .Env.FURY_PUSH_TOKEN }}@push.fury.io/cli/
+    ids:
+      - packages
