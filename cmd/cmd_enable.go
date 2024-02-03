@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jippi/dottie/pkg"
 
@@ -16,10 +15,9 @@ var enableCommand = &cli.Command{
 	ArgsUsage: "KEY",
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		key := cmd.Args().Get(0)
-		fmt.Println(key)
 
 		existing := env.Get(key)
-		existing.Active = false
+		existing.Active = true
 
 		return pkg.Save(cmd.String("file"), env)
 	},

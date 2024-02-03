@@ -34,29 +34,30 @@ func (c *Comment) BelongsToGroup(config RenderSettings) bool {
 	return c.Group == nil || c.Group.BelongsToGroup(config)
 }
 
-func (c *Comment) Render(config RenderSettings) string {
-	if !config.WithComments() || !c.BelongsToGroup(config) {
+func (c *Comment) Render(config RenderSettings, isAssignmentComment bool) string {
+	if !config.WithComments() || (!isAssignmentComment && !c.BelongsToGroup(config)) {
 		return ""
 	}
 
-	var buf bytes.Buffer
+	if !config.WithColors() {
+		return c.Value + "\n"
+	}
 
-	if config.WithColors() {
-		out := tui.Theme.Success.Printer(tui.RendererWithTTY(&buf))
-		if c.Annotation != nil {
-			out.Print("# ")
-			out.ApplyStyle(tui.Bold).Print("@", c.Annotation.Key)
-			out.Print(" ")
-			out.Println(c.Annotation.Value)
-		} else {
-			out.Println(c.Value)
-		}
+	var buf bytes.Buffer
+	out := tui.Theme.Success.Printer(tui.RendererWithTTY(&buf))
+
+	if c.Annotation == nil {
+		out.Println(c.Value)
 
 		return buf.String()
 	}
 
-	buf.WriteString(c.Value)
-	buf.WriteString("\n")
+	if c.Annotation != nil {
+		out.Print("# ")
+		out.ApplyStyle(tui.Bold).Print("@", c.Annotation.Key)
+		out.Print(" ")
+		out.Println(c.Annotation.Value)
+	}
 
 	return buf.String()
 }

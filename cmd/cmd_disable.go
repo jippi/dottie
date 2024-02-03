@@ -16,7 +16,7 @@ var disableCommand = &cli.Command{
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		key := cmd.Args().Get(0)
 		existing := env.Get(key)
-		existing.Active = true
+		existing.Active = false
 
 		return pkg.Save(cmd.String("file"), env)
 	},

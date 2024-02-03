@@ -33,6 +33,10 @@ func (a *Assignment) Is(other Statement) bool {
 }
 
 func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
+	if a.Group == nil && len(config.FilterGroup) > 0 {
+		return false
+	}
+
 	return a.Group == nil || a.Group.BelongsToGroup(config)
 }
 
@@ -66,13 +70,13 @@ func (a *Assignment) Render(config RenderSettings) string {
 
 	if config.WithComments() {
 		for _, c := range a.Comments {
-			buf.WriteString(c.Render(config))
+			buf.WriteString(c.Render(config, true))
 		}
 	}
 
 	if !a.Active {
 		if config.WithColors() {
-			out := tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf))
+			out := tui.Theme.Danger.Printer(tui.RendererWithTTY(&buf))
 			out.Print("#")
 		} else {
 			buf.WriteString("#")

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
+	"unicode"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
@@ -186,6 +188,8 @@ func (doc *Document) EnsureGroup(name string) *Group {
 		group = &Group{
 			Name: "# " + name,
 		}
+
+		doc.Groups = append(doc.Groups, group)
 	}
 
 	return group
@@ -231,11 +235,13 @@ func (d *Document) RenderFull() string {
 func (d *Document) Render(config RenderSettings) string {
 	var buf bytes.Buffer
 
+	// Root statements
 	root := renderStatements(d.Statements, config)
 	if len(root) > 0 {
 		buf.WriteString(root)
 	}
 
+	// Groups
 	hasOutput := config.WithGroups() && len(root) > 0
 
 	for _, group := range d.Groups {
@@ -250,5 +256,5 @@ func (d *Document) Render(config RenderSettings) string {
 		buf.WriteString(output)
 	}
 
-	return buf.String()
+	return strings.TrimLeftFunc(buf.String(), unicode.IsSpace)
 }

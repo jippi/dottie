@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/jippi/dottie/pkg/tui"
@@ -15,7 +16,11 @@ var printCommand = &cli.Command{
 	Action: func(_ context.Context, _ *cli.Command) error {
 		settings.Interpolate = true
 
-		tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println(env.Render(*settings))
+		if settings.ShowColors {
+			tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println(env.Render(*settings))
+		} else {
+			fmt.Println(env.Render(*settings))
+		}
 
 		return nil
 	},

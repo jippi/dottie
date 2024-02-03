@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"reflect"
 	"strings"
+	"unicode"
 
 	"github.com/gosimple/slug"
 	"github.com/jippi/dottie/pkg/tui"
@@ -42,6 +43,9 @@ func (g *Group) Render(config RenderSettings) string {
 	var buf bytes.Buffer
 
 	rendered := renderStatements(g.Statements, config)
+	if len(rendered) == 0 {
+		return ""
+	}
 
 	if config.WithGroups() && len(rendered) > 0 {
 		if config.WithColors() {
@@ -49,6 +53,7 @@ func (g *Group) Render(config RenderSettings) string {
 			out.Println("################################################################################")
 			out.ApplyStyle(tui.Bold).Println(g.Name)
 			out.Println("################################################################################")
+			out.Println()
 		} else {
 			buf.WriteString("################################################################################")
 			buf.WriteString("\n")
@@ -58,11 +63,16 @@ func (g *Group) Render(config RenderSettings) string {
 
 			buf.WriteString("################################################################################")
 			buf.WriteString("\n")
+			buf.WriteString("\n")
 		}
 	}
 
 	// Render the statements attached to the group
-	buf.WriteString(rendered)
+	buf.WriteString(strings.TrimFunc(rendered, unicode.IsSpace))
+
+	if config.WithBlankLines() {
+		return "\n" + buf.String()
+	}
 
 	return buf.String()
 }

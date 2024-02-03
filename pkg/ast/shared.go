@@ -12,7 +12,6 @@ type Statement interface {
 	statementNode()
 	Is(Statement) bool
 	BelongsToGroup(RenderSettings) bool
-	Render(RenderSettings) string
 }
 
 type Position struct {
@@ -41,7 +40,7 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 		case *Comment:
 			printed = true
 
-			buf.WriteString(val.Render(config))
+			buf.WriteString(val.Render(config, false))
 
 		case *Assignment:
 			output := val.Render(config)
@@ -90,10 +89,9 @@ func renderStatements(statements []Statement, config RenderSettings) string {
 	// Remove any duplicate newlines that might have crept into the output
 	if config.WithBlankLines() {
 		str = strings.TrimRightFunc(str, unicode.IsSpace)
-		str += "\n"
 	}
 
-	return str
+	return "\n" + str
 }
 
 func assignmentHasComments(stmt Statement) bool {
