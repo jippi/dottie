@@ -17,17 +17,16 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	settings = &render.Settings{
-		FilterKeyPrefix: cmd.Root().String("key-prefix"),
-		FilterGroup:     cmd.Root().String("group"),
-		IncludeDisabled: cmd.Root().Bool("include-commented"),
-
-		ShowPretty:       cmd.Root().Bool("pretty"),
-		ShowBlankLines:   cmd.Root().Bool("with-blank-lines"),
-		ShowComments:     cmd.Root().Bool("with-comments"),
-		ShowGroupBanners: cmd.Root().Bool("with-groups"),
-		ShowColors:       cmd.Root().Bool("colors"),
-	}
+	settings = render.NewSettings(
+		render.WithBlankLines(cmd.Root().Bool("with-blank-lines")),
+		render.WithComments(cmd.Root().Bool("with-comments")),
+		render.WithGroupBanners(cmd.Root().Bool("with-groups")),
+		render.WithFilterGroup(cmd.Root().String("group")),
+		render.WithFilterKeyPrefix(cmd.Root().String("key-prefix")),
+		render.WithIncludeDisabled(cmd.Root().Bool("include-commented")),
+		render.WithFormattedOutput(cmd.Root().Bool("pretty")),
+		render.WithColors(cmd.Root().Bool("colors")),
+	)
 
 	return nil
 }

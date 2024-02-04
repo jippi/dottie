@@ -7,57 +7,45 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 )
 
-type Outputter interface {
-	Group(*ast.Group, Settings) string
-	Assignment(*ast.Assignment, Settings) string
-	Comment(*ast.Comment, Settings, bool) string
-	Newline(*ast.Newline, Settings) string
-}
+var _ Output = (*ColorizedOutput)(nil)
 
-var _ Outputter = (*Colorized)(nil)
+type ColorizedOutput struct{}
 
-type Colorized struct{}
-
-func (c Colorized) Group(group *ast.Group, settings Settings) string {
-	res := NewLineBuffer()
-
+func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) string {
 	var buf bytes.Buffer
 
 	out := tui.Theme.Info.Printer(tui.RendererWithTTY(&buf))
+
 	out.Println("################################################################################")
 	out.ApplyStyle(tui.Bold).Println(group.Name)
 	out.Print("################################################################################")
 
-	return res.
-		Add(buf.String()).
-		Get()
+	return buf.String()
 }
 
-func (c Colorized) Assignment(a *ast.Assignment, settings Settings) string {
+func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings) string {
 	var buf bytes.Buffer
 
-	if !a.Active {
+	if !assignment.Active {
 		tui.Theme.Danger.BuffPrinter(&buf).Print("#")
 	}
 
-	val := a.Literal
+	val := assignment.Literal
 
-	if settings.Interpolate {
-		val = a.Interpolated
+	if settings.UseInterpolatedValues {
+		val = assignment.Interpolated
 	}
 
-	tui.Theme.Primary.BuffPrinter(&buf).Print(a.Name)
+	tui.Theme.Primary.BuffPrinter(&buf).Print(assignment.Name)
 	tui.Theme.Dark.BuffPrinter(&buf).Print("=")
-	tui.Theme.Success.BuffPrinter(&buf).Print(a.Quote)
+	tui.Theme.Success.BuffPrinter(&buf).Print(assignment.Quote)
 	tui.Theme.Warning.BuffPrinter(&buf).Print(val)
-	tui.Theme.Success.BuffPrinter(&buf).Print(a.Quote)
+	tui.Theme.Success.BuffPrinter(&buf).Print(assignment.Quote)
 
-	return NewLineBuffer().
-		Add(buf.String()).
-		Get()
+	return buf.String()
 }
 
-func (r Colorized) Comment(comment *ast.Comment, settings Settings, isAssignmentComment bool) string {
+func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) string {
 	var buf bytes.Buffer
 
 	out := tui.Theme.Success.BuffPrinter(&buf)
@@ -78,7 +66,7 @@ func (r Colorized) Comment(comment *ast.Comment, settings Settings, isAssignment
 	return buf.String()
 }
 
-func (r Colorized) Newline(newline *ast.Newline, settings Settings) string {
+func (ColorizedOutput) Newline(newline *ast.Newline, settings Settings) string {
 	if newline.Blank && !settings.WithBlankLines() {
 		return ""
 	}

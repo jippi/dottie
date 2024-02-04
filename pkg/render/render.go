@@ -7,47 +7,48 @@ import (
 )
 
 type Renderer struct {
-	Output   Outputter
-	Previous ast.Statement
-	Settings Settings
-	handlers []Handler
+	Output            Output
+	PreviousStatement ast.Statement
+	Settings          Settings
+	handlers          []Handler
 }
 
 func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
-	var output Outputter = Plain{}
+	var output Output = PlainOutput{}
 
-	if settings.WithColors() {
-		output = Colorized{}
+	if settings.ShowColors {
+		output = ColorizedOutput{}
 	}
 
+	// Default handlers for filtering down the
 	handlers := append(
 		[]Handler{
-			FilterKeyPrefix,
 			FilterDisabledStatements,
-			FilterGroupName,
+			FilterByKeyPrefix,
+			FilterByGroupName,
 			FilterComments,
 		},
 		additionalHandlers...,
 	)
 
 	return &Renderer{
-		Output:   output,
-		Previous: nil,
-		Settings: settings,
-		handlers: handlers,
+		Output:            output,
+		PreviousStatement: nil,
+		Settings:          settings,
+		handlers:          handlers,
 	}
 }
 
-func (r *Renderer) Statement(stmt any) string {
-	in := &HandlerInput{
-		Presenter: r,
-		Previous:  r.Previous,
-		Settings:  r.Settings,
-		Statement: stmt,
+func (r *Renderer) Statement(currentStatement any) string {
+	hi := &HandlerInput{
+		Presenter:         r,
+		PreviousStatement: r.PreviousStatement,
+		Settings:          r.Settings,
+		CurrentStatement:  currentStatement,
 	}
 
 	for _, handler := range r.handlers {
-		status := handler(in)
+		status := handler(hi)
 
 		switch status {
 		// Stop processing the statement and return nothing
@@ -56,9 +57,9 @@ func (r *Renderer) Statement(stmt any) string {
 
 		// Stop processing the statement and return the value from the handler
 		case Return:
-			r.Previous, _ = stmt.(ast.Statement)
+			r.PreviousStatement, _ = currentStatement.(ast.Statement)
 
-			return in.Value
+			return hi.ReturnValue
 
 		// Continue to next handler (or default behavior)
 		case Continue:
@@ -69,77 +70,85 @@ func (r *Renderer) Statement(stmt any) string {
 		}
 	}
 
-	// Default behavior
+	//
+	// Default Statement behavior
+	//
 
-	switch val := stmt.(type) {
+	switch statement := currentStatement.(type) {
 	case *ast.Document:
-		r.Previous = val
+		r.PreviousStatement = statement
 
-		return r.Document(val)
+		return r.Document(statement)
 
 	case *ast.Group:
-		r.Previous = val
+		r.PreviousStatement = statement
 
-		return r.Group(val)
+		return r.Group(statement)
 
 	case *ast.Comment:
-		r.Previous = val
+		r.PreviousStatement = statement
 
-		return r.Comment(val, false)
+		return r.Comment(statement)
 
 	case *ast.Assignment:
-		r.Previous = val
+		r.PreviousStatement = statement
 
-		return r.Assignment(val)
+		return r.Assignment(statement)
 
 	case *ast.Newline:
-		r.Previous = val
+		r.PreviousStatement = statement
 
-		return r.Newline(val)
+		return r.Newline(statement)
+
+	//
+	// Lists of different statements will be iterated over
+	//
 
 	case []*ast.Group:
-		out := NewLineBuffer()
+		buf := NewLineBuffer()
 
-		for _, group := range val {
-			if out.AddAndReturnPrinted(r.Statement(group)) {
-				r.Previous = group
+		for _, group := range statement {
+			if buf.AddAndReturnPrinted(r.Statement(group)) {
+				r.PreviousStatement = group
 			}
 		}
 
-		return out.Get()
+		return buf.Get()
 
 	case []ast.Statement:
-		out := NewLineBuffer()
+		buf := NewLineBuffer()
 
-		for _, stmt := range val {
-			if out.AddAndReturnPrinted(r.Statement(stmt)) {
-				r.Previous = stmt
+		for _, stmt := range statement {
+			if buf.AddAndReturnPrinted(r.Statement(stmt)) {
+				r.PreviousStatement = stmt
 			}
 		}
 
-		return out.Get()
+		return buf.Get()
 
 	case []*ast.Comment:
-		res := NewLineBuffer()
-		for _, comment := range val {
-			if res.AddAndReturnPrinted(r.Statement(comment)) {
-				r.Previous = comment
+		buf := NewLineBuffer()
+		for _, comment := range statement {
+			if buf.AddAndReturnPrinted(r.Statement(comment)) {
+				r.PreviousStatement = comment
 			}
 		}
 
-		return res.Get()
+		return buf.Get()
+
+	//
+	// Unrecognized Statement type
+	//
 
 	default:
-		panic(fmt.Sprintf("Unknown statement: %T", val))
+		panic(fmt.Sprintf("Unknown statement: %T", statement))
 	}
 }
 
-func (r *Renderer) Document(doc *ast.Document) string {
-	out := NewLineBuffer()
-
-	return out.
-		Add(r.Statement(doc.Statements)).
-		Add(r.Statement(doc.Groups)).
+func (r *Renderer) Document(document *ast.Document) string {
+	return NewLineBuffer().
+		Add(r.Statement(document.Statements)).
+		Add(r.Statement(document.Groups)).
 		GetWithEOF()
 }
 
@@ -149,34 +158,26 @@ func (r *Renderer) Group(group *ast.Group) string {
 		return ""
 	}
 
-	res := NewLineBuffer()
+	buf := NewLineBuffer()
 
-	if r.Settings.WithGroupBanners() && len(rendered) > 0 {
-		res.Add(r.Output.Group(group, r.Settings))
+	if r.Settings.ShowGroupBanners && len(rendered) > 0 {
+		buf.Add(r.Output.GroupBanner(group, r.Settings))
 	}
 
-	return res.
-		Add(rendered).
+	return buf.Add(rendered).Get()
+}
+
+func (r *Renderer) Assignment(assignment *ast.Assignment) string {
+	return NewLineBuffer().
+		Add(r.Statement(assignment.Comments)).
+		Add(r.Output.Assignment(assignment, r.Settings)).
 		Get()
 }
 
-func (r *Renderer) Assignment(a *ast.Assignment) string {
-	res := NewLineBuffer()
-
-	return res.
-		Add(r.Statement(a.Comments)).
-		Add(r.Output.Assignment(a, r.Settings)).
-		Get()
-}
-
-func (r *Renderer) Comment(comment *ast.Comment, isAssignmentComment bool) string {
-	return r.Output.Comment(comment, r.Settings, isAssignmentComment)
+func (r *Renderer) Comment(comment *ast.Comment) string {
+	return r.Output.Comment(comment, r.Settings)
 }
 
 func (r *Renderer) Newline(newline *ast.Newline) string {
 	return r.Output.Newline(newline, r.Settings)
-}
-
-func (r *Renderer) SetOutput(output Outputter) {
-	r.Output = output
 }

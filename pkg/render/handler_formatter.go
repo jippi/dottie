@@ -6,80 +6,71 @@ import (
 
 func NewFormatter() *Renderer {
 	settings := Settings{
-		IncludeDisabled:  true,
-		Interpolate:      false,
-		ShowBlankLines:   true,
-		ShowColors:       false,
-		ShowComments:     true,
-		ShowGroupBanners: true,
+		IncludeDisabled:       true,
+		UseInterpolatedValues: false,
+		ShowBlankLines:        true,
+		ShowColors:            false,
+		ShowComments:          true,
+		ShowGroupBanners:      true,
 	}
 
-	return NewRenderer(settings, FormatHandler)
+	return NewRenderer(settings, FormatterHandler)
 }
 
-func FormatHandler(in *HandlerInput) HandlerSignal {
-	switch val := in.Statement.(type) {
-	// Ignore all existing newlines when doing formatting
-	// we will be injecting these ourself in other places
+// FormatterHandler is responsible for formatting an .env file according
+// to our opinionated style.
+func FormatterHandler(hi *HandlerInput) HandlerSignal {
+	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Newline:
-		return in.Stop()
+		// Ignore all existing newlines when doing formatting as
+		// we will be injecting these ourself in other places.
+		return hi.Stop()
 
 	case *ast.Group:
-		output := in.Presenter.Group(val)
+		output := hi.Presenter.Group(statement)
 		if len(output) == 0 {
-			return in.Stop()
+			return hi.Stop()
 		}
 
-		res := NewLineBuffer()
+		buf := NewLineBuffer()
 
-		// If the previous line is a newline, don't add another one.
+		// If the previous line is a Newline, don't add another one.
 		// This could happen if a group is the *first* thing in the document
-		if !(&ast.Newline{}).Is(in.Previous) && in.Previous != nil {
-			res.AddNewline()
+		if hi.PreviousStatement != nil && !hi.PreviousStatement.Is(&ast.Newline{}) {
+			buf.AddNewline()
 		}
 
-		return in.Return(
-			res.
-				Add(output).
-				AddNewline().
-				Get(),
-		)
+		return hi.Return(buf.Add(output).AddNewline().Get())
 
 	case *ast.Assignment:
-		output := in.Presenter.Assignment(val)
+		output := hi.Presenter.Assignment(statement)
 		if len(output) == 0 {
-			return in.Stop()
+			return hi.Stop()
 		}
 
-		buff := NewLineBuffer()
+		buf := NewLineBuffer()
 
-		// If the assignment belongs to a group, but there are no previous
-		// then we're the first, so add a newline padding
-		if val.Group != nil && in.Previous == nil {
-			buff.AddNewline()
+		// If the previous Statement was also an Assignment, detect if they should
+		// be allowed to cuddle (without newline between them) or not.
+		//
+		// Statements are only allow cuddle if both have no comments
+		if statement.Is(hi.PreviousStatement) && (statement.HasComments() || assignmentHasComments(hi.PreviousStatement)) {
+			buf.AddNewline()
 		}
 
-		// Looks like current and previous Statement is both "Assignment"
-		// which mean they might be too close in the document, so we will
-		// attempt to inject some new-lines to give them some space
-		if val.Is(in.Previous) {
-			// only allow cuddling of assignments if they both have no comments
-			if val.HasComments() || assignmentHasComments(in.Previous) {
-				buff.AddNewline()
-			}
-		}
-
-		return in.Return(buff.Add(output).Get())
+		return hi.Return(buf.Add(output).Get())
 	}
 
-	return in.Continue()
+	return hi.Continue()
 }
 
-func assignmentHasComments(stmt ast.Statement) bool {
-	x, ok := stmt.(*ast.Assignment)
+// assignmentHasComments checks if the Statement is an Assignment
+// and if it has any comments attached to it
+func assignmentHasComments(statement ast.Statement) bool {
+	assignment, ok := statement.(*ast.Assignment)
 	if !ok {
 		return false
 	}
 
-	return x.HasComments()
+	return assignment.HasComments()
 }

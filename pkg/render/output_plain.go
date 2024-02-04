@@ -7,11 +7,11 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-var _ Outputter = (*Plain)(nil)
+var _ Output = (*PlainOutput)(nil)
 
-type Plain struct{}
+type PlainOutput struct{}
 
-func (c Plain) Group(group *ast.Group, settings Settings) string {
+func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) string {
 	out := NewLineBuffer()
 
 	out.Add("################################################################################")
@@ -21,7 +21,7 @@ func (c Plain) Group(group *ast.Group, settings Settings) string {
 	return out.Get()
 }
 
-func (c Plain) Assignment(a *ast.Assignment, settings Settings) string {
+func (PlainOutput) Assignment(a *ast.Assignment, settings Settings) string {
 	var buf bytes.Buffer
 
 	if !a.Active {
@@ -30,7 +30,7 @@ func (c Plain) Assignment(a *ast.Assignment, settings Settings) string {
 
 	val := a.Literal
 
-	if settings.Interpolate {
+	if settings.UseInterpolatedValues {
 		val = a.Interpolated
 	}
 
@@ -39,11 +39,11 @@ func (c Plain) Assignment(a *ast.Assignment, settings Settings) string {
 	return buf.String()
 }
 
-func (r Plain) Comment(comment *ast.Comment, settings Settings, isAssignmentComment bool) string {
+func (r PlainOutput) Comment(comment *ast.Comment, settings Settings) string {
 	return comment.Value
 }
 
-func (r Plain) Newline(newline *ast.Newline, settings Settings) string {
+func (r PlainOutput) Newline(newline *ast.Newline, settings Settings) string {
 	if newline.Blank && !settings.WithBlankLines() {
 		return ""
 	}

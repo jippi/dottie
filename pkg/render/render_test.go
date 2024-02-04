@@ -40,7 +40,11 @@ func TestFormatter(t *testing.T) {
 		case strings.HasSuffix(file.Name(), ".input.env"):
 			testName := strings.TrimSuffix(file.Name(), ".input.env")
 
-			tests = append(tests, testData{name: testName, filename: "test-fixtures/formatter/" + file.Name()})
+			test := testData{
+				name:     testName,
+				filename: "test-fixtures/formatter/" + file.Name(),
+			}
+			tests = append(tests, test)
 
 		case strings.HasSuffix(file.Name(), ".golden.env"):
 		default:

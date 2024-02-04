@@ -14,7 +14,7 @@ var signals = []string{
 	Return:   "RETURN",
 }
 
-// String returns the string corresponding to the token.
+// String returns the string corresponding to the Handler Signal.
 func (hs HandlerSignal) String() string {
 	s := ""
 

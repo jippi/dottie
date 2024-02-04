@@ -6,83 +6,83 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-// FilterKeyPrefix will filter out Statements that do not have the
+// FilterByKeyPrefix will filter out Statements that do not have the
 // configured (optional) key prefix
-func FilterKeyPrefix(in *HandlerInput) HandlerSignal {
+func FilterByKeyPrefix(hi *HandlerInput) HandlerSignal {
 	// Short circuit the filter if there is no KeyPrefix to filter on
-	if len(in.Settings.FilterKeyPrefix) == 0 {
-		return in.Continue()
+	if len(hi.Settings.FilterKeyPrefix) == 0 {
+		return hi.Continue()
 	}
 
-	switch val := in.Statement.(type) {
+	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !strings.HasPrefix(val.Name, in.Settings.FilterKeyPrefix) {
-			return in.Stop()
+		if !strings.HasPrefix(statement.Name, hi.Settings.FilterKeyPrefix) {
+			return hi.Stop()
 		}
 	}
 
-	return in.Continue()
+	return hi.Continue()
 }
 
 // FilterComments will filter out Comment statements if they aren't to be included
-func FilterComments(in *HandlerInput) HandlerSignal {
+func FilterComments(hi *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow comments
-	if in.Settings.WithComments() {
-		return in.Continue()
+	if hi.Settings.ShowComments {
+		return hi.Continue()
 	}
 
-	switch in.Statement.(type) {
+	switch hi.CurrentStatement.(type) {
 	case *ast.Comment:
-		if !in.Settings.WithComments() {
-			return in.Stop()
+		if !hi.Settings.ShowComments {
+			return hi.Stop()
 		}
 	}
 
-	return in.Continue()
+	return hi.Continue()
 }
 
 // FilterDisabledStatements will filter out Assignment Statements that are
 // disabled
-func FilterDisabledStatements(in *HandlerInput) HandlerSignal {
+func FilterDisabledStatements(hi *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow disabled statements
-	if in.Settings.IncludeDisabled {
-		return in.Continue()
+	if hi.Settings.IncludeDisabled {
+		return hi.Continue()
 	}
 
-	switch val := in.Statement.(type) {
+	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !val.Active && !in.Settings.IncludeDisabled {
-			return in.Stop()
+		if !statement.Active && !hi.Settings.IncludeDisabled {
+			return hi.Stop()
 		}
 	}
 
-	return in.Continue()
+	return hi.Continue()
 }
 
-// FilterGroupName will filter out Statements that do not
+// FilterByGroupName will filter out Statements that do not
 // belong to the required Group name
-func FilterGroupName(in *HandlerInput) HandlerSignal {
+func FilterByGroupName(hi *HandlerInput) HandlerSignal {
 	// Short circuit the filter if there is no Group name to filter on
-	if len(in.Settings.FilterGroup) == 0 {
-		return in.Continue()
+	if len(hi.Settings.FilterGroup) == 0 {
+		return hi.Continue()
 	}
 
-	switch val := in.Statement.(type) {
+	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !val.BelongsToGroup(in.Settings.FilterGroup) {
-			return in.Stop()
+		if !statement.BelongsToGroup(hi.Settings.FilterGroup) {
+			return hi.Stop()
 		}
 
 	case *ast.Group:
-		if !val.BelongsToGroup(in.Settings.FilterGroup) {
-			return in.Stop()
+		if !statement.BelongsToGroup(hi.Settings.FilterGroup) {
+			return hi.Stop()
 		}
 
 	case *ast.Comment:
-		if !val.BelongsToGroup(in.Settings.FilterGroup) {
-			return in.Stop()
+		if !statement.BelongsToGroup(hi.Settings.FilterGroup) {
+			return hi.Stop()
 		}
 	}
 
-	return in.Continue()
+	return hi.Continue()
 }

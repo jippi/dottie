@@ -7,23 +7,23 @@ import (
 type Handler func(in *HandlerInput) HandlerSignal
 
 type HandlerInput struct {
-	Presenter *Renderer
-	Previous  ast.Statement
-	Settings  Settings
-	Statement any
-	Value     string
+	Presenter         *Renderer
+	PreviousStatement ast.Statement
+	Settings          Settings
+	CurrentStatement  any
+	ReturnValue       string
 }
 
-func (si *HandlerInput) Stop() HandlerSignal {
+func (hi *HandlerInput) Stop() HandlerSignal {
 	return Stop
 }
 
-func (si *HandlerInput) Return(val string) HandlerSignal {
-	si.Value = val
+func (hi *HandlerInput) Return(value string) HandlerSignal {
+	hi.ReturnValue = value
 
 	return Return
 }
 
-func (si *HandlerInput) Continue() HandlerSignal {
+func (hi *HandlerInput) Continue() HandlerSignal {
 	return Continue
 }
