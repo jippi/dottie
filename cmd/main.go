@@ -41,6 +41,7 @@ func main() {
 			disableCommand,
 			enableCommand,
 			groupsCommand,
+			formatCmd,
 			jsonCommand,
 			printCommand,
 			setCommand,

@@ -3,10 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/jippi/dottie/pkg/render"
-	"github.com/jippi/dottie/pkg/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -17,11 +15,9 @@ var printCommand = &cli.Command{
 	Action: func(_ context.Context, _ *cli.Command) error {
 		settings.Interpolate = true
 
-		if settings.ShowColors {
-			tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println((&render.PlainRenderer{}).Document(env, *settings))
-		} else {
-			fmt.Println((&render.PlainRenderer{}).Document(env, *settings))
-		}
+		fmt.Println(
+			(render.NewRenderer(&render.PlainPresenter{})).Document(env, *settings),
+		)
 
 		return nil
 	},

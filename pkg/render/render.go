@@ -4,30 +4,32 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-type Renderer interface {
-	Document(doc *ast.Document, settings Settings) string
-	Group(group *ast.Group, settings Settings) string
-	Assignment(assignment *ast.Assignment, settings Settings) string
-	Comment(comment *ast.Comment, settings Settings) string
-	Newline(newline *ast.Newline, settings Settings) string
+type Renderer struct {
+	presenter Presenter
 }
 
-func RenderFull(doc *ast.Document) string {
-	return (&PlainRenderer{}).Document(doc, Settings{
-		IncludeCommented: true,
-		Interpolate:      false,
-		ShowBlankLines:   true,
-		ShowColors:       false,
-		ShowComments:     true,
-		ShowGroups:       true,
-	})
-}
-
-func assignmentHasComments(stmt ast.Statement) bool {
-	x, ok := stmt.(*ast.Assignment)
-	if !ok {
-		return false
+func NewRenderer(presenter Presenter) *Renderer {
+	return &Renderer{
+		presenter: presenter,
 	}
+}
 
-	return x.HasComments()
+func (r *Renderer) Document(doc *ast.Document, settings Settings) string {
+	return r.presenter.Statement(doc, nil, settings)
+}
+
+func (r *Renderer) Group(group *ast.Group, settings Settings) string {
+	return r.presenter.Group(group, settings)
+}
+
+func (r *Renderer) Assignment(assignment *ast.Assignment, settings Settings) string {
+	return r.presenter.Assignment(assignment, settings)
+}
+
+func (r *Renderer) Comment(comment *ast.Comment, settings Settings, isAssignmentComment bool) string {
+	return r.presenter.Comment(comment, settings, isAssignmentComment)
+}
+
+func (r *Renderer) Newline(newline *ast.Newline, settings Settings) string {
+	return r.presenter.Newline(newline, settings)
 }

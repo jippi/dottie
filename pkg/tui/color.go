@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"io"
 	"os"
 
 	"github.com/charmbracelet/lipgloss"
@@ -42,6 +43,10 @@ func NewColor(config ColorConfig) Color {
 
 func (c Color) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	return NewPrinter(c, renderer, options...)
+}
+
+func (c Color) BuffPrinter(w io.Writer, options ...PrinterOption) Print {
+	return c.Printer(RendererWithTTY(w), options...)
 }
 
 func (c Color) StderrPrinter(options ...PrinterOption) Print {
