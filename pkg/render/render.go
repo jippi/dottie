@@ -5,10 +5,10 @@ import (
 )
 
 type Renderer struct {
-	presenter Presenter
+	presenter *Presenter
 }
 
-func NewRenderer(presenter Presenter) *Renderer {
+func NewRenderer(presenter *Presenter) *Renderer {
 	return &Renderer{
 		presenter: presenter,
 	}

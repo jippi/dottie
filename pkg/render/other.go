@@ -2,34 +2,32 @@ package render
 
 import "github.com/jippi/dottie/pkg/ast"
 
-func RenderFormatted(doc *ast.Document) string {
-	return NewRenderer(&FormattedPresenter{}).
-		Document(
-			doc,
-			Settings{
-				IncludeCommented: true,
-				Interpolate:      false,
-				ShowBlankLines:   true,
-				ShowColors:       false,
-				ShowComments:     true,
-				ShowGroups:       true,
-			},
-		)
+func NewFormatter(doc *ast.Document) string {
+	settings := Settings{
+		IncludeCommented: true,
+		Interpolate:      false,
+		ShowBlankLines:   true,
+		ShowColors:       false,
+		ShowComments:     true,
+		ShowGroups:       true,
+	}
+
+	return NewRenderer(NewPresenter(settings, Format)).
+		Document(doc, settings)
 }
 
-func RenderDirect(doc *ast.Document) string {
-	return NewRenderer(&DirectPresenter{}).
-		Document(
-			doc,
-			Settings{
-				IncludeCommented: true,
-				Interpolate:      false,
-				ShowBlankLines:   true,
-				ShowColors:       false,
-				ShowComments:     true,
-				ShowGroups:       true,
-			},
-		)
+func NewDirect(doc *ast.Document) string {
+	settings := Settings{
+		IncludeCommented: true,
+		Interpolate:      false,
+		ShowBlankLines:   true,
+		ShowColors:       false,
+		ShowComments:     true,
+		ShowGroups:       true,
+	}
+
+	return NewRenderer(NewPresenter(settings)).
+		Document(doc, settings)
 }
 
 func assignmentHasComments(stmt ast.Statement) bool {

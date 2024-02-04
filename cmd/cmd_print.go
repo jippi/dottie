@@ -15,13 +15,13 @@ var printCommand = &cli.Command{
 	Action: func(_ context.Context, _ *cli.Command) error {
 		settings.Interpolate = true
 
-		if settings.ShowPretty {
-			fmt.Println(render.NewFormattedPresenter(*settings).Document(env, *settings))
+		var handlers []render.Handler
 
-			return nil
+		if settings.ShowPretty {
+			handlers = append(handlers, render.Format)
 		}
 
-		fmt.Println(render.NewDirectPresenter(*settings).Document(env, *settings))
+		fmt.Println(render.NewPresenter(*settings, handlers...).Document(env, *settings))
 
 		return nil
 	},
