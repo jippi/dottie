@@ -167,6 +167,10 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		existing.Comments = nil
 
 		for _, comment := range comments {
+			if len(comment) == 0 && len(comments) == 1 {
+				continue
+			}
+
 			existing.Comments = append(existing.Comments, NewComment(comment))
 		}
 	}
