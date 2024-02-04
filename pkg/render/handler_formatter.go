@@ -4,7 +4,20 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-func Format(in *HandlerInput) Signal {
+func NewFormatter() *Renderer {
+	settings := Settings{
+		IncludeCommented: true,
+		Interpolate:      false,
+		ShowBlankLines:   true,
+		ShowColors:       false,
+		ShowComments:     true,
+		ShowGroupBanners: true,
+	}
+
+	return NewRenderer(settings, FormatHandler)
+}
+
+func FormatHandler(in *HandlerInput) HandlerSignal {
 	switch val := in.Statement.(type) {
 	// Ignore all existing newlines when doing formatting
 	// we will be injecting these ourself in other places
@@ -17,18 +30,20 @@ func Format(in *HandlerInput) Signal {
 			return in.Stop()
 		}
 
-		res := &LineBuffer{}
+		res := NewLineBuffer()
 
 		// If the previous line is a newline, don't add another one.
 		// This could happen if a group is the *first* thing in the document
 		if !(&ast.Newline{}).Is(in.Previous) && in.Previous != nil {
-			res.Newline()
+			res.AddNewline()
 		}
 
-		res.Add(output)
-		res.Newline()
-
-		return in.Return(res.Get())
+		return in.Return(
+			res.
+				Add(output).
+				AddNewline().
+				Get(),
+		)
 
 	case *ast.Assignment:
 		output := in.Presenter.Assignment(val)
@@ -36,21 +51,21 @@ func Format(in *HandlerInput) Signal {
 			return in.Stop()
 		}
 
-		buff := LineBuffer{}
+		buff := NewLineBuffer()
 
 		// If the assignment belongs to a group, but there are no previous
 		// then we're the first, so add a newline padding
 		if val.Group != nil && in.Previous == nil {
-			buff.Newline()
+			buff.AddNewline()
 		}
 
 		// Looks like current and previous Statement is both "Assignment"
 		// which mean they might be too close in the document, so we will
 		// attempt to inject some new-lines to give them some space
-		if in.Settings.WithBlankLines() && val.Is(in.Previous) {
+		if val.Is(in.Previous) {
 			// only allow cuddling of assignments if they both have no comments
 			if val.HasComments() || assignmentHasComments(in.Previous) {
-				buff.Newline()
+				buff.AddNewline()
 			}
 		}
 
@@ -58,4 +73,13 @@ func Format(in *HandlerInput) Signal {
 	}
 
 	return in.Continue()
+}
+
+func assignmentHasComments(stmt ast.Statement) bool {
+	x, ok := stmt.(*ast.Assignment)
+	if !ok {
+		return false
+	}
+
+	return x.HasComments()
 }

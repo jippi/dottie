@@ -19,7 +19,7 @@ var _ Outputter = (*Colorized)(nil)
 type Colorized struct{}
 
 func (c Colorized) Group(group *ast.Group, settings Settings) string {
-	res := &LineBuffer{}
+	res := NewLineBuffer()
 
 	var buf bytes.Buffer
 
@@ -28,9 +28,9 @@ func (c Colorized) Group(group *ast.Group, settings Settings) string {
 	out.ApplyStyle(tui.Bold).Println(group.Name)
 	out.Print("################################################################################")
 
-	res.Add(buf.String())
-
-	return res.Get()
+	return res.
+		Add(buf.String()).
+		Get()
 }
 
 func (c Colorized) Assignment(a *ast.Assignment, settings Settings) string {
@@ -52,7 +52,7 @@ func (c Colorized) Assignment(a *ast.Assignment, settings Settings) string {
 	tui.Theme.Warning.BuffPrinter(&buf).Print(val)
 	tui.Theme.Success.BuffPrinter(&buf).Print(a.Quote)
 
-	return (&LineBuffer{}).
+	return NewLineBuffer().
 		Add(buf.String()).
 		Get()
 }

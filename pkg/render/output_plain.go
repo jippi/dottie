@@ -12,7 +12,7 @@ var _ Outputter = (*Plain)(nil)
 type Plain struct{}
 
 func (c Plain) Group(group *ast.Group, settings Settings) string {
-	out := &LineBuffer{}
+	out := NewLineBuffer()
 
 	out.Add("################################################################################")
 	out.Add(group.Name)

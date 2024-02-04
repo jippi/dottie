@@ -11,13 +11,17 @@ type LineBuffer struct {
 	lines []string
 }
 
+func NewLineBuffer() *LineBuffer {
+	return &LineBuffer{}
+}
+
 func (lb *LineBuffer) Add(str string) *LineBuffer {
-	lb.AddPrinted(str)
+	lb.AddAndReturnPrinted(str)
 
 	return lb
 }
 
-func (lb *LineBuffer) AddPrinted(str string) bool {
+func (lb *LineBuffer) AddAndReturnPrinted(str string) bool {
 	if len(str) == 0 {
 		return false
 	}
@@ -31,25 +35,16 @@ func (lb *LineBuffer) AddPrinted(str string) bool {
 	return true
 }
 
+func (lb *LineBuffer) AddNewline() *LineBuffer {
+	lb.lines = append(lb.lines, "")
+
+	return lb
+}
+
 func (lb *LineBuffer) Get() string {
 	return strings.Join(lb.lines, Newline)
 }
 
 func (lb *LineBuffer) GetWithEOF() string {
 	return strings.TrimRightFunc(lb.Get(), unicode.IsSpace) + Newline
-}
-
-func (lb *LineBuffer) Newline() *LineBuffer {
-	lb.lines = append(lb.lines, "")
-
-	return lb
-}
-
-func (lb *LineBuffer) EnsureEOF() *LineBuffer {
-	idx := len(lb.lines) - 1
-	if idx > 0 && lb.lines[idx] != "" {
-		return lb.Newline()
-	}
-
-	return lb
 }

@@ -4,32 +4,7 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-type Signal uint
-
-const (
-	Continue Signal = iota
-	Stop
-	Return
-)
-
-var signals = []string{
-	Continue: "CONTINUE",
-	Stop:     "STOP",
-	Return:   "RETURN",
-}
-
-// String returns the string corresponding to the token.
-func (ss Signal) String() string {
-	s := ""
-
-	if int(ss) < len(signals) {
-		s = signals[ss]
-	}
-
-	return s
-}
-
-type Handler func(in *HandlerInput) Signal
+type Handler func(in *HandlerInput) HandlerSignal
 
 type HandlerInput struct {
 	Presenter *Renderer
@@ -39,16 +14,16 @@ type HandlerInput struct {
 	Value     string
 }
 
-func (si *HandlerInput) Stop() Signal {
+func (si *HandlerInput) Stop() HandlerSignal {
 	return Stop
 }
 
-func (si *HandlerInput) Return(val string) Signal {
+func (si *HandlerInput) Return(val string) HandlerSignal {
 	si.Value = val
 
 	return Return
 }
 
-func (si *HandlerInput) Continue() Signal {
+func (si *HandlerInput) Continue() HandlerSignal {
 	return Continue
 }

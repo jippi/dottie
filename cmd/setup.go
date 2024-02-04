@@ -22,11 +22,11 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		FilterGroup:      cmd.Root().String("group"),
 		IncludeCommented: cmd.Root().Bool("include-commented"),
 
-		ShowPretty:     cmd.Root().Bool("pretty"),
-		ShowBlankLines: cmd.Root().Bool("with-blank-lines"),
-		ShowComments:   cmd.Root().Bool("with-comments"),
-		ShowGroups:     cmd.Root().Bool("with-groups"),
-		ShowColors:     cmd.Root().Bool("colors"),
+		ShowPretty:       cmd.Root().Bool("pretty"),
+		ShowBlankLines:   cmd.Root().Bool("with-blank-lines"),
+		ShowComments:     cmd.Root().Bool("with-comments"),
+		ShowGroupBanners: cmd.Root().Bool("with-groups"),
+		ShowColors:       cmd.Root().Bool("colors"),
 	}
 
 	return nil

@@ -13,12 +13,22 @@ type Renderer struct {
 	handlers []Handler
 }
 
-func NewRenderer(settings Settings, handlers ...Handler) *Renderer {
+func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	var output Outputter = Plain{}
 
 	if settings.WithColors() {
 		output = Colorized{}
 	}
+
+	handlers := append(
+		[]Handler{
+			FilterKeyPrefix,
+			FilterActive,
+			FilterGroup,
+			FilterComments,
+		},
+		additionalHandlers...,
+	)
 
 	return &Renderer{
 		Output:   output,
@@ -88,10 +98,10 @@ func (r *Renderer) Statement(stmt any) string {
 		return r.Newline(val)
 
 	case []*ast.Group:
-		out := &LineBuffer{}
+		out := NewLineBuffer()
 
 		for _, group := range val {
-			if out.AddPrinted(r.Statement(group)) {
+			if out.AddAndReturnPrinted(r.Statement(group)) {
 				r.Previous = group
 			}
 		}
@@ -99,10 +109,10 @@ func (r *Renderer) Statement(stmt any) string {
 		return out.Get()
 
 	case []ast.Statement:
-		out := &LineBuffer{}
+		out := NewLineBuffer()
 
 		for _, stmt := range val {
-			if out.AddPrinted(r.Statement(stmt)) {
+			if out.AddAndReturnPrinted(r.Statement(stmt)) {
 				r.Previous = stmt
 			}
 		}
@@ -110,13 +120,9 @@ func (r *Renderer) Statement(stmt any) string {
 		return out.Get()
 
 	case []*ast.Comment:
-		if !r.Settings.WithComments() {
-			return ""
-		}
-
-		res := LineBuffer{}
+		res := NewLineBuffer()
 		for _, comment := range val {
-			if res.AddPrinted(r.Comment(comment, true)) {
+			if res.AddAndReturnPrinted(r.Statement(comment)) {
 				r.Previous = comment
 			}
 		}
@@ -129,7 +135,7 @@ func (r *Renderer) Statement(stmt any) string {
 }
 
 func (r *Renderer) Document(doc *ast.Document) string {
-	out := &LineBuffer{}
+	out := NewLineBuffer()
 
 	return out.
 		Add(r.Statement(doc.Statements)).
@@ -138,18 +144,14 @@ func (r *Renderer) Document(doc *ast.Document) string {
 }
 
 func (r *Renderer) Group(group *ast.Group) string {
-	if !group.BelongsToGroup(r.Settings.FilterGroup) {
-		return ""
-	}
-
 	rendered := r.Statement(group.Statements)
 	if len(rendered) == 0 {
 		return ""
 	}
 
-	res := &LineBuffer{}
+	res := NewLineBuffer()
 
-	if r.Settings.WithGroups() && len(rendered) > 0 {
+	if r.Settings.WithGroupBanners() && len(rendered) > 0 {
 		res.Add(r.Output.Group(group, r.Settings))
 	}
 
@@ -159,11 +161,7 @@ func (r *Renderer) Group(group *ast.Group) string {
 }
 
 func (r *Renderer) Assignment(a *ast.Assignment) string {
-	if !r.Settings.Match(a) || !a.BelongsToGroup(r.Settings.FilterGroup) {
-		return ""
-	}
-
-	res := &LineBuffer{}
+	res := NewLineBuffer()
 
 	return res.
 		Add(r.Statement(a.Comments)).
@@ -172,10 +170,6 @@ func (r *Renderer) Assignment(a *ast.Assignment) string {
 }
 
 func (r *Renderer) Comment(comment *ast.Comment, isAssignmentComment bool) string {
-	if !r.Settings.WithComments() {
-		return ""
-	}
-
 	return r.Output.Comment(comment, r.Settings, isAssignmentComment)
 }
 

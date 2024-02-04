@@ -18,7 +18,7 @@ var printCommand = &cli.Command{
 		var handlers []render.Handler
 
 		if settings.ShowPretty {
-			handlers = append(handlers, render.Format)
+			handlers = append(handlers, render.FormatHandler)
 		}
 
 		fmt.Println(render.NewRenderer(*settings, handlers...).Document(env))
