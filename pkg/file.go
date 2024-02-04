@@ -27,7 +27,7 @@ func Save(filename string, env *ast.Document) error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(render.RenderFull(env))
+	_, err = f.WriteString(render.RenderFormatted(env))
 
 	return err
 }

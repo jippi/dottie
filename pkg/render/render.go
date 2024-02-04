@@ -19,17 +19,23 @@ func (r *Renderer) Document(doc *ast.Document, settings Settings) string {
 }
 
 func (r *Renderer) Group(group *ast.Group, settings Settings) string {
-	return r.presenter.Group(group, settings)
+	return r.presenter.Statement(group, nil, settings)
 }
 
 func (r *Renderer) Assignment(assignment *ast.Assignment, settings Settings) string {
-	return r.presenter.Assignment(assignment, settings)
+	return r.presenter.Statement(assignment, nil, settings)
 }
 
 func (r *Renderer) Comment(comment *ast.Comment, settings Settings, isAssignmentComment bool) string {
-	return r.presenter.Comment(comment, settings, isAssignmentComment)
+	var parent ast.Statement
+
+	if isAssignmentComment {
+		parent = &ast.Assignment{}
+	}
+
+	return r.presenter.Statement(comment, parent, settings)
 }
 
 func (r *Renderer) Newline(newline *ast.Newline, settings Settings) string {
-	return r.presenter.Newline(newline, settings)
+	return r.presenter.Statement(newline, nil, settings)
 }

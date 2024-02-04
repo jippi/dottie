@@ -34,9 +34,9 @@ func New(scanner Scanner, filename string) *Parser {
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse() (*ast.Document, error) {
 	var (
-		group             *ast.Group
-		comments          []*ast.Comment
-		previousStatement ast.Statement
+		group    *ast.Group
+		comments []*ast.Comment
+		// previousStatement ast.Statement
 	)
 
 	global := &ast.Document{}
@@ -106,9 +106,9 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
-			if val.Is(previousStatement) {
-				continue
-			}
+			// if val.Is(previousStatement) {
+			// 	continue
+			// }
 
 			if !val.Blank {
 				continue
@@ -140,7 +140,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			comments = nil
 		}
 
-		previousStatement = stmt
+		// previousStatement = stmt
 	}
 
 	if group != nil {

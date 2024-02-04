@@ -45,7 +45,7 @@ func (rs *Settings) WithGroups() bool {
 }
 
 func (rs *Settings) WithBlankLines() bool {
-	return rs.ShowPretty || (rs.ShowBlankLines && rs.ShowComments)
+	return (rs.ShowBlankLines && rs.ShowComments)
 }
 
 func (rs *Settings) WithColors() bool {
