@@ -14,6 +14,7 @@ require (
 	github.com/gosimple/slug v1.13.1
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/muesli/termenv v0.15.2
+	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/stretchr/testify v1.8.4
 	github.com/teacat/noire v1.1.0
 	github.com/urfave/cli/v3 v3.0.0-alpha8
@@ -61,7 +62,6 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/sebdah/goldie/v2 v2.5.3 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect

@@ -9,6 +9,8 @@ import (
 type Renderer struct {
 	Output   Outputter
 	Previous ast.Statement
+	Settings Settings
+
 	handlers []Handler
 }
 
@@ -21,15 +23,18 @@ func NewRenderer(settings Settings, handlers ...Handler) *Renderer {
 
 	return &Renderer{
 		Output:   output,
+		Previous: nil,
+		Settings: settings,
+
 		handlers: handlers,
 	}
 }
 
-func (r *Renderer) Statement(stmt any, settings Settings) string {
+func (r *Renderer) Statement(stmt any) string {
 	in := &HandlerInput{
 		Presenter: r,
 		Previous:  r.Previous,
-		Settings:  settings,
+		Settings:  r.Settings,
 		Statement: stmt,
 	}
 
@@ -62,33 +67,33 @@ func (r *Renderer) Statement(stmt any, settings Settings) string {
 	case *ast.Document:
 		r.Previous = val
 
-		return r.Document(val, settings)
+		return r.Document(val)
 
 	case *ast.Group:
 		r.Previous = val
 
-		return r.Group(val, settings)
+		return r.Group(val)
 
 	case *ast.Comment:
 		r.Previous = val
 
-		return r.Comment(val, settings, false)
+		return r.Comment(val, false)
 
 	case *ast.Assignment:
 		r.Previous = val
 
-		return r.Assignment(val, settings)
+		return r.Assignment(val)
 
 	case *ast.Newline:
 		r.Previous = val
 
-		return r.Newline(val, settings)
+		return r.Newline(val)
 
 	case []*ast.Group:
 		out := &LineBuffer{}
 
 		for _, group := range val {
-			if out.AddPrinted(r.Statement(group, settings)) {
+			if out.AddPrinted(r.Statement(group)) {
 				r.Previous = group
 			}
 		}
@@ -99,7 +104,7 @@ func (r *Renderer) Statement(stmt any, settings Settings) string {
 		out := &LineBuffer{}
 
 		for _, stmt := range val {
-			if out.AddPrinted(r.Statement(stmt, settings)) {
+			if out.AddPrinted(r.Statement(stmt)) {
 				r.Previous = stmt
 			}
 		}
@@ -107,13 +112,13 @@ func (r *Renderer) Statement(stmt any, settings Settings) string {
 		return out.Get()
 
 	case []*ast.Comment:
-		if !settings.WithComments() {
+		if !r.Settings.WithComments() {
 			return ""
 		}
 
 		res := LineBuffer{}
 		for _, comment := range val {
-			if res.AddPrinted(r.Comment(comment, settings, true)) {
+			if res.AddPrinted(r.Comment(comment, true)) {
 				r.Previous = comment
 			}
 		}
@@ -125,29 +130,29 @@ func (r *Renderer) Statement(stmt any, settings Settings) string {
 	}
 }
 
-func (r *Renderer) Document(doc *ast.Document, settings Settings) string {
+func (r *Renderer) Document(doc *ast.Document) string {
 	out := &LineBuffer{}
 
 	return out.
-		Add(r.Statement(doc.Statements, settings)).
-		Add(r.Statement(doc.Groups, settings)).
+		Add(r.Statement(doc.Statements)).
+		Add(r.Statement(doc.Groups)).
 		Get()
 }
 
-func (r *Renderer) Group(group *ast.Group, settings Settings) string {
-	if !group.BelongsToGroup(settings.FilterGroup) {
+func (r *Renderer) Group(group *ast.Group) string {
+	if !group.BelongsToGroup(r.Settings.FilterGroup) {
 		return ""
 	}
 
-	rendered := r.Statement(group.Statements, settings)
+	rendered := r.Statement(group.Statements)
 	if len(rendered) == 0 {
 		return ""
 	}
 
 	res := &LineBuffer{}
 
-	if settings.WithGroups() && len(rendered) > 0 {
-		res.Add(r.Output.Group(group, settings))
+	if r.Settings.WithGroups() && len(rendered) > 0 {
+		res.Add(r.Output.Group(group, r.Settings))
 	}
 
 	return res.
@@ -155,29 +160,29 @@ func (r *Renderer) Group(group *ast.Group, settings Settings) string {
 		Get()
 }
 
-func (r *Renderer) Assignment(a *ast.Assignment, settings Settings) string {
-	if !settings.Match(a) || !a.BelongsToGroup(settings.FilterGroup) {
+func (r *Renderer) Assignment(a *ast.Assignment) string {
+	if !r.Settings.Match(a) || !a.BelongsToGroup(r.Settings.FilterGroup) {
 		return ""
 	}
 
 	res := &LineBuffer{}
 
 	return res.
-		Add(r.Statement(a.Comments, settings)).
-		Add(r.Output.Assignment(a, settings)).
+		Add(r.Statement(a.Comments)).
+		Add(r.Output.Assignment(a, r.Settings)).
 		Get()
 }
 
-func (r *Renderer) Comment(comment *ast.Comment, settings Settings, isAssignmentComment bool) string {
-	if !settings.WithComments() {
+func (r *Renderer) Comment(comment *ast.Comment, isAssignmentComment bool) string {
+	if !r.Settings.WithComments() {
 		return ""
 	}
 
-	return r.Output.Comment(comment, settings, isAssignmentComment)
+	return r.Output.Comment(comment, r.Settings, isAssignmentComment)
 }
 
-func (r *Renderer) Newline(newline *ast.Newline, settings Settings) string {
-	return r.Output.Newline(newline, settings)
+func (r *Renderer) Newline(newline *ast.Newline) string {
+	return r.Output.Newline(newline, r.Settings)
 }
 
 func (r *Renderer) SetOutput(output Outputter) {

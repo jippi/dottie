@@ -12,7 +12,7 @@ func Format(in *HandlerInput) Signal {
 		return in.Stop()
 
 	case *ast.Group:
-		output := in.Presenter.Group(val, in.Settings)
+		output := in.Presenter.Group(val)
 		if len(output) == 0 {
 			return in.Stop()
 		}
@@ -31,7 +31,7 @@ func Format(in *HandlerInput) Signal {
 		return in.Return(res.Get())
 
 	case *ast.Assignment:
-		output := in.Presenter.Assignment(val, in.Settings)
+		output := in.Presenter.Assignment(val)
 		if len(output) == 0 {
 			return in.Stop()
 		}

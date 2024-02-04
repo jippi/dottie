@@ -10,7 +10,7 @@ import (
 	"github.com/jippi/dottie/pkg/scanner"
 )
 
-func Load(filename string) (rows *ast.Document, err error) {
+func Load(filename string) (doc *ast.Document, err error) {
 	r, err := os.Open(filename)
 	if err != nil {
 		return
@@ -20,14 +20,14 @@ func Load(filename string) (rows *ast.Document, err error) {
 	return Parse(r, filename)
 }
 
-func Save(filename string, env *ast.Document) error {
+func Save(filename string, doc *ast.Document) error {
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(render.NewFormatter(env))
+	_, err = f.WriteString(render.NewFormatter().Statement(doc))
 
 	return err
 }
@@ -39,5 +39,10 @@ func Parse(r io.Reader, filename string) (*ast.Document, error) {
 		return nil, err
 	}
 
-	return parser.New(scanner.New(string(input)), filename).Parse()
+	return parser.
+		New(
+			scanner.New(string(input)),
+			filename,
+		).
+		Parse()
 }
