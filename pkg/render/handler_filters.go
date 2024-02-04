@@ -28,7 +28,7 @@ func FilterKeyPrefix(in *HandlerInput) HandlerSignal {
 func FilterComments(in *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow comments
 	if in.Settings.WithComments() {
-		in.Continue()
+		return in.Continue()
 	}
 
 	switch in.Statement.(type) {
@@ -46,7 +46,7 @@ func FilterComments(in *HandlerInput) HandlerSignal {
 func FilterDisabledStatements(in *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow disabled statements
 	if in.Settings.IncludeDisabled {
-		in.Continue()
+		return in.Continue()
 	}
 
 	switch val := in.Statement.(type) {
