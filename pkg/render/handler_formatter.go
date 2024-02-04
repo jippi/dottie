@@ -1,7 +1,6 @@
 package render
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/ast"
 )
 
@@ -10,18 +9,22 @@ func Format(in *HandlerInput) Signal {
 	// Ignore all existing newlines when doing formatting
 	// we will be injecting these ourself in other places
 	case *ast.Newline:
-		in.Stop()
+		return in.Stop()
 
 	case *ast.Group:
-		spew.Dump(in.Previous)
-
 		output := in.Presenter.Group(val, in.Settings)
 		if len(output) == 0 {
 			return in.Stop()
 		}
 
 		res := &LineBuffer{}
-		res.Newline()
+
+		// If the previous line is a newline, don't add another one.
+		// This could happen if a group is the *first* thing in the document
+		if !(&ast.Newline{}).Is(in.Previous) && in.Previous != nil {
+			res.Newline()
+		}
+
 		res.Add(output)
 		res.Newline()
 

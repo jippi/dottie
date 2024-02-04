@@ -12,7 +12,7 @@ func NewFormatter(doc *ast.Document) string {
 		ShowGroups:       true,
 	}
 
-	return NewRenderer(NewPresenter(settings, Format)).
+	return NewRenderer(settings, Format).
 		Document(doc, settings)
 }
 
@@ -26,7 +26,7 @@ func NewDirect(doc *ast.Document) string {
 		ShowGroups:       true,
 	}
 
-	return NewRenderer(NewPresenter(settings)).
+	return NewRenderer(settings).
 		Document(doc, settings)
 }
 

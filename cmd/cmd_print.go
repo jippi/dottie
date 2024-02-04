@@ -21,7 +21,7 @@ var printCommand = &cli.Command{
 			handlers = append(handlers, render.Format)
 		}
 
-		fmt.Println(render.NewPresenter(*settings, handlers...).Document(env, *settings))
+		fmt.Println(render.NewRenderer(*settings, handlers...).Document(env, *settings))
 
 		return nil
 	},

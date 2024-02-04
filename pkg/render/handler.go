@@ -32,7 +32,7 @@ func (ss Signal) String() string {
 type Handler func(in *HandlerInput) Signal
 
 type HandlerInput struct {
-	Presenter *Presenter
+	Presenter *Renderer
 	Previous  ast.Statement
 	Settings  Settings
 	Statement any
