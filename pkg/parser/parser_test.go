@@ -144,6 +144,33 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  1,
 							},
 						},
+						&ast.Newline{
+							Blank: true,
+							Position: ast.Position{
+								File:      "-",
+								Line:      2,
+								FirstLine: 2,
+								LastLine:  2,
+							},
+						},
+						&ast.Newline{
+							Blank: true,
+							Position: ast.Position{
+								File:      "-",
+								Line:      3,
+								FirstLine: 3,
+								LastLine:  3,
+							},
+						},
+						&ast.Newline{
+							Blank: true,
+							Position: ast.Position{
+								File:      "-",
+								Line:      4,
+								FirstLine: 4,
+								LastLine:  4,
+							},
+						},
 						&ast.Assignment{
 							Name:         "name",
 							Literal:      "",
@@ -165,6 +192,15 @@ func TestParser_Parse(t *testing.T) {
 								Line:      6,
 								FirstLine: 6,
 								LastLine:  6,
+							},
+						},
+						&ast.Newline{
+							Blank: true,
+							Position: ast.Position{
+								File:      "-",
+								Line:      7,
+								FirstLine: 7,
+								LastLine:  7,
 							},
 						},
 					},

@@ -34,12 +34,10 @@ func New(scanner Scanner, filename string) *Parser {
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse() (*ast.Document, error) {
 	var (
-		group    *ast.Group
-		comments []*ast.Comment
-		// previousStatement ast.Statement
+		comments     []*ast.Comment
+		currentGroup *ast.Group
+		global       = &ast.Document{}
 	)
-
-	global := &ast.Document{}
 
 	for p.token.Type != token.EOF {
 		stmt, err := p.parseStatement()
@@ -52,22 +50,22 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			val.Position.File = p.filename
 
 			// Track the last line of this group
-			if group != nil {
-				group.Position.LastLine = p.token.LineNumber
+			if currentGroup != nil {
+				currentGroup.Position.LastLine = p.token.LineNumber
 			}
 
 			// Change the current group
-			group = val
+			currentGroup = val
 
 			// Append the group
-			global.Groups = append(global.Groups, group)
+			global.Groups = append(global.Groups, currentGroup)
 
 		case *ast.Assignment:
 			val.Position.File = p.filename
 
 			val.Interpolated, err = template.Substitute(val.Literal, global.GetInterpolation)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 
 			// Assign accumulated comments to this assignment
@@ -82,9 +80,9 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			val.Position.LastLine = val.Position.Line
 
 			// Assign the assignment to a grouping if such exists
-			if group != nil {
-				val.Group = group
-				group.Statements = append(group.Statements, val)
+			if currentGroup != nil {
+				val.Group = currentGroup
+				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
 				global.Statements = append(global.Statements, stmt)
 			}
@@ -116,22 +114,22 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// If there is a blank line, print all previous comments
 			for _, comment := range comments {
-				if group != nil {
-					comment.Group = group
+				if currentGroup != nil {
+					comment.Group = currentGroup
 
-					group.Statements = append(group.Statements, comment)
+					currentGroup.Statements = append(currentGroup.Statements, comment)
 				} else {
 					global.Statements = append(global.Statements, comment)
 				}
 			}
 
 			// Attach the newline to a group for easier filtering
-			if group != nil {
-				val.Group = group
+			if currentGroup != nil {
+				val.Group = currentGroup
 			}
 
-			if group != nil {
-				group.Statements = append(group.Statements, val)
+			if currentGroup != nil {
+				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
 				global.Statements = append(global.Statements, val)
 			}
@@ -139,18 +137,16 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			// Reset the accumulated comments slice
 			comments = nil
 		}
-
-		// previousStatement = stmt
 	}
 
-	if group != nil {
-		group.Position.LastLine = p.token.LineNumber
+	if currentGroup != nil {
+		currentGroup.Position.LastLine = p.token.LineNumber
 	}
 
 	if len(comments) > 0 {
-		if group != nil {
+		if currentGroup != nil {
 			for _, c := range comments {
-				group.Statements = append(group.Statements, c)
+				currentGroup.Statements = append(currentGroup.Statements, c)
 			}
 		} else {
 			for _, c := range comments {
