@@ -2,12 +2,10 @@ package ast
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/jippi/dottie/pkg/token"
-	"github.com/jippi/dottie/pkg/tui"
 )
 
 type Assignment struct {
@@ -32,19 +30,19 @@ func (a *Assignment) Is(other Statement) bool {
 	return reflect.TypeOf(a) == reflect.TypeOf(other)
 }
 
-func (a *Assignment) BelongsToGroup(config RenderSettings) bool {
-	if a.Group == nil && len(config.FilterGroup) > 0 {
+func (a *Assignment) BelongsToGroup(name string) bool {
+	if a.Group == nil && len(name) > 0 {
 		return false
 	}
 
-	return a.Group == nil || a.Group.BelongsToGroup(config)
+	return a.Group == nil || a.Group.BelongsToGroup(name)
 }
 
 func (a *Assignment) HasComments() bool {
 	return len(a.Comments) > 0
 }
 
-func (a *Assignment) RenderDocumentation(withoutPrefix bool) string {
+func (a *Assignment) Documentation(withoutPrefix bool) string {
 	var buff bytes.Buffer
 
 	for _, c := range a.Comments {
@@ -59,34 +57,6 @@ func (a *Assignment) RenderDocumentation(withoutPrefix bool) string {
 	}
 
 	return buff.String()
-}
-
-func (a *Assignment) Render(config RenderSettings) string {
-	if !config.Match(a) || !a.BelongsToGroup(config) {
-		return ""
-	}
-
-	var buf bytes.Buffer
-
-	if config.WithComments() {
-		for _, c := range a.Comments {
-			buf.WriteString(c.Render(config, true))
-		}
-	}
-
-	if !a.Active {
-		if config.WithColors() {
-			out := tui.Theme.Danger.Printer(tui.RendererWithTTY(&buf))
-			out.Print("#")
-		} else {
-			buf.WriteString("#")
-		}
-	}
-
-	buf.WriteString(a.Assignment(config))
-	buf.WriteString("\n")
-
-	return buf.String()
 }
 
 func (a *Assignment) SetQuote(in string) {
@@ -112,27 +82,4 @@ func (a *Assignment) ValidationRules() string {
 	}
 
 	return ""
-}
-
-func (a *Assignment) Assignment(config RenderSettings) string {
-	val := a.Literal
-
-	if config.Interpolate {
-		val = a.Interpolated
-	}
-
-	if config.WithColors() {
-		var buf bytes.Buffer
-
-		tui.Theme.Primary.Printer(tui.RendererWithTTY(&buf)).Print(a.Name)
-		tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf)).Print("=")
-		tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(a.Quote)
-		tui.Theme.Warning.Printer(tui.RendererWithTTY(&buf)).Print(val)
-		tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(a.Quote)
-
-		return buf.String()
-	}
-
-	// panic(a.Quote)
-	return fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, val, a.Quote)
 }

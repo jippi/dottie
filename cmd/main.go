@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/render"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/urfave/cli/v3"
@@ -21,7 +22,7 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 
 var (
 	env      *ast.Document
-	settings *ast.RenderSettings
+	settings *render.Settings
 )
 
 func main() {

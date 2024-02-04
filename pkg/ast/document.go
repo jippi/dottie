@@ -2,12 +2,9 @@
 package ast
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
-	"unicode"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
@@ -21,7 +18,7 @@ func (d *Document) Is(other Statement) bool {
 	return reflect.TypeOf(d) == reflect.TypeOf(other)
 }
 
-func (d *Document) BelongsToGroup(config RenderSettings) bool {
+func (d *Document) BelongsToGroup(name string) bool {
 	return false
 }
 
@@ -48,9 +45,9 @@ func (d *Document) Assignments() []*Assignment {
 	return values
 }
 
-func (d *Document) GetGroup(config RenderSettings) *Group {
+func (d *Document) GetGroup(name string) *Group {
 	for _, grp := range d.Groups {
-		if grp.BelongsToGroup(config) {
+		if grp.BelongsToGroup(name) {
 			return grp
 		}
 	}
@@ -182,7 +179,7 @@ func (doc *Document) EnsureGroup(name string) *Group {
 		return nil
 	}
 
-	group := doc.GetGroup(RenderSettings{FilterGroup: name})
+	group := doc.GetGroup(name)
 
 	if group == nil && len(name) > 0 {
 		group = &Group{
@@ -219,42 +216,4 @@ func (d *Document) GetPosition(name string) (int, *Assignment) {
 	}
 
 	return -1, nil
-}
-
-func (d *Document) RenderFull() string {
-	return d.Render(RenderSettings{
-		IncludeCommented: true,
-		Interpolate:      false,
-		ShowBlankLines:   true,
-		ShowColors:       false,
-		ShowComments:     true,
-		ShowGroups:       true,
-	})
-}
-
-func (d *Document) Render(config RenderSettings) string {
-	var buf bytes.Buffer
-
-	// Root statements
-	root := renderStatements(d.Statements, config)
-	if len(root) > 0 {
-		buf.WriteString(root)
-	}
-
-	// Groups
-	hasOutput := config.WithGroups() && len(root) > 0
-
-	for _, group := range d.Groups {
-		output := group.Render(config)
-
-		if hasOutput && len(output) > 0 {
-			buf.WriteString("\n")
-		}
-
-		hasOutput = config.WithGroups() && len(output) > 0
-
-		buf.WriteString(output)
-	}
-
-	return strings.TrimLeftFunc(buf.String(), unicode.IsSpace)
 }

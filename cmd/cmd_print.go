@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/urfave/cli/v3"
 )
@@ -17,9 +18,9 @@ var printCommand = &cli.Command{
 		settings.Interpolate = true
 
 		if settings.ShowColors {
-			tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println(env.Render(*settings))
+			tui.Theme.Dark.Printer(tui.Renderer(os.Stdout)).Println((&render.PlainRenderer{}).Document(env, *settings))
 		} else {
-			fmt.Println(env.Render(*settings))
+			fmt.Println((&render.PlainRenderer{}).Document(env, *settings))
 		}
 
 		return nil

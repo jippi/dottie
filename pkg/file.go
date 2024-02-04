@@ -6,6 +6,7 @@ import (
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/parser"
+	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
 )
 
@@ -26,7 +27,7 @@ func Save(filename string, env *ast.Document) error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(env.RenderFull())
+	_, err = f.WriteString(render.RenderFull(env))
 
 	return err
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/jippi/dottie/pkg"
-	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/render"
 
 	"github.com/urfave/cli/v3"
 )
@@ -17,7 +17,7 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	settings = &ast.RenderSettings{
+	settings = &render.Settings{
 		FilterKeyPrefix:  cmd.Root().String("key-prefix"),
 		FilterGroup:      cmd.Root().String("group"),
 		IncludeCommented: cmd.Root().Bool("include-commented"),

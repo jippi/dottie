@@ -1,10 +1,12 @@
-package ast
+package render
 
 import (
 	"strings"
+
+	"github.com/jippi/dottie/pkg/ast"
 )
 
-type RenderSettings struct {
+type Settings struct {
 	FilterKeyPrefix  string
 	FilterGroup      string
 	IncludeCommented bool
@@ -18,7 +20,7 @@ type RenderSettings struct {
 	Interpolate bool
 }
 
-func (rs *RenderSettings) Match(assignment *Assignment) bool {
+func (rs *Settings) Match(assignment *ast.Assignment) bool {
 	if !assignment.Active && !rs.IncludeCommented {
 		return false
 	}
@@ -27,25 +29,25 @@ func (rs *RenderSettings) Match(assignment *Assignment) bool {
 		return false
 	}
 
-	if !assignment.BelongsToGroup(*rs) {
+	if !assignment.BelongsToGroup(rs.FilterGroup) {
 		return false
 	}
 
 	return true
 }
 
-func (rs *RenderSettings) WithComments() bool {
+func (rs *Settings) WithComments() bool {
 	return rs.ShowPretty || rs.ShowComments
 }
 
-func (rs *RenderSettings) WithGroups() bool {
+func (rs *Settings) WithGroups() bool {
 	return rs.ShowPretty || rs.ShowGroups
 }
 
-func (rs *RenderSettings) WithBlankLines() bool {
+func (rs *Settings) WithBlankLines() bool {
 	return rs.ShowPretty || (rs.ShowBlankLines && rs.ShowComments)
 }
 
-func (rs *RenderSettings) WithColors() bool {
+func (rs *Settings) WithColors() bool {
 	return rs.ShowColors
 }

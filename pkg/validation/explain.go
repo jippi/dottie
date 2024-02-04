@@ -99,7 +99,7 @@ func AskToSetValue(env *ast.Document, assignment *ast.Assignment) {
 
 	err := huh.NewInput().
 		Title("Please provide input").
-		Description(strings.TrimSpace(assignment.RenderDocumentation(true))).
+		Description(strings.TrimSpace(assignment.Documentation(true))).
 		Validate(func(s string) error {
 			return validator.New().Var(s, assignment.ValidationRules())
 		}).
