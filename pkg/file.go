@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -27,7 +28,12 @@ func Save(filename string, doc *ast.Document) error {
 	}
 	defer f.Close()
 
-	_, err = f.WriteString(render.NewFormatter().Statement(doc))
+	res := render.NewFormatter().Statement(doc)
+	if len(res) == 0 {
+		return fmt.Errorf("The rendered .env file is unexpectedly 0 bytes long - please report this as a bug (unless your file is empty)")
+	}
+
+	_, err = f.WriteString(res)
 
 	return err
 }

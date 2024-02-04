@@ -10,7 +10,6 @@ type Renderer struct {
 	Output   Outputter
 	Previous ast.Statement
 	Settings Settings
-
 	handlers []Handler
 }
 
@@ -25,7 +24,6 @@ func NewRenderer(settings Settings, handlers ...Handler) *Renderer {
 		Output:   output,
 		Previous: nil,
 		Settings: settings,
-
 		handlers: handlers,
 	}
 }
@@ -136,7 +134,7 @@ func (r *Renderer) Document(doc *ast.Document) string {
 	return out.
 		Add(r.Statement(doc.Statements)).
 		Add(r.Statement(doc.Groups)).
-		Get()
+		GetWithEOF()
 }
 
 func (r *Renderer) Group(group *ast.Group) string {
