@@ -30,8 +30,6 @@ func (a *Accumulator) Get() string {
 	return strings.Join(a.lines, "\n")
 }
 
-func (a *Accumulator) Newline() *Accumulator {
+func (a *Accumulator) Newline() {
 	a.lines = append(a.lines, "")
-
-	return a
 }
