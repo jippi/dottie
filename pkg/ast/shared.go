@@ -11,10 +11,10 @@ type Statement interface {
 }
 
 type Position struct {
-	File      string
-	Line      uint
-	FirstLine uint
-	LastLine  uint
+	File      string `json:"file"`
+	Line      uint   `json:"line"`
+	FirstLine uint   `json:"first_line"`
+	LastLine  uint   `json:"last_line"`
 }
 
 func (p Position) String() string {

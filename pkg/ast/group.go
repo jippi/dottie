@@ -8,9 +8,9 @@ import (
 )
 
 type Group struct {
-	Name       string      // Name of the group (within the header)
-	Statements []Statement // Statements within the group
-	Position   Position    // Positional information about the group
+	Name       string      `json:"name"`       // Name of the group (within the header)
+	Statements []Statement `json:"statements"` // Statements within the group
+	Position   Position    `json:"position"`   // Positional information about the group
 }
 
 func (g *Group) statementNode() {

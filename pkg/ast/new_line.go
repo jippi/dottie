@@ -5,9 +5,9 @@ import (
 )
 
 type Newline struct {
-	Blank    bool   `json:"blank"`
-	Group    *Group `json:"-"`
-	Position Position
+	Blank    bool     `json:"blank"`
+	Group    *Group   `json:"-"`
+	Position Position `json:"position"`
 }
 
 func (n *Newline) Is(other Statement) bool {
