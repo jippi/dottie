@@ -23,8 +23,8 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	handlers := append(
 		[]Handler{
 			FilterKeyPrefix,
-			FilterActive,
-			FilterGroup,
+			FilterDisabledStatements,
+			FilterGroupName,
 			FilterComments,
 		},
 		additionalHandlers...,

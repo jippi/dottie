@@ -1,9 +1,9 @@
 package render
 
 type Settings struct {
-	FilterKeyPrefix  string
-	FilterGroup      string
-	IncludeCommented bool
+	FilterKeyPrefix string
+	FilterGroup     string
+	IncludeDisabled bool
 
 	ShowBlankLines   bool
 	ShowColors       bool

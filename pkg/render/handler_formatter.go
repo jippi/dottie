@@ -6,7 +6,7 @@ import (
 
 func NewFormatter() *Renderer {
 	settings := Settings{
-		IncludeCommented: true,
+		IncludeDisabled:  true,
 		Interpolate:      false,
 		ShowBlankLines:   true,
 		ShowColors:       false,

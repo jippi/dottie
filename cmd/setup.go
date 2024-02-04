@@ -18,9 +18,9 @@ func setup(_ context.Context, cmd *cli.Command) error {
 	}
 
 	settings = &render.Settings{
-		FilterKeyPrefix:  cmd.Root().String("key-prefix"),
-		FilterGroup:      cmd.Root().String("group"),
-		IncludeCommented: cmd.Root().Bool("include-commented"),
+		FilterKeyPrefix: cmd.Root().String("key-prefix"),
+		FilterGroup:     cmd.Root().String("group"),
+		IncludeDisabled: cmd.Root().Bool("include-commented"),
 
 		ShowPretty:       cmd.Root().Bool("pretty"),
 		ShowBlankLines:   cmd.Root().Bool("with-blank-lines"),
