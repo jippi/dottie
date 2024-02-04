@@ -79,10 +79,6 @@ func (r Colorized) Comment(comment *ast.Comment, settings Settings, isAssignment
 }
 
 func (r Colorized) Newline(newline *ast.Newline, settings Settings) string {
-	if settings.ShowPretty {
-		return ""
-	}
-
 	if newline.Blank && !settings.WithBlankLines() {
 		return ""
 	}

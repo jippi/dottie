@@ -47,7 +47,7 @@ func Format(in *HandlerInput) Signal {
 		// Looks like current and previous Statement is both "Assignment"
 		// which mean they might be too close in the document, so we will
 		// attempt to inject some new-lines to give them some space
-		if in.Settings.ShowPretty && val.Is(in.Previous) {
+		if in.Settings.WithBlankLines() && val.Is(in.Previous) {
 			// only allow cuddling of assignments if they both have no comments
 			if val.HasComments() || assignmentHasComments(in.Previous) {
 				buff.Newline()

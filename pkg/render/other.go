@@ -12,8 +12,7 @@ func NewFormatter(doc *ast.Document) string {
 		ShowGroups:       true,
 	}
 
-	return NewRenderer(settings, Format).
-		Document(doc, settings)
+	return NewRenderer(settings, Format).Document(doc, settings)
 }
 
 func NewDirect(doc *ast.Document) string {
@@ -26,8 +25,7 @@ func NewDirect(doc *ast.Document) string {
 		ShowGroups:       true,
 	}
 
-	return NewRenderer(settings).
-		Document(doc, settings)
+	return NewRenderer(settings).Document(doc, settings)
 }
 
 func assignmentHasComments(stmt ast.Statement) bool {

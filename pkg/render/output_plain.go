@@ -44,10 +44,6 @@ func (r Plain) Comment(comment *ast.Comment, settings Settings, isAssignmentComm
 }
 
 func (r Plain) Newline(newline *ast.Newline, settings Settings) string {
-	if settings.ShowPretty {
-		return ""
-	}
-
 	if newline.Blank && !settings.WithBlankLines() {
 		return ""
 	}
