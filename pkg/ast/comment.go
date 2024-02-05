@@ -21,7 +21,19 @@ func NewComment(value string) *Comment {
 }
 
 func (c *Comment) Is(other Statement) bool {
-	return reflect.TypeOf(c) == reflect.TypeOf(other)
+	if c == nil || other == nil {
+		return false
+	}
+
+	return c.Type() == other.Type()
+}
+
+func (c *Comment) Type() string {
+	if c == nil {
+		return "<nil>Comment"
+	}
+
+	return reflect.TypeOf(c).String()
 }
 
 func (c *Comment) BelongsToGroup(name string) bool {

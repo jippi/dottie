@@ -17,7 +17,19 @@ func (g *Group) statementNode() {
 }
 
 func (g *Group) Is(other Statement) bool {
-	return reflect.TypeOf(g) == reflect.TypeOf(other)
+	if g == nil || other == nil {
+		return false
+	}
+
+	return g.Type() == other.Type()
+}
+
+func (g *Group) Type() string {
+	if g == nil {
+		return "<nil>Group"
+	}
+
+	return reflect.TypeOf(g).String()
 }
 
 func (g *Group) BelongsToGroup(name string) bool {

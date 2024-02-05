@@ -22,29 +22,40 @@ func NewFormatter() *Renderer {
 func FormatterHandler(hi *HandlerInput) HandlerSignal {
 	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Newline:
+		// Don't add any newlines between statements
+		if hi.PreviousStatement == nil {
+			// return hi.Continue()
+			return hi.Return(NewLineBuffer().AddNewline("FormatterHandler::Newline", "(no previous)"))
+		}
+
+		if hi.PreviousStatement.Is(&ast.Comment{}) {
+			// return hi.Continue()
+			return hi.Return(NewLineBuffer().AddNewline("FormatterHandler::Newline", hi.PreviousStatement.Type()))
+		}
+
 		// Ignore all existing newlines when doing formatting as
 		// we will be injecting these ourself in other places.
 		return hi.Stop()
 
 	case *ast.Group:
 		output := hi.Presenter.Group(statement)
-		if len(output) == 0 {
+		if output.Empty() {
 			return hi.Stop()
 		}
 
 		buf := NewLineBuffer()
 
-		// If the previous line is a Newline, don't add another one.
-		// This could happen if a group is the *first* thing in the document
 		if hi.PreviousStatement != nil && !hi.PreviousStatement.Is(&ast.Newline{}) {
-			buf.AddNewline()
+			buf.AddNewline("FormatterHandler::Group:before", hi.PreviousStatement.Type())
 		}
 
-		return hi.Return(buf.Add(output).AddNewline().Get())
+		buf.Add(output)
+
+		return hi.Return(buf)
 
 	case *ast.Assignment:
 		output := hi.Presenter.Assignment(statement)
-		if len(output) == 0 {
+		if output.Empty() {
 			return hi.Stop()
 		}
 
@@ -55,10 +66,10 @@ func FormatterHandler(hi *HandlerInput) HandlerSignal {
 		//
 		// Statements are only allow cuddle if both have no comments
 		if statement.Is(hi.PreviousStatement) && (statement.HasComments() || assignmentHasComments(hi.PreviousStatement)) {
-			buf.AddNewline()
+			buf.AddNewline("FormatterHandler::Assignment:Comments", hi.PreviousStatement.Type())
 		}
 
-		return hi.Return(buf.Add(output).Get())
+		return hi.Return(buf.Add(output))
 	}
 
 	return hi.Continue()

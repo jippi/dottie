@@ -23,11 +23,19 @@ type Assignment struct {
 func (a *Assignment) statementNode() {}
 
 func (a *Assignment) Is(other Statement) bool {
-	if other == nil || a == nil {
+	if a == nil || other == nil {
 		return false
 	}
 
-	return reflect.TypeOf(a) == reflect.TypeOf(other)
+	return a.Type() == other.Type()
+}
+
+func (a *Assignment) Type() string {
+	if a == nil {
+		return "<nil>Assignment"
+	}
+
+	return reflect.TypeOf(a).String()
 }
 
 func (a *Assignment) BelongsToGroup(name string) bool {

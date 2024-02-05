@@ -11,17 +11,17 @@ var _ Output = (*PlainOutput)(nil)
 
 type PlainOutput struct{}
 
-func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) string {
+func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) *LineBuffer {
 	out := NewLineBuffer()
 
-	out.Add("################################################################################")
-	out.Add(group.Name)
-	out.Add("################################################################################")
+	out.AddString("################################################################################")
+	out.AddString(group.Name)
+	out.AddString("################################################################################")
 
-	return out.Get()
+	return out
 }
 
-func (PlainOutput) Assignment(a *ast.Assignment, settings Settings) string {
+func (PlainOutput) Assignment(a *ast.Assignment, settings Settings) *LineBuffer {
 	var buf bytes.Buffer
 
 	if !a.Active {
@@ -36,17 +36,17 @@ func (PlainOutput) Assignment(a *ast.Assignment, settings Settings) string {
 
 	buf.WriteString(fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, val, a.Quote))
 
-	return buf.String()
+	return NewLineBuffer().AddString(buf.String())
 }
 
-func (r PlainOutput) Comment(comment *ast.Comment, settings Settings) string {
-	return comment.Value
+func (r PlainOutput) Comment(comment *ast.Comment, settings Settings) *LineBuffer {
+	return NewLineBuffer().AddString(comment.Value)
 }
 
-func (r PlainOutput) Newline(newline *ast.Newline, settings Settings) string {
+func (r PlainOutput) Newline(newline *ast.Newline, settings Settings) *LineBuffer {
 	if newline.Blank && !settings.WithBlankLines() {
-		return ""
+		return nil
 	}
 
-	return "\n"
+	return NewLineBuffer().AddNewline("PlainOutput:Newline")
 }

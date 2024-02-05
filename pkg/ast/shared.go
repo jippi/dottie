@@ -8,6 +8,7 @@ import (
 type Statement interface {
 	statementNode()
 	Is(Statement) bool
+	Type() string
 }
 
 type Position struct {

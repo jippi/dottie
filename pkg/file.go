@@ -29,11 +29,11 @@ func Save(filename string, doc *ast.Document) error {
 	defer f.Close()
 
 	res := render.NewFormatter().Statement(doc)
-	if len(res) == 0 {
+	if res.Empty() {
 		return fmt.Errorf("The rendered .env file is unexpectedly 0 bytes long - please report this as a bug (unless your file is empty)")
 	}
 
-	_, err = f.WriteString(res)
+	_, err = f.WriteString(res.GetWithEOF())
 
 	return err
 }

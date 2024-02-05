@@ -15,13 +15,15 @@ var printCommand = &cli.Command{
 	Action: func(_ context.Context, _ *cli.Command) error {
 		settings.UseInterpolatedValues = true
 
+		// spew.Dump(env)
+
 		var handlers []render.Handler
 
 		if settings.FormatOutput {
 			handlers = append(handlers, render.FormatterHandler)
 		}
 
-		fmt.Println(render.NewRenderer(*settings, handlers...).Document(env))
+		fmt.Println(render.NewRenderer(*settings, handlers...).Document(env).Get())
 
 		return nil
 	},

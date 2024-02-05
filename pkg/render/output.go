@@ -3,8 +3,8 @@ package render
 import "github.com/jippi/dottie/pkg/ast"
 
 type Output interface {
-	GroupBanner(*ast.Group, Settings) string
-	Assignment(*ast.Assignment, Settings) string
-	Comment(*ast.Comment, Settings) string
-	Newline(*ast.Newline, Settings) string
+	GroupBanner(*ast.Group, Settings) *LineBuffer
+	Assignment(*ast.Assignment, Settings) *LineBuffer
+	Comment(*ast.Comment, Settings) *LineBuffer
+	Newline(*ast.Newline, Settings) *LineBuffer
 }

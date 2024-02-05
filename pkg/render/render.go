@@ -39,7 +39,7 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	}
 }
 
-func (r *Renderer) Statement(currentStatement any) string {
+func (r *Renderer) Statement(currentStatement any) *LineBuffer {
 	hi := &HandlerInput{
 		Presenter:         r,
 		PreviousStatement: r.PreviousStatement,
@@ -53,11 +53,13 @@ func (r *Renderer) Statement(currentStatement any) string {
 		switch status {
 		// Stop processing the statement and return nothing
 		case Stop:
-			return ""
+			return nil
 
 		// Stop processing the statement and return the value from the handler
 		case Return:
-			r.PreviousStatement, _ = currentStatement.(ast.Statement)
+			if prev, ok := currentStatement.(ast.Statement); ok && !hi.ReturnValue.Empty() && !prev.Is(&ast.Group{}) {
+				r.PreviousStatement = prev
+			}
 
 			return hi.ReturnValue
 
@@ -76,28 +78,18 @@ func (r *Renderer) Statement(currentStatement any) string {
 
 	switch statement := currentStatement.(type) {
 	case *ast.Document:
-		r.PreviousStatement = statement
-
 		return r.Document(statement)
 
 	case *ast.Group:
-		r.PreviousStatement = statement
-
 		return r.Group(statement)
 
 	case *ast.Comment:
-		r.PreviousStatement = statement
-
 		return r.Comment(statement)
 
 	case *ast.Assignment:
-		r.PreviousStatement = statement
-
 		return r.Assignment(statement)
 
 	case *ast.Newline:
-		r.PreviousStatement = statement
-
 		return r.Newline(statement)
 
 	//
@@ -108,33 +100,28 @@ func (r *Renderer) Statement(currentStatement any) string {
 		buf := NewLineBuffer()
 
 		for _, group := range statement {
-			if buf.AddAndReturnPrinted(r.Statement(group)) {
-				r.PreviousStatement = group
-			}
+			buf.Add(r.Statement(group))
 		}
 
-		return buf.Get()
+		return buf
 
 	case []ast.Statement:
 		buf := NewLineBuffer()
 
 		for _, stmt := range statement {
-			if buf.AddAndReturnPrinted(r.Statement(stmt)) {
-				r.PreviousStatement = stmt
-			}
+			buf.Add(r.Statement(stmt))
 		}
 
-		return buf.Get()
+		return buf
 
 	case []*ast.Comment:
 		buf := NewLineBuffer()
+
 		for _, comment := range statement {
-			if buf.AddAndReturnPrinted(r.Statement(comment)) {
-				r.PreviousStatement = comment
-			}
+			buf.Add(r.Statement(comment))
 		}
 
-		return buf.Get()
+		return buf
 
 	//
 	// Unrecognized Statement type
@@ -145,39 +132,54 @@ func (r *Renderer) Statement(currentStatement any) string {
 	}
 }
 
-func (r *Renderer) Document(document *ast.Document) string {
+func (r *Renderer) Document(document *ast.Document) *LineBuffer {
 	return NewLineBuffer().
 		Add(r.Statement(document.Statements)).
-		Add(r.Statement(document.Groups)).
-		GetWithEOF()
+		Add(r.Statement(document.Groups))
 }
 
-func (r *Renderer) Group(group *ast.Group) string {
+func (r *Renderer) Group(group *ast.Group) *LineBuffer {
+	prev := r.PreviousStatement
+
+	// Render groups inner statements with the group being "previous"
+	// This is necessary because we render the Group statements *before* the (optional)
+	// GroupHeader, so for things to detect and align itself correctly, we need to fake the behavior of rendering order
+	r.PreviousStatement = group
+
 	rendered := r.Statement(group.Statements)
-	if len(rendered) == 0 {
-		return ""
+	if rendered.Empty() {
+		r.PreviousStatement = prev
+
+		return nil
 	}
 
 	buf := NewLineBuffer()
 
-	if r.Settings.ShowGroupBanners && len(rendered) > 0 {
-		buf.Add(r.Output.GroupBanner(group, r.Settings))
+	if r.Settings.ShowGroupBanners {
+		buf.
+			Add(r.Output.GroupBanner(group, r.Settings)).
+			AddNewline("Group:ShowGroupBanners", r.PreviousStatement.Type(), "(type doesn't matter)")
 	}
 
-	return buf.Add(rendered).Get()
+	return buf.Add(rendered)
 }
 
-func (r *Renderer) Assignment(assignment *ast.Assignment) string {
+func (r *Renderer) Assignment(assignment *ast.Assignment) *LineBuffer {
+	defer func() { r.PreviousStatement = assignment }()
+
 	return NewLineBuffer().
 		Add(r.Statement(assignment.Comments)).
-		Add(r.Output.Assignment(assignment, r.Settings)).
-		Get()
+		Add(r.Output.Assignment(assignment, r.Settings))
 }
 
-func (r *Renderer) Comment(comment *ast.Comment) string {
+func (r *Renderer) Comment(comment *ast.Comment) *LineBuffer {
+	defer func() { r.PreviousStatement = comment }()
+
 	return r.Output.Comment(comment, r.Settings)
 }
 
-func (r *Renderer) Newline(newline *ast.Newline) string {
+func (r *Renderer) Newline(newline *ast.Newline) *LineBuffer {
+	defer func() { r.PreviousStatement = newline }()
+
 	return r.Output.Newline(newline, r.Settings)
 }

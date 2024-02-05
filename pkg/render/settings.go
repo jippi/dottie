@@ -82,5 +82,5 @@ func WithInterpolation(b bool) SettingsOption {
 }
 
 func (rs Settings) WithBlankLines() bool {
-	return !rs.FormatOutput && (rs.ShowBlankLines && rs.ShowComments)
+	return rs.FormatOutput || (rs.ShowBlankLines && rs.ShowComments)
 }

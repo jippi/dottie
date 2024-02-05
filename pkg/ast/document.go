@@ -15,7 +15,19 @@ type Document struct {
 }
 
 func (d *Document) Is(other Statement) bool {
-	return reflect.TypeOf(d) == reflect.TypeOf(other)
+	if d == nil || other == nil {
+		return false
+	}
+
+	return d.Type() == other.Type()
+}
+
+func (d *Document) Type() string {
+	if d == nil {
+		return "<nil>Document"
+	}
+
+	return reflect.TypeOf(d).String()
 }
 
 func (d *Document) BelongsToGroup(name string) bool {

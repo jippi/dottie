@@ -11,7 +11,7 @@ var _ Output = (*ColorizedOutput)(nil)
 
 type ColorizedOutput struct{}
 
-func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) string {
+func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) *LineBuffer {
 	var buf bytes.Buffer
 
 	out := tui.Theme.Info.Printer(tui.RendererWithTTY(&buf))
@@ -20,10 +20,10 @@ func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) string {
 	out.ApplyStyle(tui.Bold).Println(group.Name)
 	out.Print("################################################################################")
 
-	return buf.String()
+	return NewLineBuffer().AddString(buf.String())
 }
 
-func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings) string {
+func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings) *LineBuffer {
 	var buf bytes.Buffer
 
 	if !assignment.Active {
@@ -42,10 +42,10 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 	tui.Theme.Warning.BuffPrinter(&buf).Print(val)
 	tui.Theme.Success.BuffPrinter(&buf).Print(assignment.Quote)
 
-	return buf.String()
+	return NewLineBuffer().AddString(buf.String())
 }
 
-func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) string {
+func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) *LineBuffer {
 	var buf bytes.Buffer
 
 	out := tui.Theme.Success.BuffPrinter(&buf)
@@ -53,7 +53,7 @@ func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) string {
 	if comment.Annotation == nil {
 		out.Print(comment.Value)
 
-		return buf.String()
+		return NewLineBuffer().AddString(buf.String())
 	}
 
 	if comment.Annotation != nil {
@@ -63,13 +63,13 @@ func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) string {
 		out.Print(comment.Annotation.Value)
 	}
 
-	return buf.String()
+	return NewLineBuffer().AddString(buf.String())
 }
 
-func (ColorizedOutput) Newline(newline *ast.Newline, settings Settings) string {
+func (ColorizedOutput) Newline(newline *ast.Newline, settings Settings) *LineBuffer {
 	if newline.Blank && !settings.WithBlankLines() {
-		return ""
+		return nil
 	}
 
-	return "\n"
+	return NewLineBuffer().AddNewline("ColorizedOutput:Newline")
 }

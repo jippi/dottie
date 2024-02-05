@@ -11,14 +11,14 @@ type HandlerInput struct {
 	PreviousStatement ast.Statement
 	Settings          Settings
 	CurrentStatement  any
-	ReturnValue       string
+	ReturnValue       *LineBuffer
 }
 
 func (hi *HandlerInput) Stop() HandlerSignal {
 	return Stop
 }
 
-func (hi *HandlerInput) Return(value string) HandlerSignal {
+func (hi *HandlerInput) Return(value *LineBuffer) HandlerSignal {
 	hi.ReturnValue = value
 
 	return Return

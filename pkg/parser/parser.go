@@ -37,6 +37,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 		comments     []*ast.Comment
 		currentGroup *ast.Group
 		global       = &ast.Document{}
+		previous     ast.Statement
 	)
 
 	for p.token.Type != token.EOF {
@@ -59,6 +60,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// Append the group
 			global.Groups = append(global.Groups, currentGroup)
+
+			previous = val
 
 		case *ast.Assignment:
 			val.Position.File = p.filename
@@ -89,6 +92,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// Reset comment block
 			comments = nil
+			previous = val
 
 		case *ast.Comment:
 			val.Position.File = p.filename
@@ -98,17 +102,21 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			}
 
 			comments = append(comments, val)
+			previous = val
 
 		case *ast.Newline:
+			if !val.Blank {
+				continue
+			}
+
 			val.Position.File = p.filename
 
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
-			// if val.Is(previousStatement) {
-			// 	continue
-			// }
+			if val.Is(previous) {
+				previous.(*ast.Newline).Position.LastLine = val.Position.Line
+				previous.(*ast.Newline).Repeated++
 
-			if !val.Blank {
 				continue
 			}
 
@@ -136,6 +144,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// Reset the accumulated comments slice
 			comments = nil
+			previous = val
 		}
 	}
 
