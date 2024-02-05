@@ -4,21 +4,21 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-type Handler func(in *HandlerInput) HandlerSignal
+type Handler func(hi *HandlerInput) HandlerSignal
 
 type HandlerInput struct {
-	Presenter         *Renderer
-	PreviousStatement ast.Statement
-	Settings          Settings
 	CurrentStatement  any
-	ReturnValue       *LineBuffer
+	PreviousStatement ast.Statement
+	Renderer          *Renderer
+	ReturnValue       *Lines
+	Settings          Settings
 }
 
 func (hi *HandlerInput) Stop() HandlerSignal {
 	return Stop
 }
 
-func (hi *HandlerInput) Return(value *LineBuffer) HandlerSignal {
+func (hi *HandlerInput) Return(value *Lines) HandlerSignal {
 	hi.ReturnValue = value
 
 	return Return

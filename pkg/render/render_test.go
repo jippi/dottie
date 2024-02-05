@@ -63,7 +63,7 @@ func TestFormatter(t *testing.T) {
 			env, err := pkg.Load(tt.filename)
 			require.NoError(t, err)
 
-			g.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).GetWithEOF()))
+			g.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).String()))
 		})
 	}
 }

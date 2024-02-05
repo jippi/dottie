@@ -16,20 +16,26 @@ type Renderer struct {
 func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	var output Output = PlainOutput{}
 
-	if settings.ShowColors {
-		output = ColorizedOutput{}
-	}
-
 	// Default handlers for filtering down the
 	handlers := append(
 		[]Handler{
-			FilterDisabledStatements,
-			FilterByKeyPrefix,
-			FilterByGroupName,
 			FilterComments,
+			FilterDisabledStatements,
+			FilterGroupName,
+			FilterKeyPrefix,
 		},
 		additionalHandlers...,
 	)
+
+	// Add Formatter handler if we're going to print pretty output!
+	if settings.formatOutput {
+		handlers = append(handlers, FormatterHandler)
+	}
+
+	// Change output handler to Colorized
+	if settings.showColors {
+		output = ColorizedOutput{}
+	}
 
 	return &Renderer{
 		Output:            output,
@@ -39,13 +45,12 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	}
 }
 
-func (r *Renderer) Statement(currentStatement any) *LineBuffer {
-	hi := &HandlerInput{
-		Presenter:         r,
-		PreviousStatement: r.PreviousStatement,
-		Settings:          r.Settings,
-		CurrentStatement:  currentStatement,
-	}
+// Statement is the main loop of the Renderer.
+//
+// It's responsible for delegating statements to handlers, calling the right
+// Output functions and track the ordering of Statements being rendered
+func (r *Renderer) Statement(currentStatement any) *Lines {
+	hi := r.newHandlerInput(currentStatement)
 
 	for _, handler := range r.handlers {
 		status := handler(hi)
@@ -57,13 +62,22 @@ func (r *Renderer) Statement(currentStatement any) *LineBuffer {
 
 		// Stop processing the statement and return the value from the handler
 		case Return:
-			if prev, ok := currentStatement.(ast.Statement); ok && !hi.ReturnValue.Empty() && !prev.Is(&ast.Group{}) {
+			if hi.ReturnValue.IsEmpty() {
+				return nil
+			}
+
+			// Update the "PreviousStatement" reference if
+			//
+			// 1) The current statement *is* a Statement (it might be a slice of statements, for example).
+			// 2) The statement is *not* a group since they are rendered differently,
+			//    so the statements happens "out of order" and restoring them here causes wrong values.
+			if prev, ok := currentStatement.(ast.Statement); ok && !prev.Is(&ast.Group{}) {
 				r.PreviousStatement = prev
 			}
 
 			return hi.ReturnValue
 
-		// Continue to next handler (or default behavior)
+		// Continue to next handler (or default behavior if we run out of handlers)
 		case Continue:
 
 		// Unknown signal
@@ -78,47 +92,47 @@ func (r *Renderer) Statement(currentStatement any) *LineBuffer {
 
 	switch statement := currentStatement.(type) {
 	case *ast.Document:
-		return r.Document(statement)
+		return r.document(statement)
 
 	case *ast.Group:
-		return r.Group(statement)
+		return r.group(statement)
 
 	case *ast.Comment:
-		return r.Comment(statement)
+		return r.comment(statement)
 
 	case *ast.Assignment:
-		return r.Assignment(statement)
+		return r.assignment(statement)
 
 	case *ast.Newline:
-		return r.Newline(statement)
+		return r.newline(statement)
 
 	//
 	// Lists of different statements will be iterated over
 	//
 
 	case []*ast.Group:
-		buf := NewLineBuffer()
+		buf := NewLinesCollection()
 
 		for _, group := range statement {
-			buf.Add(r.Statement(group))
+			buf.Append(r.Statement(group))
 		}
 
 		return buf
 
 	case []ast.Statement:
-		buf := NewLineBuffer()
+		buf := NewLinesCollection()
 
 		for _, stmt := range statement {
-			buf.Add(r.Statement(stmt))
+			buf.Append(r.Statement(stmt))
 		}
 
 		return buf
 
 	case []*ast.Comment:
-		buf := NewLineBuffer()
+		buf := NewLinesCollection()
 
 		for _, comment := range statement {
-			buf.Add(r.Statement(comment))
+			buf.Append(r.Statement(comment))
 		}
 
 		return buf
@@ -132,54 +146,83 @@ func (r *Renderer) Statement(currentStatement any) *LineBuffer {
 	}
 }
 
-func (r *Renderer) Document(document *ast.Document) *LineBuffer {
-	return NewLineBuffer().
-		Add(r.Statement(document.Statements)).
-		Add(r.Statement(document.Groups))
+// document renders "Document" Statements.
+//
+// Direct Document Statements are rendered first, followed by any
+// Group Statements in order they show up in the original source.
+func (r *Renderer) document(document *ast.Document) *Lines {
+	return NewLinesCollection().
+		Append(r.Statement(document.Statements)).
+		Append(r.Statement(document.Groups))
 }
 
-func (r *Renderer) Group(group *ast.Group) *LineBuffer {
+// group renders "Group" Statements.
+func (r *Renderer) group(group *ast.Group) *Lines {
+	// Capture the *current* Previous Statement in case we need to restore it (see below)
 	prev := r.PreviousStatement
 
-	// Render groups inner statements with the group being "previous"
-	// This is necessary because we render the Group statements *before* the (optional)
-	// GroupHeader, so for things to detect and align itself correctly, we need to fake the behavior of rendering order
+	// We render a Group's "Statements" before the (optional) GroupHeader (in --pretty mode).
+	//
+	// Because we render Group Statements "out of order" (before the Group Header),
+	// we have to manually force the "Previous Statement" to be *this* Group,
+	// rather than whatever *actually* was the previous statement.
 	r.PreviousStatement = group
 
 	rendered := r.Statement(group.Statements)
-	if rendered.Empty() {
+
+	if rendered.IsEmpty() {
+		// If the Group Statements didn't yield any output, restore the old "PreviousStatement" before
+		// any Group rendering happened, to "undo" our rendering
 		r.PreviousStatement = prev
 
 		return nil
 	}
 
-	buf := NewLineBuffer()
+	buf := NewLinesCollection()
 
+	// Render the optional Group banner if necessary.
 	if r.Settings.ShowGroupBanners {
-		buf.
-			Add(r.Output.GroupBanner(group, r.Settings)).
-			AddNewline("Group:ShowGroupBanners", r.PreviousStatement.Type(), "(type doesn't matter)")
+		buf.Append(r.Output.GroupBanner(group, r.Settings))
+
+		if r.Settings.showBlankLines {
+			buf.Newline("Group:ShowGroupBanners", r.PreviousStatement.Type(), "(type doesn't matter)")
+		}
 	}
 
-	return buf.Add(rendered)
+	return buf.Append(rendered)
 }
 
-func (r *Renderer) Assignment(assignment *ast.Assignment) *LineBuffer {
+// assignment renders "Assignment" Statements.
+func (r *Renderer) assignment(assignment *ast.Assignment) *Lines {
+	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = assignment }()
 
-	return NewLineBuffer().
-		Add(r.Statement(assignment.Comments)).
-		Add(r.Output.Assignment(assignment, r.Settings))
+	return NewLinesCollection().
+		Append(r.Statement(assignment.Comments)).
+		Append(r.Output.Assignment(assignment, r.Settings))
 }
 
-func (r *Renderer) Comment(comment *ast.Comment) *LineBuffer {
+// comment renders "Comment" Statements.
+func (r *Renderer) comment(comment *ast.Comment) *Lines {
+	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = comment }()
 
 	return r.Output.Comment(comment, r.Settings)
 }
 
-func (r *Renderer) Newline(newline *ast.Newline) *LineBuffer {
+// newline renders "Newline" Statements.
+func (r *Renderer) newline(newline *ast.Newline) *Lines {
+	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = newline }()
 
 	return r.Output.Newline(newline, r.Settings)
+}
+
+func (r *Renderer) newHandlerInput(statement any) *HandlerInput {
+	return &HandlerInput{
+		CurrentStatement:  statement,
+		PreviousStatement: r.PreviousStatement,
+		Renderer:          r,
+		Settings:          r.Settings,
+	}
 }

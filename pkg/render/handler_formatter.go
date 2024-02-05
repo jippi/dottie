@@ -6,11 +6,11 @@ import (
 
 func NewFormatter() *Renderer {
 	settings := Settings{
-		IncludeDisabled:       true,
-		UseInterpolatedValues: false,
-		ShowBlankLines:        true,
-		ShowColors:            false,
-		ShowComments:          true,
+		includeDisabled:       true,
+		useInterpolatedValues: false,
+		showBlankLines:        true,
+		showColors:            false,
+		showComments:          true,
 		ShowGroupBanners:      true,
 	}
 
@@ -22,15 +22,16 @@ func NewFormatter() *Renderer {
 func FormatterHandler(hi *HandlerInput) HandlerSignal {
 	switch statement := hi.CurrentStatement.(type) {
 	case *ast.Newline:
-		// Don't add any newlines between statements
+		if !hi.Settings.showBlankLines {
+			return hi.Stop()
+		}
+
 		if hi.PreviousStatement == nil {
-			// return hi.Continue()
-			return hi.Return(NewLineBuffer().AddNewline("FormatterHandler::Newline", "(no previous)"))
+			return hi.Return(NewLinesCollection().Newline("FormatterHandler::Newline (PreviousStatement is nil)"))
 		}
 
 		if hi.PreviousStatement.Is(&ast.Comment{}) {
-			// return hi.Continue()
-			return hi.Return(NewLineBuffer().AddNewline("FormatterHandler::Newline", hi.PreviousStatement.Type()))
+			return hi.Return(NewLinesCollection().Newline("FormatterHandler::Newline (retain newlines around stand-alone comments)", hi.PreviousStatement.Type()))
 		}
 
 		// Ignore all existing newlines when doing formatting as
@@ -38,38 +39,38 @@ func FormatterHandler(hi *HandlerInput) HandlerSignal {
 		return hi.Stop()
 
 	case *ast.Group:
-		output := hi.Presenter.Group(statement)
-		if output.Empty() {
+		output := hi.Renderer.group(statement)
+		if output.IsEmpty() {
 			return hi.Stop()
 		}
 
-		buf := NewLineBuffer()
+		buf := NewLinesCollection()
 
-		if hi.PreviousStatement != nil && !hi.PreviousStatement.Is(&ast.Newline{}) {
-			buf.AddNewline("FormatterHandler::Group:before", hi.PreviousStatement.Type())
+		if hi.Settings.showBlankLines && hi.PreviousStatement != nil && !hi.PreviousStatement.Is(&ast.Newline{}) {
+			buf.Newline("FormatterHandler::Group:before", hi.PreviousStatement.Type())
 		}
 
-		buf.Add(output)
+		buf.Append(output)
 
 		return hi.Return(buf)
 
 	case *ast.Assignment:
-		output := hi.Presenter.Assignment(statement)
-		if output.Empty() {
+		output := hi.Renderer.assignment(statement)
+		if output.IsEmpty() {
 			return hi.Stop()
 		}
 
-		buf := NewLineBuffer()
+		buf := NewLinesCollection()
 
 		// If the previous Statement was also an Assignment, detect if they should
 		// be allowed to cuddle (without newline between them) or not.
 		//
 		// Statements are only allow cuddle if both have no comments
-		if statement.Is(hi.PreviousStatement) && (statement.HasComments() || assignmentHasComments(hi.PreviousStatement)) {
-			buf.AddNewline("FormatterHandler::Assignment:Comments", hi.PreviousStatement.Type())
+		if hi.Settings.showBlankLines && statement.Is(hi.PreviousStatement) && (statement.HasComments() || assignmentHasComments(hi.PreviousStatement)) {
+			buf.Newline("FormatterHandler::Assignment:Comments", hi.PreviousStatement.Type())
 		}
 
-		return hi.Return(buf.Add(output))
+		return hi.Return(buf.Append(output))
 	}
 
 	return hi.Continue()

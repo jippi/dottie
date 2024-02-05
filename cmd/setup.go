@@ -19,14 +19,17 @@ func setup(_ context.Context, cmd *cli.Command) error {
 
 	settings = render.NewSettings(
 		render.WithBlankLines(cmd.Root().Bool("with-blank-lines")),
+		render.WithColors(cmd.Root().Bool("colors")),
 		render.WithComments(cmd.Root().Bool("with-comments")),
-		render.WithGroupBanners(cmd.Root().Bool("with-groups")),
 		render.WithFilterGroup(cmd.Root().String("group")),
 		render.WithFilterKeyPrefix(cmd.Root().String("key-prefix")),
+		render.WithGroupBanners(cmd.Root().Bool("with-groups")),
 		render.WithIncludeDisabled(cmd.Root().Bool("include-commented")),
-		render.WithFormattedOutput(cmd.Root().Bool("pretty")),
-		render.WithColors(cmd.Root().Bool("colors")),
 	)
+
+	if cmd.Root().Bool("pretty") {
+		settings.Apply(render.WithFormattedOutput(true))
+	}
 
 	return nil
 }

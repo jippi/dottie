@@ -13,17 +13,9 @@ var printCommand = &cli.Command{
 	Usage:  "Print environment variables",
 	Before: setup,
 	Action: func(_ context.Context, _ *cli.Command) error {
-		settings.UseInterpolatedValues = true
+		settings.Apply(render.WithInterpolation(true))
 
-		// spew.Dump(env)
-
-		var handlers []render.Handler
-
-		if settings.FormatOutput {
-			handlers = append(handlers, render.FormatterHandler)
-		}
-
-		fmt.Println(render.NewRenderer(*settings, handlers...).Document(env).Get())
+		fmt.Println(render.NewRenderer(*settings).Statement(env).String())
 
 		return nil
 	},

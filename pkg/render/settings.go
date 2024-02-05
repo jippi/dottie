@@ -1,86 +1,31 @@
 package render
 
 type Settings struct {
-	FilterKeyPrefix       string
-	FilterGroup           string
-	IncludeDisabled       bool
-	ShowBlankLines        bool
-	ShowColors            bool
-	ShowComments          bool
+	filterKeyPrefix       string
+	filterGroup           string
+	includeDisabled       bool
+	showBlankLines        bool
+	showColors            bool
+	showComments          bool
 	ShowGroupBanners      bool
-	FormatOutput          bool
-	UseInterpolatedValues bool
+	formatOutput          bool
+	useInterpolatedValues bool
 }
-
-type SettingsOption func(*Settings)
 
 func NewSettings(options ...SettingsOption) *Settings {
 	settings := &Settings{}
 
+	return settings.Apply(options...)
+}
+
+func (s *Settings) Apply(options ...SettingsOption) *Settings {
 	for _, option := range options {
-		option(settings)
+		option(s)
 	}
 
-	return settings
+	return s
 }
 
-func WithFilterKeyPrefix(prefix string) SettingsOption {
-	return func(s *Settings) {
-		s.FilterKeyPrefix = prefix
-	}
-}
-
-func WithFilterGroup(name string) SettingsOption {
-	return func(s *Settings) {
-		s.FilterGroup = name
-	}
-}
-
-func WithIncludeDisabled(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.IncludeDisabled = b
-	}
-}
-
-func WithBlankLines(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.ShowBlankLines = b
-	}
-}
-
-func WithColors(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.ShowColors = b
-	}
-}
-
-func WithComments(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.ShowComments = b
-	}
-}
-
-func WithGroupBanners(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.ShowGroupBanners = b
-	}
-}
-
-func WithFormattedOutput(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.FormatOutput = b
-		s.ShowComments = b
-		s.ShowGroupBanners = b
-		s.ShowColors = b
-	}
-}
-
-func WithInterpolation(b bool) SettingsOption {
-	return func(s *Settings) {
-		s.UseInterpolatedValues = b
-	}
-}
-
-func (rs Settings) WithBlankLines() bool {
-	return rs.FormatOutput || (rs.ShowBlankLines && rs.ShowComments)
+func (rs Settings) ShowBlankLines() bool {
+	return rs.formatOutput || (rs.showBlankLines && rs.showComments)
 }
