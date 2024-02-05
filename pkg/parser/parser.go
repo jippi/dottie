@@ -114,8 +114,9 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
 			if val.Is(previous) {
-				previous.(*ast.Newline).Position.LastLine = val.Position.Line
-				previous.(*ast.Newline).Repeated++
+				last, _ := previous.(*ast.Newline)
+				last.Position.LastLine = val.Position.Line
+				last.Repeated++
 
 				continue
 			}
