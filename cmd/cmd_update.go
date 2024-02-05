@@ -51,7 +51,7 @@ var updateCommand = &cli.Command{
 
 		// Copy source to "new"
 		fmt.Print("Copying .env.source into .env.merged")
-		if err := Copy(".env.merged", ".env.source"); err != nil {
+		if err := Copy(".env.source", ".env.merged"); err != nil {
 			return err
 		}
 		fmt.Println(" ✅")
@@ -67,17 +67,19 @@ var updateCommand = &cli.Command{
 		// Take current assignments and set them in the new doc
 		fmt.Println("Updating .env.merged with key/value pairs from .env")
 		for _, stmt := range env.Assignments() {
-			if stmt.Active {
+			if !stmt.Active {
 				continue
 			}
 
-			changed, err := mergedEnv.Set(&ast.Assignment{Name: stmt.Name, Literal: stmt.Literal}, ast.SetOptions{SkipIfSame: true})
+			changed, err := mergedEnv.Set(stmt, ast.SetOptions{SkipIfSame: true, ErrorIfMissing: true})
 			if err != nil {
-				return err
+				fmt.Println("  ❌", err.Error())
+
+				continue
 			}
 
 			if changed {
-				fmt.Println("  ✅", stmt.Name)
+				fmt.Println("  ✅", fmt.Sprintf("Key [%s] was successfully updated", stmt.Name))
 			}
 		}
 
@@ -88,7 +90,7 @@ var updateCommand = &cli.Command{
 	},
 }
 
-func Copy(dst, src string) error {
+func Copy(src, dst string) error {
 	srcF, err := os.Open(src)
 	if err != nil {
 		return err

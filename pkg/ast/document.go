@@ -38,23 +38,23 @@ func (d *Document) statementNode() {
 }
 
 func (d *Document) Assignments() []*Assignment {
-	var values []*Assignment
+	var assignments []*Assignment
 
-	for _, stmt := range d.Statements {
-		if assign, ok := stmt.(*Assignment); ok {
-			values = append(values, assign)
+	for _, statement := range d.Statements {
+		if assign, ok := statement.(*Assignment); ok {
+			assignments = append(assignments, assign)
 		}
 	}
 
-	for _, grp := range d.Groups {
-		for _, stmt := range grp.Statements {
-			if assign, ok := stmt.(*Assignment); ok {
-				values = append(values, assign)
+	for _, group := range d.Groups {
+		for _, statement := range group.Statements {
+			if assignment, ok := statement.(*Assignment); ok {
+				assignments = append(assignments, assignment)
 			}
 		}
 	}
 
-	return values
+	return assignments
 }
 
 func (d *Document) GetGroup(name string) *Group {
