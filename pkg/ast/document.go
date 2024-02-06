@@ -128,7 +128,7 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 
 	existing := doc.Get(input.Name)
 
-	if options.SkipIfSet && existing != nil && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
+	if options.SkipIfSet && existing != nil && len(existing.Literal) > 0 && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
 		return nil, nil
 	}
 
