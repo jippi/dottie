@@ -44,21 +44,24 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 				light.Println("(file) The file [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
 
 			case "oneof":
-				light.Println("(oneof) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] must be one of [" + rule.Param() + "]")
+				light.Println("(oneof) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not one of [" + rule.Param() + "]")
+
+			case "number":
+				light.Println("(number) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid number")
 
 			case "email":
-				light.Println("(email) Expected a valid e-mail, but got [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "].")
+				light.Println("(email) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid e-mail")
 				AskToSetValue(env, keyErr.Assignment)
 
 			case "required":
-				light.Println("(required) This key must not have an empty value.")
+				light.Println("(required) This value must not be empty/blank.")
 
 			case "fqdn":
-				light.Println("(fqdn) This key must have a valid hostname.")
+				light.Println("(fqdn) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid Fully Qualified Domain Name (FQDN).")
 				AskToSetValue(env, keyErr.Assignment)
 
 			default:
-				light.Printfln("(%s) failed validation", rule.ActualTag())
+				light.Printfln("(%s) The value ["+bold.Sprintf(keyErr.Assignment.Interpolated)+"] failed validation", rule.ActualTag())
 			}
 		}
 
