@@ -27,10 +27,6 @@ var validateCommand = &cli.Command{
 		stderr.Box(fmt.Sprintf("%d validation errors found", len(res)))
 		stderr.Println()
 
-		for _, errIsh := range res {
-			validation.Explain(env, errIsh)
-		}
-
 		env, err := pkg.Load(cmd.String("file"))
 		if err != nil {
 			return fmt.Errorf("failed to reload .env file: %w", err)

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/token"
 )
 
@@ -90,4 +91,10 @@ func (a *Assignment) ValidationRules() string {
 	}
 
 	return ""
+}
+
+func (a *Assignment) Valid() error {
+	return validator.
+		New(validator.WithRequiredStructEnabled()).
+		Var(a.Interpolated, a.ValidationRules())
 }

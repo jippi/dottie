@@ -71,14 +71,14 @@ var updateCommand = &cli.Command{
 				continue
 			}
 
-			changed, err := mergedEnv.Set(stmt, ast.SetOptions{SkipIfSame: true, ErrorIfMissing: true})
+			changed, err := mergedEnv.Upsert(stmt, ast.UpsertOptions{SkipIfSame: true, ErrorIfMissing: true})
 			if err != nil {
 				fmt.Println("  ❌", err.Error())
 
 				continue
 			}
 
-			if changed {
+			if changed != nil {
 				fmt.Println("  ✅", fmt.Sprintf("Key [%s] was successfully updated", stmt.Name))
 			}
 		}

@@ -6,6 +6,8 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/tui"
+	"github.com/jippi/dottie/pkg/validation"
 
 	"github.com/urfave/cli/v3"
 )
@@ -22,6 +24,10 @@ var setCommand = &cli.Command{
 		},
 		&cli.BoolFlag{
 			Name:     "error-if-missing",
+			OnlyOnce: true,
+		},
+		&cli.BoolFlag{
+			Name:     "skip-validation",
 			OnlyOnce: true,
 		},
 		&cli.StringFlag{
@@ -51,26 +57,42 @@ var setCommand = &cli.Command{
 			return fmt.Errorf("Missing required argument: KEY")
 		}
 
-		options := ast.SetOptions{
-			ErrorIfMissing: cmd.Bool("error-if-missing"),
-			Before:         cmd.String("before"),
-			Group:          cmd.String("group"),
+		options := ast.UpsertOptions{
+			InsertBefore:   cmd.String("before"),
 			Comments:       cmd.StringSlice("comment"),
+			ErrorIfMissing: cmd.Bool("error-if-missing"),
+			Group:          cmd.String("group"),
+			SkipValidation: cmd.Bool("skip-validation"),
 		}
 
 		assignment := &ast.Assignment{
 			Name:    key,
 			Literal: cmd.Args().Get(1),
-			Active:  !cmd.Bool("commented"),
+			// by default we take the user input and assume its interpolated,
+			// it will be interpolated inside (*Document).Set if applicable
+			Interpolated: cmd.Args().Get(1),
+			Active:       !cmd.Bool("commented"),
 		}
 
 		assignment.SetQuote(cmd.String("quote-style"))
 
-		_, err := env.Set(assignment, options)
+		// Upsert key
+
+		assignment, err := env.Upsert(assignment, options)
 		if err != nil {
-			return err
+			validation.Explain(env, validation.NewError(assignment, err))
+
+			return fmt.Errorf("failed to upsert the key/value pair")
 		}
 
-		return pkg.Save(cmd.String("file"), env)
+		tui.Theme.Success.StderrPrinter().Println("Key was successfully upserted")
+
+		if err := pkg.Save(cmd.String("file"), env); err != nil {
+			return fmt.Errorf("failed to save file: %w", err)
+		}
+
+		tui.Theme.Success.StderrPrinter().Println("File was successfully saved")
+
+		return nil
 	},
 }

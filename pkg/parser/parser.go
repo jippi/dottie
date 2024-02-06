@@ -5,8 +5,6 @@ import (
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
-
-	"github.com/compose-spec/compose-go/template"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -34,10 +32,10 @@ func New(scanner Scanner, filename string) *Parser {
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse() (*ast.Document, error) {
 	var (
-		comments     []*ast.Comment
-		currentGroup *ast.Group
-		global       = &ast.Document{}
-		previous     ast.Statement
+		comments          []*ast.Comment
+		currentGroup      *ast.Group
+		doc               = &ast.Document{}
+		previousStatement ast.Statement
 	)
 
 	for p.token.Type != token.EOF {
@@ -59,14 +57,14 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			currentGroup = val
 
 			// Append the group
-			global.Groups = append(global.Groups, currentGroup)
+			doc.Groups = append(doc.Groups, currentGroup)
 
-			previous = val
+			previousStatement = val
 
 		case *ast.Assignment:
 			val.Position.File = p.filename
 
-			val.Interpolated, err = template.Substitute(val.Literal, global.GetInterpolation)
+			val.Interpolated, err = doc.Interpolate(val)
 			if err != nil {
 				return nil, err
 			}
@@ -87,22 +85,22 @@ func (p *Parser) Parse() (*ast.Document, error) {
 				val.Group = currentGroup
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				global.Statements = append(global.Statements, stmt)
+				doc.Statements = append(doc.Statements, stmt)
 			}
 
 			// Reset comment block
 			comments = nil
-			previous = val
+			previousStatement = val
 
 		case *ast.Comment:
 			val.Position.File = p.filename
 
 			if val.Annotation != nil {
-				global.Annotations = append(global.Annotations, val)
+				doc.Annotations = append(doc.Annotations, val)
 			}
 
 			comments = append(comments, val)
-			previous = val
+			previousStatement = val
 
 		case *ast.Newline:
 			if !val.Blank {
@@ -113,8 +111,8 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 			// If the previous statement was an assignment, ignore the newline
 			// as we will be emitted that ourself later
-			if val.Is(previous) {
-				last, _ := previous.(*ast.Newline)
+			if val.Is(previousStatement) {
+				last, _ := previousStatement.(*ast.Newline)
 				last.Position.LastLine = val.Position.Line
 				last.Repeated++
 
@@ -128,7 +126,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 					currentGroup.Statements = append(currentGroup.Statements, comment)
 				} else {
-					global.Statements = append(global.Statements, comment)
+					doc.Statements = append(doc.Statements, comment)
 				}
 			}
 
@@ -140,12 +138,12 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			if currentGroup != nil {
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				global.Statements = append(global.Statements, val)
+				doc.Statements = append(doc.Statements, val)
 			}
 
 			// Reset the accumulated comments slice
 			comments = nil
-			previous = val
+			previousStatement = val
 		}
 	}
 
@@ -160,12 +158,12 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			}
 		} else {
 			for _, c := range comments {
-				global.Statements = append(global.Statements, c)
+				doc.Statements = append(doc.Statements, c)
 			}
 		}
 	}
 
-	return global, nil
+	return doc, nil
 }
 
 func (p *Parser) parseStatement() (ast.Statement, error) {

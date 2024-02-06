@@ -27,7 +27,9 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 	// actual validation error
 	case validator.ValidationErrors:
 		danger.Print(keyErr.Assignment.Name)
+
 		light.Print(" (", keyErr.Assignment.Position, ")")
+
 		normal.Println()
 
 		for _, rule := range err {
@@ -35,11 +37,14 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 
 			switch rule.ActualTag() {
 			case "dir":
-				light.Println("(dir) The directory " + bold.Sprintf(keyErr.Assignment.Interpolated) + " does not exist.")
+				light.Println("(dir) The directory [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
 				AskToCreateDirectory(keyErr.Assignment.Interpolated)
 
 			case "file":
-				light.Println("(file) The file " + bold.Sprintf(keyErr.Assignment.Interpolated) + " does not exist.")
+				light.Println("(file) The file [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
+
+			case "oneof":
+				light.Println("(oneof) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] must be one of [" + rule.Param() + "]")
 
 			case "email":
 				light.Println("(email) Expected a valid e-mail, but got [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "].")
@@ -58,6 +63,9 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 		}
 
 		normal.Println()
+
+	case error:
+		light.Printfln("(error) %s", err)
 
 	default:
 		panic(fmt.Errorf("unknown error type for field type: %T", err))

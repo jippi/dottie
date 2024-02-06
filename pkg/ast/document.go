@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+
+	"github.com/compose-spec/compose-go/template"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
@@ -77,51 +79,69 @@ func (d *Document) Get(name string) *Assignment {
 	return nil
 }
 
-func (d *Document) GetInterpolation(in string) (string, bool) {
-	// Lookup in process environment
-	if val, ok := os.LookupEnv(in); ok {
-		return val, ok
+func (doc *Document) Interpolate(target *Assignment) (string, error) {
+	if target == nil {
+		return "", fmt.Errorf("can't interpolate a nil assignment")
 	}
 
-	// Search the currently available assignments in the document
-	assignment := d.Get(in)
-	if assignment == nil {
-		return "", false
+	lookup := func(in string) (string, bool) {
+		// Lookup in process environment
+		if val, ok := os.LookupEnv(in); ok {
+			return val, ok
+		}
+
+		// Search the currently available assignments in the document
+		result := doc.Get(in)
+		if result == nil {
+			return "", false
+		}
+
+		if !result.Active {
+			return "", false
+		}
+
+		// If the assignment we found is on a line *after* the target
+		// assignment, don't count it as found, since all normal shell interpolation
+		// are handled in order (e.g. line 5 can't use a variable from line 10)
+		if result.Position.Line >= target.Position.Line {
+			return "", false
+		}
+
+		return result.Interpolated, true
 	}
 
-	if !assignment.Active {
-		return "", false
-	}
-
-	return assignment.Interpolated, true
+	return template.Substitute(target.Literal, lookup)
 }
 
-type SetOptions struct {
-	ErrorIfMissing bool
-	SkipIfSet      bool
-	SkipIfSame     bool
-	Group          string
-	Before         string
+type UpsertOptions struct {
+	InsertBefore   string
 	Comments       []string
+	ErrorIfMissing bool
+	Group          string
+	SkipIfSame     bool
+	SkipIfSet      bool
+	SkipValidation bool
 }
 
-func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
+func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignment, error) {
 	var group *Group
 
 	existing := doc.Get(input.Name)
 
-	if options.SkipIfSet && existing != nil && len(existing.Literal) > 0 && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
-		return false, nil
+	if options.SkipIfSet && existing != nil && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
+		return nil, nil
 	}
 
-	if options.SkipIfSame && existing != nil && len(existing.Literal) > 0 && existing.Literal == input.Literal {
-		return false, nil
+	if options.SkipIfSame && existing != nil && existing.Literal == input.Literal {
+		return nil, nil
 	}
+
+	found := existing != nil
 
 	// The key does not exists!
-	if existing == nil {
+	if !found {
 		if options.ErrorIfMissing {
-			return false, fmt.Errorf("Key [%s] does not exists", input.Name)
+			return nil, fmt.Errorf("Key [%s] does not exists", input.Name)
 		}
 
 		group = doc.EnsureGroup(options.Group)
@@ -133,8 +153,8 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 			Group:   group,
 		}
 
-		if len(options.Before) > 0 {
-			before := options.Before
+		if len(options.InsertBefore) > 0 {
+			before := options.InsertBefore
 
 			var res []Statement
 
@@ -161,7 +181,7 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		} else {
 			idx := len(doc.Statements) - 1
 
-			// if laste statement is a newline, replace it with the new assignment
+			// if last statement is a newline, replace it with the new assignment
 			if idx > 1 && doc.Statements[idx].Is(&Newline{}) {
 				doc.Statements[idx] = existing
 			} else {
@@ -171,8 +191,18 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		}
 	}
 
-	existing.Literal = input.Literal
+	if found {
+		interpolated, err := doc.Interpolate(existing)
+		if err != nil {
+			return nil, fmt.Errorf("could not interpolate variable")
+		}
+
+		existing.Interpolated = interpolated
+	}
+
 	existing.Active = input.Active
+	existing.Interpolated = input.Interpolated
+	existing.Literal = input.Literal
 	existing.Quote = input.Quote
 
 	if comments := options.Comments; len(comments) > 0 {
@@ -187,7 +217,15 @@ func (doc *Document) Set(input *Assignment, options SetOptions) (bool, error) {
 		}
 	}
 
-	return true, nil
+	if options.SkipValidation {
+		return existing, nil
+	}
+
+	if err := existing.Valid(); err != nil {
+		return existing, err
+	}
+
+	return existing, nil
 }
 
 func (doc *Document) EnsureGroup(name string) *Group {

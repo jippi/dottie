@@ -10,6 +10,13 @@ type ValidationError struct {
 	Assignment *ast.Assignment
 }
 
+func NewError(assignment *ast.Assignment, err error) ValidationError {
+	return ValidationError{
+		Error:      err,
+		Assignment: assignment,
+	}
+}
+
 func Validate(d *ast.Document) []ValidationError {
 	data := map[string]any{}
 	rules := map[string]any{}
