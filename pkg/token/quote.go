@@ -3,7 +3,8 @@ package token
 type Quote uint
 
 const (
-	DoubleQuotes Quote = iota
+	InvalidQuotes Quote = iota
+	DoubleQuotes
 	SingleQuotes
 	NoQuotes
 )
@@ -16,6 +17,10 @@ var quotes = []rune{
 
 func (qt Quote) Is(in rune) bool {
 	return quotes[qt] == in
+}
+
+func (qt Quote) Valid() bool {
+	return qt > 0
 }
 
 func (qt Quote) Rune() rune {
@@ -40,4 +45,20 @@ func (qt Quote) String() string {
 	}
 
 	return s
+}
+
+func QuoteFromString(in string) Quote {
+	switch in {
+	case "\"", "double":
+		return DoubleQuotes
+
+	case "'", "single":
+		return SingleQuotes
+
+	case "none":
+		return NoQuotes
+
+	default:
+		return InvalidQuotes
+	}
 }

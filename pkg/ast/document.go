@@ -221,7 +221,7 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 		return existing, nil
 	}
 
-	if err := existing.Valid(); err != nil {
+	if err := existing.IsValid(); err != nil {
 		return existing, err
 	}
 

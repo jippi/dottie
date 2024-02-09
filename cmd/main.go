@@ -5,12 +5,22 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 
+	goversion "github.com/caarlos0/go-version"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/render"
-
-	"github.com/davecgh/go-spew/spew"
 	"github.com/urfave/cli/v3"
+)
+
+// nolint: gochecknoglobals
+var (
+	builtBy   = ""
+	commit    = ""
+	date      = ""
+	treeState = ""
+	version   = ""
 )
 
 const globalOptionsTemplate = `{{if .VisibleFlags}}
@@ -34,9 +44,12 @@ func main() {
 	}()
 
 	app := &cli.Command{
-		Flags:                      globalFlags,
+		Name:                       "dottie",
+		Version:                    indent(buildVersion().String()),
+		Suggest:                    true,
 		EnableShellCompletion:      true,
 		ShellCompletionCommandName: "completions",
+		Flags:                      globalFlags,
 		Commands: []*cli.Command{
 			disableCommand,
 			enableCommand,
@@ -69,4 +82,35 @@ func __load() {
 	spew.Config.DisableMethods = true
 
 	spew.Dump()
+}
+
+func indent(in string) string {
+	return strings.TrimSpace(strings.Join(strings.Split(in, "\n"), "\n   "))
+}
+
+func buildVersion() goversion.Info {
+	return goversion.GetVersionInfo(
+		// goversion.WithAppDetails("dottie", "Making .env file management easy", "https://github.com/jippi/dottie"),
+		func(i *goversion.Info) {
+			if commit != "" {
+				i.GitCommit = commit
+			}
+
+			if treeState != "" {
+				i.GitTreeState = treeState
+			}
+
+			if date != "" {
+				i.BuildDate = date
+			}
+
+			if version != "" {
+				i.GitVersion = version
+			}
+
+			if builtBy != "" {
+				i.BuiltBy = builtBy
+			}
+		},
+	)
 }

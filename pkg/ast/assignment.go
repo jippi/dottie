@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -68,17 +69,6 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 	return buff.String()
 }
 
-func (a *Assignment) SetQuote(in string) {
-	switch in {
-	case "\"", "double":
-		a.Quote = token.DoubleQuotes
-	case "'", "single":
-		a.Quote = token.SingleQuotes
-	case "none":
-		a.Quote = token.NoQuotes
-	}
-}
-
 func (a *Assignment) ValidationRules() string {
 	for _, comment := range a.Comments {
 		if comment.Annotation == nil {
@@ -93,7 +83,11 @@ func (a *Assignment) ValidationRules() string {
 	return ""
 }
 
-func (a *Assignment) Valid() error {
+func (a *Assignment) IsValid() error {
+	if !a.Quote.Valid() {
+		return fmt.Errorf("invalid quote-style")
+	}
+
 	return validator.
 		New(validator.WithRequiredStructEnabled()).
 		Var(a.Interpolated, a.ValidationRules())
