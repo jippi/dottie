@@ -16,7 +16,6 @@ import (
 
 // nolint: gochecknoglobals
 var (
-	builtBy   = ""
 	commit    = ""
 	date      = ""
 	treeState = ""
@@ -106,10 +105,6 @@ func buildVersion() goversion.Info {
 
 			if version != "" {
 				i.GitVersion = version
-			}
-
-			if builtBy != "" {
-				i.BuiltBy = builtBy
 			}
 		},
 	)
