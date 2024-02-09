@@ -17,8 +17,6 @@ var Command = &cli.Command{
 			return err
 		}
 
-		pkg.Save(cmd.String("file"), env)
-
-		return nil
+		return pkg.Save(cmd.String("file"), env)
 	},
 }

@@ -53,6 +53,10 @@ func (c Color) StderrPrinter(options ...PrinterOption) Print {
 	return NewPrinter(c, Renderer(os.Stderr), options...)
 }
 
+func (c Color) StdoutPrinter(options ...PrinterOption) Print {
+	return NewPrinter(c, Renderer(os.Stdout), options...)
+}
+
 func (c Color) TextStyle(style lipgloss.Style) lipgloss.Style {
 	return style.
 		Foreground(c.Text)

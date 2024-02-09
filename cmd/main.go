@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -22,6 +21,7 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -60,6 +60,16 @@ func main() {
 		EnableShellCompletion:      true,
 		ShellCompletionCommandName: "completions",
 		Flags:                      shared.GlobalFlags,
+		ErrWriter:                  tui.Theme.Danger.StderrPrinter(),
+		Writer:                     tui.Theme.Danger.StdoutPrinter(),
+		OnUsageError: func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error {
+			tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
+
+			return err
+		},
+		ExitErrHandler: func(ctx context.Context, c *cli.Command, err error) {
+			tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
+		},
 		Commands: []*cli.Command{
 			disable.Command,
 			enable.Command,
@@ -83,7 +93,7 @@ func main() {
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		log.Fatal(err)
+		os.Exit(1)
 	}
 }
 

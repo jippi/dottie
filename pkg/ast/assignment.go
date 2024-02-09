@@ -92,3 +92,11 @@ func (a *Assignment) IsValid() error {
 		New(validator.WithRequiredStructEnabled()).
 		Var(a.Interpolated, a.ValidationRules())
 }
+
+func (a *Assignment) Disable() {
+	a.Active = false
+}
+
+func (a *Assignment) Enable() {
+	a.Active = true
+}
