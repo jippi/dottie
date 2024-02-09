@@ -46,9 +46,10 @@ func main() {
 	__load()
 
 	root := &cobra.Command{
-		Use:     "dottie",
-		Short:   "dottie pretty cool",
-		Version: buildVersion().String(),
+		Use:           "dottie",
+		Short:         "Simplify working with .env files",
+		SilenceErrors: true,
+		Version:       buildVersion().String(),
 	}
 
 	root.AddCommand(disable.Command)
@@ -64,8 +65,10 @@ func main() {
 
 	root.PersistentFlags().String("file", ".env", "Load this file")
 
-	if err := root.Execute(); err != nil {
-		tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
+	if c, err := root.ExecuteC(); err != nil {
+		tui.Theme.Danger.StderrPrinter().Println(c.ErrPrefix(), err.Error())
+		tui.Theme.Info.StderrPrinter().Printfln("Run '%v --help' for usage.\n", c.CommandPath())
+
 		os.Exit(1)
 	}
 }
