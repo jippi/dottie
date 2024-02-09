@@ -9,7 +9,7 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "disable",
+	Use:   "disable KEY",
 	Short: "Disable (comment) a KEY if it exists",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {

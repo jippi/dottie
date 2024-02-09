@@ -8,7 +8,7 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "value",
+	Use:   "value KEY",
 	Short: "Print value of a env key if it exists",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
