@@ -373,6 +373,7 @@ func TestScanner_NextToken(t *testing.T) {
 			sc := scanner.New(tt.input)
 
 			i := 0
+
 			for {
 				actual := sc.NextToken()
 				expected := tt.expected[i]
