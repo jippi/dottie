@@ -9,7 +9,18 @@ import (
 
 	goversion "github.com/caarlos0/go-version"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/jippi/dottie/cmd/disable"
+	"github.com/jippi/dottie/cmd/enable"
+	"github.com/jippi/dottie/cmd/fmt"
+	"github.com/jippi/dottie/cmd/groups"
+	"github.com/jippi/dottie/cmd/json"
+	print_cmd "github.com/jippi/dottie/cmd/print"
+	"github.com/jippi/dottie/cmd/set"
+	"github.com/jippi/dottie/cmd/update"
+	"github.com/jippi/dottie/cmd/validate"
+	"github.com/jippi/dottie/cmd/value"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/urfave/cli/v3"
 )
@@ -48,18 +59,18 @@ func main() {
 		Suggest:                    true,
 		EnableShellCompletion:      true,
 		ShellCompletionCommandName: "completions",
-		Flags:                      globalFlags,
+		Flags:                      shared.GlobalFlags,
 		Commands: []*cli.Command{
-			disableCommand,
-			enableCommand,
-			groupsCommand,
-			formatCmd,
-			jsonCommand,
-			printCommand,
-			setCommand,
-			updateCommand,
-			validateCommand,
-			valueCommand,
+			disable.Command,
+			enable.Command,
+			fmt.Command,
+			groups.Command,
+			json.Command,
+			print_cmd.Command,
+			set.Command,
+			update.Command,
+			validate.Command,
+			value.Command,
 		},
 	}
 

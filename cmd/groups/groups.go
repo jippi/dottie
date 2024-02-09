@@ -1,18 +1,23 @@
-package main
+package groups
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/gosimple/slug"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/urfave/cli/v3"
 )
 
-var groupsCommand = &cli.Command{
-	Name:   "groups",
-	Usage:  "Print groups found in the .env file",
-	Before: setup,
-	Action: func(_ context.Context, _ *cli.Command) error {
+var Command = &cli.Command{
+	Name:  "groups",
+	Usage: "Print groups found in the .env file",
+	Action: func(ctx context.Context, cmd *cli.Command) error {
+		env, _, err := shared.Setup(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		groups := env.Groups
 		if len(groups) == 0 {
 			return fmt.Errorf("No groups found")

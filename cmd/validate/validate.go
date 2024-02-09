@@ -1,4 +1,4 @@
-package main
+package validate
 
 import (
 	"context"
@@ -6,16 +6,21 @@ import (
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/urfave/cli/v3"
 )
 
-var validateCommand = &cli.Command{
-	Name:   "validate",
-	Usage:  "Validate .env file",
-	Before: setup,
-	Action: func(_ context.Context, cmd *cli.Command) error {
+var Command = &cli.Command{
+	Name:  "validate",
+	Usage: "Validate .env file",
+	Action: func(ctx context.Context, cmd *cli.Command) error {
+		env, _, err := shared.Setup(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		res := validation.Validate(env)
 		if len(res) == 0 {
 			tui.Theme.Success.StderrPrinter().Box("No validation errors found")
@@ -31,7 +36,7 @@ var validateCommand = &cli.Command{
 			validation.Explain(env, errIsh)
 		}
 
-		env, err := pkg.Load(cmd.String("file"))
+		env, err = pkg.Load(cmd.String("file"))
 		if err != nil {
 			return fmt.Errorf("failed to reload .env file: %w", err)
 		}

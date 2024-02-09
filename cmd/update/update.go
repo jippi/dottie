@@ -1,4 +1,4 @@
-package main
+package update
 
 import (
 	"context"
@@ -7,18 +7,22 @@ import (
 	"io"
 	"os"
 
+	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
-
-	"github.com/hashicorp/go-getter"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/urfave/cli/v3"
 )
 
-var updateCommand = &cli.Command{
-	Name:   "update",
-	Usage:  "Update the .env file from a source",
-	Before: setup,
-	Action: func(_ context.Context, _ *cli.Command) error {
+var Command = &cli.Command{
+	Name:  "update",
+	Usage: "Update the .env file from a source",
+	Action: func(ctx context.Context, cmd *cli.Command) error {
+		env, _, err := shared.Setup(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		fmt.Print("Finding source")
 		source, err := env.GetConfig("dottie/source")
 		if err != nil {

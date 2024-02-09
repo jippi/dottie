@@ -1,8 +1,8 @@
-package main
+package shared
 
 import "github.com/urfave/cli/v3"
 
-var globalFlags = []cli.Flag{
+var GlobalFlags = []cli.Flag{
 	&cli.StringFlag{
 		Name:       "file",
 		Category:   "Input:",

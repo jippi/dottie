@@ -1,4 +1,4 @@
-package main
+package set
 
 import (
 	"context"
@@ -7,18 +7,17 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
-
 	"github.com/urfave/cli/v3"
 )
 
-var setCommand = &cli.Command{
+var Command = &cli.Command{
 	Name:      "set",
 	Usage:     "Set/update one or multiple key=value pairs",
 	UsageText: "set KEY=VALUE [KEY=VALUE ...]",
-	Before:    setup,
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:     "disabled",
@@ -71,7 +70,12 @@ var setCommand = &cli.Command{
 			Usage: "Set one or multiple lines of comments to the KEY=VALUE pair",
 		},
 	},
-	Action: func(_ context.Context, cmd *cli.Command) error {
+	Action: func(ctx context.Context, cmd *cli.Command) error {
+		env, _, err := shared.Setup(ctx, cmd)
+		if err != nil {
+			return err
+		}
+
 		if cmd.Args().Len() == 0 {
 			return fmt.Errorf("Missing required argument: KEY=VALUE")
 		}

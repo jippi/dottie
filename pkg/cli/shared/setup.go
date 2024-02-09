@@ -1,23 +1,22 @@
-package main
+package shared
 
 import (
 	"context"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/render"
 
 	"github.com/urfave/cli/v3"
 )
 
-func setup(_ context.Context, cmd *cli.Command) error {
-	var err error
-
-	env, err = pkg.Load(cmd.String("file"))
+func Setup(_ context.Context, cmd *cli.Command) (*ast.Document, *render.Settings, error) {
+	env, err := pkg.Load(cmd.String("file"))
 	if err != nil {
-		return err
+		return nil, nil, err
 	}
 
-	settings = render.NewSettings(
+	settings := render.NewSettings(
 		render.WithBlankLines(cmd.Root().Bool("with-blank-lines")),
 		render.WithColors(cmd.Root().Bool("colors")),
 		render.WithComments(cmd.Root().Bool("with-comments")),
@@ -31,5 +30,5 @@ func setup(_ context.Context, cmd *cli.Command) error {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
-	return nil
+	return env, settings, nil
 }
