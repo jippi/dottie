@@ -5,12 +5,14 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
+	"github.com/jippi/dottie/pkg/render"
 	"github.com/spf13/cobra"
 )
 
 var Command = &cobra.Command{
-	Use:   "disable KEY",
-	Short: "Disable (comment) a KEY if it exists",
+	Use:               "disable KEY",
+	Short:             "Disable (comment) a KEY if it exists",
+	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.FilterDisabledStatements).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return fmt.Errorf("Missing required argument: KEY")

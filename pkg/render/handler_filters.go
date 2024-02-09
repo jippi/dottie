@@ -41,6 +41,19 @@ func FilterDisabledStatements(hi *HandlerInput) HandlerSignal {
 	return hi.Continue()
 }
 
+// FilterActiveStatements will filter out Assignment Statements that are
+// *active*
+func FilterActiveStatements(hi *HandlerInput) HandlerSignal {
+	switch statement := hi.CurrentStatement.(type) {
+	case *ast.Assignment:
+		if statement.Active {
+			return hi.Stop()
+		}
+	}
+
+	return hi.Continue()
+}
+
 // FilterGroupName will filter out Statements that do not
 // belong to the required Group name
 func FilterGroupName(hi *HandlerInput) HandlerSignal {

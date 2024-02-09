@@ -22,6 +22,7 @@ func Setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
 	}
 
 	settings := render.NewSettings(
+		render.WithOutputType(render.Plain),
 		render.WithBlankLines(boolFlag("with-blank-lines")),
 		render.WithColors(boolFlag("colors")),
 		render.WithComments(boolFlag("with-comments")),

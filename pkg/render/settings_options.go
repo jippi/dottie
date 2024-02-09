@@ -29,6 +29,11 @@ func WithBlankLines(b bool) SettingsOption {
 func WithColors(b bool) SettingsOption {
 	return func(s *Settings) {
 		s.showColors = b
+		if b {
+			s.outputter = ColorizedOutput{}
+		} else {
+			s.outputter = PlainOutput{}
+		}
 	}
 }
 
@@ -57,5 +62,29 @@ func WithFormattedOutput(b bool) SettingsOption {
 func WithInterpolation(b bool) SettingsOption {
 	return func(s *Settings) {
 		s.useInterpolatedValues = b
+	}
+}
+
+func WithOutputter(o Output) SettingsOption {
+	return func(s *Settings) {
+		s.outputter = o
+	}
+}
+
+func WithOutputType(t OutputType) SettingsOption {
+	return func(s *Settings) {
+		switch t {
+		case Plain:
+			s.outputter = PlainOutput{}
+
+		case Colorized:
+			s.outputter = ColorizedOutput{}
+
+		case CompletionKeyOnly:
+			s.outputter = CompletionOutputKeys{}
+
+		default:
+			panic("Invalid outputter type")
+		}
 	}
 }

@@ -12,6 +12,7 @@ func NewFormatter() *Renderer {
 		showColors:            false,
 		showComments:          true,
 		ShowGroupBanners:      true,
+		outputter:             PlainOutput{},
 	}
 
 	return NewRenderer(settings, FormatterHandler)

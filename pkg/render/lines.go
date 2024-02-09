@@ -89,11 +89,16 @@ func (lb *Lines) Newline(id ...string) *Lines {
 // String joins all the LineItems together into slice and
 // Join them by a newline + an additional trailing newline.
 func (lb Lines) String() string {
+	return strings.Join(lb.Lines(), Newline) + Newline
+}
+
+// Lines returns the raw slice of lines
+func (lb Lines) Lines() []string {
 	res := []string{}
 
 	for _, line := range lb.lines {
 		res = append(res, line.String())
 	}
 
-	return strings.Join(res, Newline) + Newline
+	return res
 }

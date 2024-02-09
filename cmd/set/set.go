@@ -15,8 +15,9 @@ import (
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set KEY=VALUE [KEY=VALUE ...]",
-		Short: "Set/update one or multiple key=value pairs",
+		Use:               "set KEY=VALUE [KEY=VALUE ...]",
+		Short:             "Set/update one or multiple key=value pairs",
+		ValidArgsFunction: shared.NewCompleter().Get(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, _, err := shared.Setup(cmd.Flags())
 			if err != nil {

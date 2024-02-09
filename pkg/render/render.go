@@ -14,8 +14,6 @@ type Renderer struct {
 }
 
 func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
-	var output Output = PlainOutput{}
-
 	// Default handlers for filtering down the
 	handlers := append(
 		[]Handler{
@@ -32,13 +30,25 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 		handlers = append(handlers, FormatterHandler)
 	}
 
-	// Change output handler to Colorized
-	if settings.showColors {
-		output = ColorizedOutput{}
+	return &Renderer{
+		Output:            settings.outputter,
+		PreviousStatement: nil,
+		Settings:          settings,
+		handlers:          handlers,
 	}
+}
+
+func NewUnfilteredRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
+	// Default handlers for filtering down the
+	handlers := append(
+		[]Handler{
+			FilterComments,
+		},
+		additionalHandlers...,
+	)
 
 	return &Renderer{
-		Output:            output,
+		Output:            settings.outputter,
 		PreviousStatement: nil,
 		Settings:          settings,
 		handlers:          handlers,

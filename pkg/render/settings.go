@@ -1,5 +1,13 @@
 package render
 
+type OutputType uint
+
+const (
+	Plain OutputType = iota
+	Colorized
+	CompletionKeyOnly
+)
+
 type Settings struct {
 	filterKeyPrefix       string
 	filterGroup           string
@@ -10,6 +18,7 @@ type Settings struct {
 	ShowGroupBanners      bool
 	formatOutput          bool
 	useInterpolatedValues bool
+	outputter             Output
 }
 
 func NewSettings(options ...SettingsOption) *Settings {
