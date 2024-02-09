@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"io"
 	"os"
 	"strings"
 
@@ -19,10 +17,9 @@ import (
 	"github.com/jippi/dottie/cmd/validate"
 	"github.com/jippi/dottie/cmd/value"
 	"github.com/jippi/dottie/pkg/ast"
-	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
 // nolint: gochecknoglobals
@@ -48,51 +45,27 @@ var (
 func main() {
 	__load()
 
-	origHelpPrinterCustom := cli.HelpPrinterCustom
-	defer func() {
-		cli.HelpPrinterCustom = origHelpPrinterCustom
-	}()
-
-	app := &cli.Command{
-		Name:                       "dottie",
-		Version:                    indent(buildVersion().String()),
-		Suggest:                    true,
-		EnableShellCompletion:      true,
-		ShellCompletionCommandName: "completions",
-		Flags:                      shared.GlobalFlags,
-		ErrWriter:                  tui.Theme.Danger.StderrPrinter(),
-		Writer:                     tui.Theme.Danger.StdoutPrinter(),
-		OnUsageError: func(ctx context.Context, cmd *cli.Command, err error, isSubcommand bool) error {
-			tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
-
-			return err
-		},
-		ExitErrHandler: func(ctx context.Context, c *cli.Command, err error) {
-			tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
-		},
-		Commands: []*cli.Command{
-			disable.Command,
-			enable.Command,
-			fmt.Command,
-			groups.Command,
-			json.Command,
-			print_cmd.Command,
-			set.Command,
-			update.Command,
-			validate.Command,
-			value.Command,
-		},
+	root := &cobra.Command{
+		Use:     "dottie",
+		Short:   "dottie pretty cool",
+		Version: buildVersion().String(),
 	}
 
-	cli.HelpPrinterCustom = func(out io.Writer, templ string, data interface{}, customFuncs map[string]interface{}) {
-		origHelpPrinterCustom(out, templ, data, customFuncs)
+	root.AddCommand(disable.Command)
+	root.AddCommand(enable.Command)
+	root.AddCommand(fmt.Command)
+	root.AddCommand(groups.Command)
+	root.AddCommand(json.Command)
+	root.AddCommand(print_cmd.Command())
+	root.AddCommand(set.Command())
+	root.AddCommand(update.Command)
+	root.AddCommand(validate.Command)
+	root.AddCommand(value.Command)
 
-		if data != app {
-			origHelpPrinterCustom(app.Writer, globalOptionsTemplate, app, nil)
-		}
-	}
+	root.PersistentFlags().String("file", ".env", "Load this file")
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	if err := root.Execute(); err != nil {
+		tui.Theme.Danger.StderrPrinter().Printfln("Error: %s", err)
 		os.Exit(1)
 	}
 }

@@ -1,28 +1,27 @@
 package enable
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:      "enable",
-	Usage:     "Enable (uncomment) a KEY if it exists",
-	ArgsUsage: "KEY",
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		key := cmd.Args().Get(0)
-		if len(key) == 0 {
+var Command = &cobra.Command{
+	Use:   "enable",
+	Short: "Enable (uncomment) a KEY if it exists",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
 			return fmt.Errorf("Missing required argument: KEY")
 		}
 
-		env, _, err := shared.Setup(ctx, cmd)
+		env, _, err := shared.Setup(cmd.Flags())
 		if err != nil {
 			return err
 		}
+
+		key := args[0]
 
 		existing := env.Get(key)
 		if existing == nil {
@@ -31,6 +30,6 @@ var Command = &cli.Command{
 
 		existing.Enable()
 
-		return pkg.Save(cmd.String("file"), env)
+		return pkg.Save(cmd.Flag("file").Value.String(), env)
 	},
 }

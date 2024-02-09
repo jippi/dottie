@@ -1,7 +1,6 @@
 package update
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,14 +10,14 @@ import (
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:  "update",
-	Usage: "Update the .env file from a source",
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		env, _, err := shared.Setup(ctx, cmd)
+var Command = &cobra.Command{
+	Use:   "update",
+	Short: "Update the .env file from a source",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		env, _, err := shared.Setup(cmd.Flags())
 		if err != nil {
 			return err
 		}

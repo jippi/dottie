@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
@@ -9,14 +8,14 @@ import (
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:  "validate",
-	Usage: "Validate .env file",
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		env, _, err := shared.Setup(ctx, cmd)
+var Command = &cobra.Command{
+	Use:   "validate",
+	Short: "Validate .env file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		env, _, err := shared.Setup(cmd.Flags())
 		if err != nil {
 			return err
 		}
@@ -36,7 +35,7 @@ var Command = &cli.Command{
 			validation.Explain(env, errIsh)
 		}
 
-		env, err = pkg.Load(cmd.String("file"))
+		env, err = pkg.Load(cmd.Flag("file").Value.String())
 		if err != nil {
 			return fmt.Errorf("failed to reload .env file: %w", err)
 		}

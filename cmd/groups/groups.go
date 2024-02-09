@@ -1,19 +1,18 @@
 package groups
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/gosimple/slug"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:  "groups",
-	Usage: "Print groups found in the .env file",
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		env, _, err := shared.Setup(ctx, cmd)
+var Command = &cobra.Command{
+	Use:   "groups",
+	Short: "Print groups found in the .env file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		env, _, err := shared.Setup(cmd.Flags())
 		if err != nil {
 			return err
 		}

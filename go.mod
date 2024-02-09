@@ -16,9 +16,10 @@ require (
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/muesli/termenv v0.15.2
 	github.com/sebdah/goldie/v2 v2.5.3
+	github.com/spf13/cobra v1.8.0
+	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/teacat/noire v1.1.0
-	github.com/urfave/cli/v3 v3.0.0-alpha8
 )
 
 require (
@@ -49,6 +50,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -66,7 +68,6 @@ require (
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
-	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.17.0 // indirect

@@ -1,32 +1,37 @@
 package shared
 
 import (
-	"context"
-
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/render"
-
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/pflag"
 )
 
-func Setup(_ context.Context, cmd *cli.Command) (*ast.Document, *render.Settings, error) {
-	env, err := pkg.Load(cmd.String("file"))
+func Setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
+	boolFlag := func(name string) bool {
+		return BoolFlag(flags, name)
+	}
+
+	stringFlag := func(name string) string {
+		return StringFlag(flags, name)
+	}
+
+	env, err := pkg.Load(stringFlag("file"))
 	if err != nil {
 		return nil, nil, err
 	}
 
 	settings := render.NewSettings(
-		render.WithBlankLines(cmd.Root().Bool("with-blank-lines")),
-		render.WithColors(cmd.Root().Bool("colors")),
-		render.WithComments(cmd.Root().Bool("with-comments")),
-		render.WithFilterGroup(cmd.Root().String("group")),
-		render.WithFilterKeyPrefix(cmd.Root().String("key-prefix")),
-		render.WithGroupBanners(cmd.Root().Bool("with-groups")),
-		render.WithIncludeDisabled(cmd.Root().Bool("include-commented")),
+		render.WithBlankLines(boolFlag("with-blank-lines")),
+		render.WithColors(boolFlag("colors")),
+		render.WithComments(boolFlag("with-comments")),
+		render.WithFilterGroup(stringFlag("group")),
+		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
+		render.WithGroupBanners(boolFlag("with-groups")),
+		render.WithIncludeDisabled(boolFlag("include-commented")),
 	)
 
-	if cmd.Root().Bool("pretty") {
+	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 

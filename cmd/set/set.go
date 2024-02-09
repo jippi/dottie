@@ -1,7 +1,6 @@
 package set
 
 import (
-	"context"
 	"fmt"
 	"strings"
 
@@ -11,126 +10,87 @@ import (
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:      "set",
-	Usage:     "Set/update one or multiple key=value pairs",
-	UsageText: "set KEY=VALUE [KEY=VALUE ...]",
-	Flags: []cli.Flag{
-		&cli.BoolFlag{
-			Name:     "disabled",
-			Usage:    "Set/change the flag to be disabled (commented out)",
-			Value:    false,
-			OnlyOnce: true,
-		},
-		&cli.BoolFlag{
-			Name:     "validate",
-			Usage:    "Validate the VALUE input before saving the file",
-			Value:    true,
-			OnlyOnce: true,
-		},
-		&cli.BoolFlag{
-			Name:     "error-if-missing",
-			Usage:    "Exit with an error if the KEY does not exists in the .env file already",
-			Value:    false,
-			OnlyOnce: true,
-		},
-		&cli.StringFlag{
-			Name:     "group",
-			Usage:    "The (optional) group name to add the KEY=VALUE pair under",
-			OnlyOnce: true,
-		},
-		&cli.StringFlag{
-			Name:     "before",
-			Usage:    "If the key doesn't exist, add it to the file *before* this KEY",
-			OnlyOnce: true,
-		},
-		&cli.StringFlag{
-			Name:     "after",
-			Usage:    "If the key doesn't exist, add it to the file *after* this KEY",
-			OnlyOnce: true,
-		},
-		&cli.StringFlag{
-			Name:     "quote-style",
-			Usage:    "[single | double | none]",
-			Value:    "double",
-			OnlyOnce: true,
-			Validator: func(s string) error {
-				if token.QuoteFromString(s) > 0 {
-					return nil
+func Command() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set",
+		Short: "Set/update one or multiple key=value pairs",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			env, _, err := shared.Setup(cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			if len(args) == 0 {
+				return fmt.Errorf("Missing required argument: KEY=VALUE")
+			}
+
+			comments, _ := cmd.Flags().GetStringArray("comment")
+			options := ast.UpsertOptions{
+				InsertBefore:   shared.StringFlag(cmd.Flags(), "before"),
+				Comments:       comments,
+				ErrorIfMissing: shared.BoolFlag(cmd.Flags(), "error-if-missing"),
+				Group:          shared.StringFlag(cmd.Flags(), "group"),
+				SkipValidation: !shared.BoolFlag(cmd.Flags(), "validate"),
+			}
+
+			for _, stringPair := range args {
+				pairSlice := strings.SplitN(stringPair, "=", 2)
+				if len(pairSlice) != 2 {
+					return fmt.Errorf("expected KEY=VALUE pair, missing '='")
 				}
 
-				return fmt.Errorf("must be one of [single | double | none]")
-			},
-		},
-		&cli.StringSliceFlag{
-			Name:  "comment",
-			Usage: "Set one or multiple lines of comments to the KEY=VALUE pair",
-		},
-	},
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		env, _, err := shared.Setup(ctx, cmd)
-		if err != nil {
-			return err
-		}
+				key := pairSlice[0]
+				value := pairSlice[1]
 
-		if cmd.Args().Len() == 0 {
-			return fmt.Errorf("Missing required argument: KEY=VALUE")
-		}
+				assignment := &ast.Assignment{
+					Name:    key,
+					Literal: value,
+					// by default we take the user input and assume its interpolated,
+					// it will be interpolated inside (*Document).Set if applicable
+					Interpolated: value,
+					Active:       !shared.BoolFlag(cmd.Flags(), "disabled"),
+					Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
+				}
 
-		options := ast.UpsertOptions{
-			InsertBefore:   cmd.String("before"),
-			Comments:       cmd.StringSlice("comment"),
-			ErrorIfMissing: cmd.Bool("error-if-missing"),
-			Group:          cmd.String("group"),
-			SkipValidation: !cmd.Bool("validate"),
-		}
+				//
+				// Upsert key
+				//
 
-		for _, stringPair := range cmd.Args().Slice() {
-			pairSlice := strings.SplitN(stringPair, "=", 2)
-			if len(pairSlice) != 2 {
-				return fmt.Errorf("expected KEY=VALUE pair, missing '='")
-			}
+				assignment, err := env.Upsert(assignment, options)
+				if err != nil {
+					validation.Explain(env, validation.NewError(assignment, err))
 
-			key := pairSlice[0]
-			value := pairSlice[1]
+					return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
+				}
 
-			assignment := &ast.Assignment{
-				Name:    key,
-				Literal: value,
-				// by default we take the user input and assume its interpolated,
-				// it will be interpolated inside (*Document).Set if applicable
-				Interpolated: value,
-				Active:       !cmd.Bool("disabled"),
-				Quote:        token.QuoteFromString(cmd.String("quote-style")),
+				tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)
 			}
 
 			//
-			// Upsert key
+			// Save file
 			//
 
-			assignment, err := env.Upsert(assignment, options)
-			if err != nil {
-				validation.Explain(env, validation.NewError(assignment, err))
-
-				return fmt.Errorf("failed to upsert the key/value pair")
+			if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), env); err != nil {
+				return fmt.Errorf("failed to save file: %w", err)
 			}
 
-			tui.Theme.Success.StderrPrinter().Println("Key was successfully upserted")
-		}
+			tui.Theme.Success.StderrPrinter().Println("File was successfully saved")
 
-		//
-		// Save file
-		//
+			return nil
+		},
+	}
 
-		if err := pkg.Save(cmd.String("file"), env); err != nil {
-			return fmt.Errorf("failed to save file: %w", err)
-		}
+	cmd.Flags().Bool("disabled", false, "Set/change the flag to be disabled (commented out)")
+	cmd.Flags().Bool("validate", true, "Validate the VALUE input before saving the file")
+	cmd.Flags().Bool("error-if-missing", false, "Exit with an error if the KEY does not exists in the .env file already")
+	cmd.Flags().String("group", "", "The (optional) group name to add the KEY=VALUE pair under")
+	cmd.Flags().String("before", "", "If the key doesn't exist, add it to the file *before* this KEY")
+	cmd.Flags().String("after", "", "If the key doesn't exist, add it to the file *after* this KEY")
+	cmd.Flags().String("quote-style", "double", "The quote style to use (single, double, none)")
+	cmd.Flags().StringSlice("comment", nil, "Set one or multiple lines of comments to the KEY=VALUE pair")
 
-		tui.Theme.Success.StderrPrinter().Println("File was successfully saved")
-
-		return nil
-	},
+	return cmd
 }

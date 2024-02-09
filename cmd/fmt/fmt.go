@@ -1,22 +1,20 @@
 package fmt
 
 import (
-	"context"
-
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/urfave/cli/v3"
+	"github.com/spf13/cobra"
 )
 
-var Command = &cli.Command{
-	Name:  "fmt",
-	Usage: "Format the file",
-	Action: func(ctx context.Context, cmd *cli.Command) error {
-		env, _, err := shared.Setup(ctx, cmd)
+var Command = &cobra.Command{
+	Use:   "fmt",
+	Short: "Format a .env file",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		env, _, err := shared.Setup(cmd.Flags())
 		if err != nil {
 			return err
 		}
 
-		return pkg.Save(cmd.String("file"), env)
+		return pkg.Save(cmd.Flag("file").Value.String(), env)
 	},
 }
