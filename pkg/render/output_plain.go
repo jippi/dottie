@@ -21,20 +21,20 @@ func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
 	return out
 }
 
-func (PlainOutput) Assignment(a *ast.Assignment, settings Settings) *Lines {
+func (PlainOutput) Assignment(assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	if !a.Active {
+	if !assignment.Active {
 		buf.WriteString("#")
 	}
 
-	val := a.Literal
+	val := assignment.Literal
 
 	if settings.useInterpolatedValues {
-		val = a.Interpolated
+		val = assignment.Interpolated
 	}
 
-	buf.WriteString(fmt.Sprintf("%s=%s%s%s", a.Name, a.Quote, val, a.Quote))
+	buf.WriteString(fmt.Sprintf("%s=%s%s%s", assignment.Name, assignment.Quote, val, assignment.Quote))
 
 	return NewLinesCollection().Add(buf.String())
 }

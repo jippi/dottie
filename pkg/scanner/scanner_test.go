@@ -372,11 +372,11 @@ func TestScanner_NextToken(t *testing.T) {
 
 			sc := scanner.New(tt.input)
 
-			i := 0
+			counter := 0
 
 			for {
 				actual := sc.NextToken()
-				expected := tt.expected[i]
+				expected := tt.expected[counter]
 
 				assert.Equal(t, expected.Type, actual.Type)
 				assert.Equal(t, expected.Literal, actual.Literal)
@@ -385,7 +385,7 @@ func TestScanner_NextToken(t *testing.T) {
 					break
 				}
 
-				i++
+				counter++
 			}
 		})
 	}

@@ -87,21 +87,21 @@ func indent(in string) string {
 func buildVersion() goversion.Info {
 	return goversion.GetVersionInfo(
 		// goversion.WithAppDetails("dottie", "Making .env file management easy", "https://github.com/jippi/dottie"),
-		func(i *goversion.Info) {
+		func(versionInfo *goversion.Info) {
 			if commit != "" {
-				i.GitCommit = commit
+				versionInfo.GitCommit = commit
 			}
 
 			if treeState != "" {
-				i.GitTreeState = treeState
+				versionInfo.GitTreeState = treeState
 			}
 
 			if date != "" {
-				i.BuildDate = date
+				versionInfo.BuildDate = date
 			}
 
 			if version != "" {
-				i.GitVersion = version
+				versionInfo.GitVersion = version
 			}
 		},
 	)

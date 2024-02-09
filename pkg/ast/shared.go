@@ -7,7 +7,7 @@ import (
 // Statement represents syntax tree node of .env file statement (like: assignment or comment).
 type Statement interface {
 	statementNode()
-	Is(Statement) bool
+	Is(statement Statement) bool
 	Type() string
 }
 

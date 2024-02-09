@@ -20,45 +20,45 @@ func NewFormatter() *Renderer {
 
 // FormatterHandler is responsible for formatting an .env file according
 // to our opinionated style.
-func FormatterHandler(hi *HandlerInput) HandlerSignal {
-	switch statement := hi.CurrentStatement.(type) {
+func FormatterHandler(input *HandlerInput) HandlerSignal {
+	switch statement := input.CurrentStatement.(type) {
 	case *ast.Newline:
-		if !hi.Settings.showBlankLines {
-			return hi.Stop()
+		if !input.Settings.showBlankLines {
+			return input.Stop()
 		}
 
-		if hi.PreviousStatement == nil {
-			return hi.Return(NewLinesCollection().Newline("FormatterHandler::Newline (PreviousStatement is nil)"))
+		if input.PreviousStatement == nil {
+			return input.Return(NewLinesCollection().Newline("FormatterHandler::Newline (PreviousStatement is nil)"))
 		}
 
-		if hi.PreviousStatement.Is(&ast.Comment{}) {
-			return hi.Return(NewLinesCollection().Newline("FormatterHandler::Newline (retain newlines around stand-alone comments)", hi.PreviousStatement.Type()))
+		if input.PreviousStatement.Is(&ast.Comment{}) {
+			return input.Return(NewLinesCollection().Newline("FormatterHandler::Newline (retain newlines around stand-alone comments)", input.PreviousStatement.Type()))
 		}
 
 		// Ignore all existing newlines when doing formatting as
 		// we will be injecting these ourself in other places.
-		return hi.Stop()
+		return input.Stop()
 
 	case *ast.Group:
-		output := hi.Renderer.group(statement)
+		output := input.Renderer.group(statement)
 		if output.IsEmpty() {
-			return hi.Stop()
+			return input.Stop()
 		}
 
 		buf := NewLinesCollection()
 
-		if hi.Settings.showBlankLines && hi.PreviousStatement != nil && !hi.PreviousStatement.Is(&ast.Newline{}) {
-			buf.Newline("FormatterHandler::Group:before", hi.PreviousStatement.Type())
+		if input.Settings.showBlankLines && input.PreviousStatement != nil && !input.PreviousStatement.Is(&ast.Newline{}) {
+			buf.Newline("FormatterHandler::Group:before", input.PreviousStatement.Type())
 		}
 
 		buf.Append(output)
 
-		return hi.Return(buf)
+		return input.Return(buf)
 
 	case *ast.Assignment:
-		output := hi.Renderer.assignment(statement)
+		output := input.Renderer.assignment(statement)
 		if output.IsEmpty() {
-			return hi.Stop()
+			return input.Stop()
 		}
 
 		buf := NewLinesCollection()
@@ -67,14 +67,14 @@ func FormatterHandler(hi *HandlerInput) HandlerSignal {
 		// be allowed to cuddle (without newline between them) or not.
 		//
 		// Statements are only allow cuddle if both have no comments
-		if hi.Settings.showBlankLines && statement.Is(hi.PreviousStatement) && (statement.HasComments() || assignmentHasComments(hi.PreviousStatement)) {
-			buf.Newline("FormatterHandler::Assignment:Comments", hi.PreviousStatement.Type())
+		if input.Settings.showBlankLines && statement.Is(input.PreviousStatement) && (statement.HasComments() || assignmentHasComments(input.PreviousStatement)) {
+			buf.Newline("FormatterHandler::Assignment:Comments", input.PreviousStatement.Type())
 		}
 
-		return hi.Return(buf.Append(output))
+		return input.Return(buf.Append(output))
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
 
 // assignmentHasComments checks if the Statement is an Assignment

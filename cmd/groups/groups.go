@@ -1,6 +1,7 @@
 package groups
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gosimple/slug"
@@ -19,7 +20,7 @@ var Command = &cobra.Command{
 
 		groups := env.Groups
 		if len(groups) == 0 {
-			return fmt.Errorf("No groups found")
+			return errors.New("No groups found")
 		}
 
 		fmt.Println("The following groups was found:")

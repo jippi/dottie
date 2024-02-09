@@ -15,7 +15,7 @@ import (
 func TestFormatter(t *testing.T) {
 	t.Parallel()
 
-	g := goldie.New(
+	golden := goldie.New(
 		t,
 		goldie.WithFixtureDir("test-fixtures/formatter"),
 		goldie.WithNameSuffix(".golden.env"),
@@ -63,7 +63,7 @@ func TestFormatter(t *testing.T) {
 			env, err := pkg.Load(tt.filename)
 			require.NoError(t, err)
 
-			g.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).String()))
+			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).String()))
 		})
 	}
 }

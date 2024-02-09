@@ -34,17 +34,17 @@ func (qt Quote) String() string {
 		return ""
 	}
 
-	s := ""
+	str := ""
 
 	if int(qt) < len(quotes) {
-		s = string(quotes[qt])
+		str = string(quotes[qt])
 	}
 
-	if s == "" {
-		s = "quote(" + string(qt.Rune()) + ")"
+	if str == "" {
+		str = "quote(" + string(qt.Rune()) + ")"
 	}
 
-	return s
+	return str
 }
 
 func QuoteFromString(in string) Quote {

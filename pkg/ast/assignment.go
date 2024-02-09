@@ -2,7 +2,7 @@ package ast
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"reflect"
 	"strings"
 
@@ -85,7 +85,7 @@ func (a *Assignment) ValidationRules() string {
 
 func (a *Assignment) IsValid() error {
 	if !a.Quote.Valid() {
-		return fmt.Errorf("invalid quote-style")
+		return errors.New("invalid quote-style")
 	}
 
 	return validator.

@@ -1,6 +1,7 @@
 package set
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -25,7 +26,7 @@ func Command() *cobra.Command {
 			}
 
 			if len(args) == 0 {
-				return fmt.Errorf("Missing required argument: KEY=VALUE")
+				return errors.New("Missing required argument: KEY=VALUE")
 			}
 
 			comments, _ := cmd.Flags().GetStringArray("comment")
@@ -40,7 +41,7 @@ func Command() *cobra.Command {
 			for _, stringPair := range args {
 				pairSlice := strings.SplitN(stringPair, "=", 2)
 				if len(pairSlice) != 2 {
-					return fmt.Errorf("expected KEY=VALUE pair, missing '='")
+					return errors.New("expected KEY=VALUE pair, missing '='")
 				}
 
 				key := pairSlice[0]

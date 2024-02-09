@@ -113,6 +113,7 @@ linters:
 
     # Whitespace Linter - Forces you to use empty lines!
     - wsl
+    - whitespace
 
     # A linter that detect the possibility to use variables/constants from the Go standard library.
     - usestdlibvars
@@ -134,6 +135,17 @@ linters:
 
     # Align and sort struct tags consistently
     - tagalign
+
+    # Reports wrong mirror patterns of bytes/strings usage.
+    - mirror
+
+    - dupl
+    - inamedparam
+    - perfsprint
+    - testifylint
+    - usestdlibvars
+    - varnamelen
+    # - gochecknoglobals
 
 issues:
   exclude-rules:
@@ -204,12 +216,23 @@ linters-settings:
     excludes: []
 
   exhaustive:
+    # Program elements to check for exhaustiveness.
+    check:
+      - switch
+      - map
     # Presence of "default" case in switch statements satisfies exhaustiveness, even if all enum members are not listed.
     # Default: false
     default-signifies-exhaustive: true
 
   unparam:
     check-exported: true
+
+  varnamelen:
+    check-return: true
+    check-type-param: true
+    ignore-names:
+      - tt
+      - err
 
   tagalign:
     # Align and sort can be used together or separately.

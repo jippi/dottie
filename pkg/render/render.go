@@ -60,10 +60,10 @@ func NewUnfilteredRenderer(settings Settings, additionalHandlers ...Handler) *Re
 // It's responsible for delegating statements to handlers, calling the right
 // Output functions and track the ordering of Statements being rendered
 func (r *Renderer) Statement(currentStatement any) *Lines {
-	hi := r.newHandlerInput(currentStatement)
+	handlerInput := r.newHandlerInput(currentStatement)
 
 	for _, handler := range r.handlers {
-		status := handler(hi)
+		status := handler(handlerInput)
 
 		switch status {
 		// Stop processing the statement and return nothing
@@ -72,7 +72,7 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 
 		// Stop processing the statement and return the value from the handler
 		case Return:
-			if hi.ReturnValue.IsEmpty() {
+			if handlerInput.ReturnValue.IsEmpty() {
 				return nil
 			}
 
@@ -85,7 +85,7 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 				r.PreviousStatement = prev
 			}
 
-			return hi.ReturnValue
+			return handlerInput.ReturnValue
 
 		// Continue to next handler (or default behavior if we run out of handlers)
 		case Continue:

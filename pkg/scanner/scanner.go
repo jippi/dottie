@@ -34,18 +34,18 @@ type Scanner struct {
 
 // New returns new Scanner.
 func New(input string) *Scanner {
-	s := &Scanner{
+	scanner := &Scanner{
 		input:      input,
 		lineNumber: 1,
 	}
 
-	s.next()
+	scanner.next()
 
-	if s.rune == bom {
-		s.next() // ignore BOM at the beginning of the file
+	if scanner.rune == bom {
+		scanner.next() // ignore BOM at the beginning of the file
 	}
 
-	return s
+	return scanner
 }
 
 // NextToken scans the next token and returns the token position, the token, and its literal string
@@ -343,23 +343,23 @@ func (s *Scanner) prev() rune {
 
 // Reads a single Unicode character and returns the rune and its width in bytes.
 func (s *Scanner) scanRune(offset int) (rune, int) {
-	r := rune(s.input[offset])
+	runeVal := rune(s.input[offset])
 	width := 1
 
 	switch {
-	case r >= utf8.RuneSelf:
+	case runeVal >= utf8.RuneSelf:
 		// not ASCII
-		r, width = utf8.DecodeRune([]byte(s.input[offset:]))
-		if r == utf8.RuneError && width == 1 {
+		runeVal, width = utf8.DecodeRuneInString(s.input[offset:])
+		if runeVal == utf8.RuneError && width == 1 {
 			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
 		}
 
-		if r == bom && s.offset > 0 {
+		if runeVal == bom && s.offset > 0 {
 			panic("illegal byte order mark on position " + strconv.Itoa(offset))
 		}
 	}
 
-	return r, width
+	return runeVal, width
 }
 
 func (s *Scanner) peek(length int) string {

@@ -49,13 +49,13 @@ func WithGroupBanners(b bool) SettingsOption {
 	}
 }
 
-func WithFormattedOutput(b bool) SettingsOption {
+func WithFormattedOutput(boolean bool) SettingsOption {
 	return func(s *Settings) {
-		s.formatOutput = b
-		s.showComments = b
-		s.ShowGroupBanners = b
-		s.showColors = b
-		s.showBlankLines = b
+		s.formatOutput = boolean
+		s.showComments = boolean
+		s.ShowGroupBanners = boolean
+		s.showColors = boolean
+		s.showBlankLines = boolean
 	}
 }
 
@@ -72,16 +72,16 @@ func WithOutputter(o Output) SettingsOption {
 }
 
 func WithOutputType(t OutputType) SettingsOption {
-	return func(s *Settings) {
+	return func(settings *Settings) {
 		switch t {
 		case Plain:
-			s.outputter = PlainOutput{}
+			settings.outputter = PlainOutput{}
 
 		case Colorized:
-			s.outputter = ColorizedOutput{}
+			settings.outputter = ColorizedOutput{}
 
 		case CompletionKeyOnly:
-			s.outputter = CompletionOutputKeys{}
+			settings.outputter = CompletionOutputKeys{}
 
 		default:
 			panic("Invalid outputter type")

@@ -17,7 +17,7 @@ func NewError(assignment *ast.Assignment, err error) ValidationError {
 	}
 }
 
-func Validate(d *ast.Document) []ValidationError {
+func Validate(doc *ast.Document) []ValidationError {
 	data := map[string]any{}
 	rules := map[string]any{}
 
@@ -27,7 +27,7 @@ func Validate(d *ast.Document) []ValidationError {
 	// so this slice tracks that
 	fieldOrder := []string{}
 
-	for _, assignment := range d.Assignments() {
+	for _, assignment := range doc.Assignments() {
 		if !assignment.Active {
 			continue
 		}
@@ -51,7 +51,7 @@ func Validate(d *ast.Document) []ValidationError {
 		if err, ok := errors[field]; ok {
 			result = append(result, ValidationError{
 				Error:      err,
-				Assignment: d.Get(field),
+				Assignment: doc.Get(field),
 			})
 		}
 	}

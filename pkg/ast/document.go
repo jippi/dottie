@@ -2,6 +2,7 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -81,17 +82,17 @@ func (d *Document) Get(name string) *Assignment {
 
 func (doc *Document) Interpolate(target *Assignment) (string, error) {
 	if target == nil {
-		return "", fmt.Errorf("can't interpolate a nil assignment")
+		return "", errors.New("can't interpolate a nil assignment")
 	}
 
-	lookup := func(in string) (string, bool) {
+	lookup := func(input string) (string, bool) {
 		// Lookup in process environment
-		if val, ok := os.LookupEnv(in); ok {
+		if val, ok := os.LookupEnv(input); ok {
 			return val, ok
 		}
 
 		// Search the currently available assignments in the document
-		result := doc.Get(in)
+		result := doc.Get(input)
 		if result == nil {
 			return "", false
 		}
@@ -159,14 +160,14 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 			var res []Statement
 
 			for _, stmt := range group.Statements {
-				x, ok := stmt.(*Assignment)
+				assignment, ok := stmt.(*Assignment)
 				if !ok {
 					res = append(res, stmt)
 
 					continue
 				}
 
-				if x.Name == before {
+				if assignment.Name == before {
 					res = append(res, existing)
 				}
 
@@ -194,7 +195,7 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 	if found {
 		interpolated, err := doc.Interpolate(existing)
 		if err != nil {
-			return nil, fmt.Errorf("could not interpolate variable")
+			return nil, errors.New("could not interpolate variable")
 		}
 
 		existing.Interpolated = interpolated

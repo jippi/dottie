@@ -1,6 +1,7 @@
 package enable
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
@@ -15,7 +16,7 @@ var Command = &cobra.Command{
 	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.FilterActiveStatements).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
-			return fmt.Errorf("Missing required argument: KEY")
+			return errors.New("Missing required argument: KEY")
 		}
 
 		env, _, err := shared.Setup(cmd.Flags())

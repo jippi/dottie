@@ -104,7 +104,7 @@ type Printer interface {
 	Style() lipgloss.Style
 
 	// ApplyTextStyle returns a new copy of [StylePrint] instance with the [Style] based on the callback changes
-	ApplyStyle(StyleChanger) Print
+	ApplyStyle(changer StyleChanger) Print
 
 	// WrapMode returns the configured [WrapMode]
 	WrapMode() promptkit.WrapMode
@@ -138,14 +138,14 @@ func NewPrinter(color Color, renderer *lipgloss.Renderer, options ...PrinterOpti
 		WithWrapMode(nil),
 	}, options...)
 
-	p := &Print{}
+	printer := &Print{}
 	for _, option := range options {
-		option(p)
+		option(printer)
 	}
 
-	p.boxStyles = p.color.BoxStyles(p.renderer.NewStyle(), p.renderer.NewStyle())
+	printer.boxStyles = printer.color.BoxStyles(printer.renderer.NewStyle(), printer.renderer.NewStyle())
 
-	return *p
+	return *printer
 }
 
 // -----------------------------------------------------
@@ -378,16 +378,16 @@ func WithBoxStyle(style Box) PrinterOption {
 }
 
 func WithEmphasis(b bool) PrinterOption {
-	return func(p *Print) {
-		p.textEmphasis = b
+	return func(printer *Print) {
+		printer.textEmphasis = b
 
 		if b {
-			p.textStyle = p.color.TextEmphasisStyle(p.renderer.NewStyle())
+			printer.textStyle = printer.color.TextEmphasisStyle(printer.renderer.NewStyle())
 
 			return
 		}
 
-		p.textStyle = p.color.TextStyle(p.renderer.NewStyle())
+		printer.textStyle = printer.color.TextStyle(printer.renderer.NewStyle())
 	}
 }
 

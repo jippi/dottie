@@ -16,11 +16,11 @@ var signals = []string{
 
 // String returns the string corresponding to the Handler Signal.
 func (hs HandlerSignal) String() string {
-	s := ""
+	str := ""
 
 	if int(hs) < len(signals) {
-		s = signals[hs]
+		str = signals[hs]
 	}
 
-	return s
+	return str
 }

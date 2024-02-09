@@ -56,15 +56,15 @@ var tokens = []string{
 
 // String returns the string corresponding to the token.
 func (t Type) String() string {
-	s := ""
+	str := ""
 
 	if int(t) < len(tokens) {
-		s = tokens[t]
+		str = tokens[t]
 	}
 
-	if s == "" {
-		s = "token(" + strconv.Itoa(int(t)) + ")"
+	if str == "" {
+		str = "token(" + strconv.Itoa(int(t)) + ")"
 	}
 
-	return s
+	return str
 }

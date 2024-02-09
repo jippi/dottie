@@ -27,18 +27,18 @@ type Color struct {
 }
 
 func NewColor(config ColorConfig) Color {
-	c := Color{
+	color := Color{
 		Text:         config.Text.AdaptiveColor(),
 		TextEmphasis: config.TextEmphasis.AdaptiveColor(),
 		Background:   config.Background.AdaptiveColor(),
 		Border:       config.Border.AdaptiveColor(),
 	}
 
-	if len(c.Text.Dark) == 0 {
-		c.Text.Dark = c.TextEmphasis.Dark
+	if len(color.Text.Dark) == 0 {
+		color.Text.Dark = color.TextEmphasis.Dark
 	}
 
-	return c
+	return color
 }
 
 func (c Color) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Print {

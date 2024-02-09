@@ -7,95 +7,95 @@ import (
 )
 
 // FilterComments will filter out Comment statements if they aren't to be included
-func FilterComments(hi *HandlerInput) HandlerSignal {
+func FilterComments(input *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow comments
-	if hi.Settings.showComments {
-		return hi.Continue()
+	if input.Settings.showComments {
+		return input.Continue()
 	}
 
-	switch hi.CurrentStatement.(type) {
+	switch input.CurrentStatement.(type) {
 	case *ast.Comment:
-		if !hi.Settings.showComments {
-			return hi.Stop()
+		if !input.Settings.showComments {
+			return input.Stop()
 		}
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
 
 // FilterDisabledStatements will filter out Assignment Statements that are
 // disabled
-func FilterDisabledStatements(hi *HandlerInput) HandlerSignal {
+func FilterDisabledStatements(input *HandlerInput) HandlerSignal {
 	// Short circuit the filter if we allow disabled statements
-	if hi.Settings.includeDisabled {
-		return hi.Continue()
+	if input.Settings.includeDisabled {
+		return input.Continue()
 	}
 
-	switch statement := hi.CurrentStatement.(type) {
+	switch statement := input.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !statement.Active && !hi.Settings.includeDisabled {
-			return hi.Stop()
+		if !statement.Active && !input.Settings.includeDisabled {
+			return input.Stop()
 		}
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
 
 // FilterActiveStatements will filter out Assignment Statements that are
 // *active*
-func FilterActiveStatements(hi *HandlerInput) HandlerSignal {
-	switch statement := hi.CurrentStatement.(type) {
+func FilterActiveStatements(input *HandlerInput) HandlerSignal {
+	switch statement := input.CurrentStatement.(type) {
 	case *ast.Assignment:
 		if statement.Active {
-			return hi.Stop()
+			return input.Stop()
 		}
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
 
 // FilterGroupName will filter out Statements that do not
 // belong to the required Group name
-func FilterGroupName(hi *HandlerInput) HandlerSignal {
+func FilterGroupName(input *HandlerInput) HandlerSignal {
 	// Short circuit the filter if there is no Group name to filter on
-	if len(hi.Settings.filterGroup) == 0 {
-		return hi.Continue()
+	if len(input.Settings.filterGroup) == 0 {
+		return input.Continue()
 	}
 
-	switch statement := hi.CurrentStatement.(type) {
+	switch statement := input.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !statement.BelongsToGroup(hi.Settings.filterGroup) {
-			return hi.Stop()
+		if !statement.BelongsToGroup(input.Settings.filterGroup) {
+			return input.Stop()
 		}
 
 	case *ast.Group:
-		if !statement.BelongsToGroup(hi.Settings.filterGroup) {
-			return hi.Stop()
+		if !statement.BelongsToGroup(input.Settings.filterGroup) {
+			return input.Stop()
 		}
 
 	case *ast.Comment:
-		if !statement.BelongsToGroup(hi.Settings.filterGroup) {
-			return hi.Stop()
+		if !statement.BelongsToGroup(input.Settings.filterGroup) {
+			return input.Stop()
 		}
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
 
 // FilterKeyPrefix will filter out Assignment Statements that do not have the
 // configured (optional) key prefix.
-func FilterKeyPrefix(hi *HandlerInput) HandlerSignal {
+func FilterKeyPrefix(input *HandlerInput) HandlerSignal {
 	// Short circuit the filter if there is no KeyPrefix to filter on
-	if len(hi.Settings.filterKeyPrefix) == 0 {
-		return hi.Continue()
+	if len(input.Settings.filterKeyPrefix) == 0 {
+		return input.Continue()
 	}
 
-	switch statement := hi.CurrentStatement.(type) {
+	switch statement := input.CurrentStatement.(type) {
 	case *ast.Assignment:
-		if !strings.HasPrefix(statement.Name, hi.Settings.filterKeyPrefix) {
-			return hi.Stop()
+		if !strings.HasPrefix(statement.Name, input.Settings.filterKeyPrefix) {
+			return input.Stop()
 		}
 	}
 
-	return hi.Continue()
+	return input.Continue()
 }
