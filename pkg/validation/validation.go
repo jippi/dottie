@@ -95,3 +95,17 @@ NEXT_FIELD:
 
 	return result
 }
+
+func ValidateSingleAssignment(doc *ast.Document, name string, handlers []render.Handler, ignoreErrors []string) []ValidationError {
+	return Validate(
+		doc,
+		append(
+			[]render.Handler{
+				render.ExcludeDisabledAssignments,
+				render.RetainExactKey(name),
+			},
+			handlers...,
+		),
+		ignoreErrors,
+	)
+}

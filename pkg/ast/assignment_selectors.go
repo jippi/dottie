@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"slices"
 	"strings"
 )
 
@@ -47,6 +48,20 @@ func RetainKeyPrefix(prefix string) Selector {
 		switch statement := input.(type) {
 		case *Assignment:
 			if !strings.HasPrefix(statement.Name, prefix) {
+				return Exclude
+			}
+		}
+
+		return Keep
+	}
+}
+
+// RetainExactKey will *RETAIN* Assignments with the exact name
+func RetainExactKey(key ...string) Selector {
+	return func(input Statement) SelectorResult {
+		switch statement := input.(type) {
+		case *Assignment:
+			if !slices.Contains(key, statement.Name) {
 				return Exclude
 			}
 		}

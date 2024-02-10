@@ -1,14 +1,17 @@
 package update
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/tui"
+	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
 )
 
@@ -35,6 +38,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	dark := tui.Theme.Dark.StdoutPrinter()
 	info := tui.Theme.Info.StdoutPrinter()
 	danger := tui.Theme.Danger.StdoutPrinter()
+	dangerEmphasis := tui.Theme.Danger.StdoutPrinter(tui.WithEmphasis(true))
 	success := tui.Theme.Success.StdoutPrinter()
 	primary := tui.Theme.Primary.StdoutPrinter()
 
@@ -102,6 +106,9 @@ func runE(cmd *cobra.Command, args []string) error {
 	dark.Println("Updating upstream with key/value pairs from", primary.Sprint(filename))
 	dark.Println()
 
+	sawError := false
+	lastWasError := false
+
 	for _, stmt := range env.Assignments() {
 		if !stmt.Active {
 			continue
@@ -114,15 +121,43 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		if errors := validation.ValidateSingleAssignment(env, stmt.Name, nil, []string{"file", "dir"}); len(errors) > 0 {
+			sawError = true
+			lastWasError = true
+
+			dark.Println()
+			dark.Print("  ")
+			dangerEmphasis.Print(stmt.Name)
+			dark.Print(" could not be set to ")
+			primary.Print(stmt.Literal)
+			dark.Println(" due to validation error:")
+
+			for _, errIsh := range errors {
+				danger.Println(" ", strings.Repeat(" ", len(stmt.Name)), strings.TrimSpace(validation.Explain(env, errIsh, false, false)))
+			}
+
+			continue
+		}
+
 		if changed != nil {
-			success.Print("  OK! ")
-			primary.Print(stmt.Name)
-			success.Print(" was successfully set to ")
+			if lastWasError {
+				danger.Println()
+			}
+
+			lastWasError = false
+
+			success.Print("  ", stmt.Name)
+			dark.Print(" was successfully set to ")
 			primary.Println(stmt.Literal)
 		}
 	}
 
 	dark.Println()
+
+	if sawError {
+		return errors.New("some fields failed validation, aborting ...")
+	}
+
 	dark.Print("Backing up ")
 	primary.Print(filename)
 	dark.Print(" to ")

@@ -2,11 +2,9 @@ package ast
 
 import (
 	"bytes"
-	"errors"
 	"reflect"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/token"
 )
 
@@ -106,16 +104,6 @@ func (a *Assignment) IsHidden() bool {
 	}
 
 	return false
-}
-
-func (a *Assignment) IsValid() error {
-	if !a.Quote.Valid() {
-		return errors.New("invalid quote-style")
-	}
-
-	return validator.
-		New(validator.WithRequiredStructEnabled()).
-		Var(a.Interpolated, a.ValidationRules())
 }
 
 func (a *Assignment) Disable() {

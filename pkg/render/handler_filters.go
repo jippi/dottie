@@ -11,9 +11,10 @@ var (
 	ExcludeHiddenViaAnnotation = newSelectorHandler(ast.ExcludeHiddenViaAnnotation)
 )
 
-func RetainGroup(value string) Handler      { return newSelectorHandler(ast.RetainGroup(value)) }
-func ExcludeKeyPrefix(value string) Handler { return newSelectorHandler(ast.ExcludeKeyPrefix(value)) }
-func RetainKeyPrefix(value string) Handler  { return newSelectorHandler(ast.RetainKeyPrefix(value)) }
+func RetainGroup(value string) Handler       { return newSelectorHandler(ast.RetainGroup(value)) }
+func ExcludeKeyPrefix(value string) Handler  { return newSelectorHandler(ast.ExcludeKeyPrefix(value)) }
+func RetainKeyPrefix(value string) Handler   { return newSelectorHandler(ast.RetainKeyPrefix(value)) }
+func RetainExactKey(value ...string) Handler { return newSelectorHandler(ast.RetainExactKey(value...)) }
 
 func newSelectorHandler(selector ast.Selector) Handler {
 	return func(input *HandlerInput) HandlerSignal {

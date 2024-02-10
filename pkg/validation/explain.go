@@ -14,7 +14,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 )
 
-func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) string {
+func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
 	dark := tui.Theme.Dark.BuffPrinter(&buff)
@@ -39,7 +39,7 @@ func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) str
 		}
 
 		for _, rule := range err {
-			askToFix := fix
+			askToFix := applyFixer
 
 			if showField {
 				primary.Print("  * ")
@@ -68,17 +68,17 @@ func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) str
 				bold.Print(keyErr.Assignment.Interpolated)
 				light.Print("] is not one of [")
 				bold.Print(rule.Param())
-				light.Println("]")
+				light.Println("].")
 
 			case "number":
 				light.Print("(number) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("] is not a valid number")
+				light.Println("] is not a valid number.")
 
 			case "email":
 				light.Print("(email) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("] is not a valid e-mail")
+				light.Println("] is not a valid e-mail.")
 
 			case "required":
 				light.Println("(required) This value must not be empty/blank.")
@@ -97,8 +97,13 @@ func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) str
 				light.Print("(ne) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
 				light.Print("] must NOT be equal to [")
+				bold.Print(rule.Param())
+				light.Println("], please change it.")
+
+			case "boolean":
+				light.Print("(boolean) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("], please change it")
+				light.Print("] is not a valid boolean.")
 
 			case "http_url":
 				light.Print("(http_url) The value [")
@@ -108,7 +113,7 @@ func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) str
 			default:
 				light.Printf("(%s) The value [", rule.ActualTag())
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("] failed validation")
+				light.Println("] failed validation.")
 			}
 
 			if askToFix {
