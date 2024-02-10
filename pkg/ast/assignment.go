@@ -72,7 +72,7 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 		val := comment.Value
 
 		if withoutPrefix {
-			val = strings.TrimPrefix(val, "# ")
+			val = strings.TrimPrefix(val, "#")
 		}
 
 		buff.WriteString(val)

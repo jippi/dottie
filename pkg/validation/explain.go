@@ -76,6 +76,13 @@ func Explain(env *ast.Document, keyErr ValidationError, fix bool) {
 					AskToSetValue(env, keyErr.Assignment)
 				}
 
+			case "ne":
+				light.Println("(ne) The value must NOT be equal to [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "], please change it")
+
+				if fix {
+					AskToSetValue(env, keyErr.Assignment)
+				}
+
 			case "http_url":
 				light.Println("(http_url) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid HTTP URL (e.g., 'https://example.com').")
 
@@ -129,10 +136,12 @@ func AskToCreateDirectory(path string) {
 }
 
 func AskToSetValue(env *ast.Document, assignment *ast.Assignment) {
+	fmt.Println()
+
 	var value string
 
 	err := huh.NewInput().
-		Title("Please provide input").
+		Title("Please provide value for " + assignment.Name).
 		Description(strings.TrimSpace(assignment.Documentation(true))).
 		Validate(func(s string) error {
 			return validator.New().Var(s, assignment.ValidationRules())

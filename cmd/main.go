@@ -64,7 +64,7 @@ func main() {
 	root.AddCommand(validate.Command())
 	root.AddCommand(value.Command)
 
-	root.PersistentFlags().String("file", ".env", "Load this file")
+	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
 	if c, err := root.ExecuteC(); err != nil {
 		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Println(c.ErrPrefix(), err.Error())
