@@ -75,7 +75,7 @@ func Command() *cobra.Command {
 					return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
 				}
 
-				if validationErrors := validation.ValidateSignleAssignment(env, assignment.Name, nil, nil); len(validationErrors) > 0 {
+				if validationErrors := validation.ValidateSingleAssignment(env, assignment.Name, nil, nil); len(validationErrors) > 0 {
 					for _, errIsh := range validationErrors {
 						fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, false, false))
 					}
