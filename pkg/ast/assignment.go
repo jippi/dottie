@@ -52,6 +52,14 @@ func (a *Assignment) HasComments() bool {
 	return len(a.Comments) > 0
 }
 
+func (a *Assignment) DocumentationSummary() string {
+	if !a.HasComments() {
+		return ""
+	}
+
+	return strings.TrimPrefix(a.Comments[0].String(), "#")
+}
+
 func (a *Assignment) Documentation(withoutPrefix bool) string {
 	var buff bytes.Buffer
 
@@ -81,6 +89,18 @@ func (a *Assignment) ValidationRules() string {
 	}
 
 	return ""
+}
+
+func (a *Assignment) IsHidden() bool {
+	for _, comment := range a.Comments {
+		if comment.Annotation == nil {
+			continue
+		}
+
+		return comment.Annotation.Key == "dottie/hidden"
+	}
+
+	return false
 }
 
 func (a *Assignment) IsValid() error {

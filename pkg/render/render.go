@@ -15,15 +15,7 @@ type Renderer struct {
 
 func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	// Default handlers for filtering down the
-	handlers := append(
-		[]Handler{
-			FilterComments,
-			FilterDisabledStatements,
-			FilterGroupName,
-			FilterKeyPrefix,
-		},
-		additionalHandlers...,
-	)
+	handlers := append(settings.Handlers(), additionalHandlers...)
 
 	// Add Formatter handler if we're going to print pretty output!
 	if settings.formatOutput {
@@ -38,20 +30,12 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	}
 }
 
-func NewUnfilteredRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
-	// Default handlers for filtering down the
-	handlers := append(
-		[]Handler{
-			FilterComments,
-		},
-		additionalHandlers...,
-	)
-
+func NewUnfilteredRenderer(settings *Settings, additionalHandlers ...Handler) *Renderer {
 	return &Renderer{
 		Output:            settings.outputter,
 		PreviousStatement: nil,
-		Settings:          settings,
-		handlers:          handlers,
+		Settings:          *settings,
+		handlers:          additionalHandlers,
 	}
 }
 

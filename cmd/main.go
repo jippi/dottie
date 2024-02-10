@@ -49,6 +49,7 @@ func main() {
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
 		SilenceErrors: true,
+		SilenceUsage:  true,
 		Version:       buildVersion().String(),
 	}
 
@@ -60,13 +61,13 @@ func main() {
 	root.AddCommand(print_cmd.Command())
 	root.AddCommand(set.Command())
 	root.AddCommand(update.Command)
-	root.AddCommand(validate.Command)
+	root.AddCommand(validate.Command())
 	root.AddCommand(value.Command)
 
 	root.PersistentFlags().String("file", ".env", "Load this file")
 
 	if c, err := root.ExecuteC(); err != nil {
-		tui.Theme.Danger.StderrPrinter().Println(c.ErrPrefix(), err.Error())
+		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Println(c.ErrPrefix(), err.Error())
 		tui.Theme.Info.StderrPrinter().Printfln("Run '%v --help' for usage.\n", c.CommandPath())
 
 		os.Exit(1)

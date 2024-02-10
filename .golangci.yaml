@@ -53,9 +53,6 @@ linters:
     # finds forced type assertions
     - forcetypeassert
 
-    # Finds repeated strings that could be replaced by a constant
-    - goconst
-
     # Gofumpt checks whether code was gofumpt-ed.
     - gofumpt
 

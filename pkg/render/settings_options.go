@@ -4,13 +4,13 @@ type SettingsOption func(*Settings)
 
 func WithFilterKeyPrefix(prefix string) SettingsOption {
 	return func(s *Settings) {
-		s.filterKeyPrefix = prefix
+		s.retainKeyPrefix = prefix
 	}
 }
 
 func WithFilterGroup(name string) SettingsOption {
 	return func(s *Settings) {
-		s.filterGroup = name
+		s.retainGroup = name
 	}
 }
 
@@ -52,10 +52,10 @@ func WithGroupBanners(b bool) SettingsOption {
 func WithFormattedOutput(boolean bool) SettingsOption {
 	return func(s *Settings) {
 		s.formatOutput = boolean
+		s.showBlankLines = boolean
+		s.showColors = boolean
 		s.showComments = boolean
 		s.ShowGroupBanners = boolean
-		s.showColors = boolean
-		s.showBlankLines = boolean
 	}
 }
 

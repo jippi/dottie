@@ -47,6 +47,6 @@ func (c *Comment) BelongsToGroup(name string) bool {
 func (c *Comment) statementNode() {
 }
 
-func (c *Comment) String() string {
+func (c Comment) String() string {
 	return c.Value
 }

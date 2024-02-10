@@ -6,55 +6,92 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
+	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
 )
 
-var Command = &cobra.Command{
-	Use:   "validate",
-	Short: "Validate .env file",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		env, _, err := shared.Setup(cmd.Flags())
-		if err != nil {
-			return err
-		}
+func Command() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "validate",
+		Short: "Validate an .env file",
+		RunE:  runE,
+	}
 
-		res := validation.Validate(env)
-		if len(res) == 0 {
-			tui.Theme.Success.StderrPrinter().Box("No validation errors found")
+	cmd.Flags().SortFlags = false
+	cmd.Flags().StringSlice("exclude-prefix", []string{}, "Exclude keys with this prefix")
+	cmd.Flags().StringSlice("ignore-rules", []string{}, "Ignore specific validation rules")
+	shared.BoolWithInverse(cmd, "fix", true, "Guide the user to fix supported validation errors", "Do not guide the user to fix supported validation errors")
 
-			return nil
-		}
+	return cmd
+}
 
-		stderr := tui.Theme.Danger.StderrPrinter()
-		stderr.Box(fmt.Sprintf("%d validation errors found", len(res)))
-		stderr.Println()
+func runE(cmd *cobra.Command, args []string) error {
+	filename := cmd.Flag("file").Value.String()
 
-		for _, errIsh := range res {
-			validation.Explain(env, errIsh)
-		}
+	env, err := pkg.Load(filename)
+	if err != nil {
+		return err
+	}
 
-		env, err = pkg.Load(cmd.Flag("file").Value.String())
-		if err != nil {
-			return fmt.Errorf("failed to reload .env file: %w", err)
-		}
+	//
+	// Build filters
+	//
 
-		newRes := validation.Validate(env)
-		if len(newRes) == 0 {
-			tui.Theme.Success.StderrPrinter().Println("All validation errors fixed")
+	fix := shared.BoolWithInverseValue(cmd.Flags(), "fix")
+	ignoreRules, _ := cmd.Flags().GetStringSlice("ignore-rules")
 
-			return nil
-		}
+	handlers := []render.Handler{}
+	handlers = append(handlers, render.ExcludeDisabledAssignments)
 
-		diff := len(res) - len(newRes)
-		if diff > 0 {
-			tui.Theme.Warning.StderrPrinter().Box(
-				fmt.Sprintf("%d validation errors left", len(newRes)),
-				tui.Theme.Success.StderrPrinter().Sprintf("%d validation errors was fixed", diff),
-			)
-		}
+	slice, _ := cmd.Flags().GetStringSlice("exclude-prefix")
+	for _, filter := range slice {
+		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
+	}
 
-		return errors.New("Validation failed")
-	},
+	//
+	// Validate
+	//
+
+	res := validation.Validate(env, handlers, ignoreRules)
+	if len(res) == 0 {
+		tui.Theme.Success.StderrPrinter().Box("No validation errors found")
+
+		return nil
+	}
+
+	stderr := tui.Theme.Danger.StderrPrinter()
+	stderr.Box(fmt.Sprintf("%d validation errors found", len(res)))
+	stderr.Println()
+
+	for _, errIsh := range res {
+		validation.Explain(env, errIsh, fix)
+	}
+
+	//
+	// Validate file again, in case some of the fixers from before fixed them
+	//
+
+	env, err = pkg.Load(cmd.Flag("file").Value.String())
+	if err != nil {
+		return fmt.Errorf("failed to reload .env file: %w", err)
+	}
+
+	newRes := validation.Validate(env, handlers, ignoreRules)
+	if len(newRes) == 0 {
+		tui.Theme.Success.StderrPrinter().Println("All validation errors fixed")
+
+		return nil
+	}
+
+	diff := len(res) - len(newRes)
+	if diff > 0 {
+		tui.Theme.Warning.StderrPrinter().Box(
+			fmt.Sprintf("%d validation errors left", len(newRes)),
+			tui.Theme.Success.StderrPrinter().Sprintf("%d validation errors was fixed", diff),
+		)
+	}
+
+	return errors.New("Validation failed")
 }

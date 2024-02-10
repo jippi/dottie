@@ -13,13 +13,15 @@ import (
 var Command = &cobra.Command{
 	Use:               "enable KEY",
 	Short:             "Enable (uncomment) a KEY if it exists",
-	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.FilterActiveStatements).Get(),
+	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeActiveAssignments).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return errors.New("Missing required argument: KEY")
 		}
 
-		env, _, err := shared.Setup(cmd.Flags())
+		filename := cmd.Flag("file").Value.String()
+
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}
@@ -33,6 +35,6 @@ var Command = &cobra.Command{
 
 		existing.Enable()
 
-		return pkg.Save(cmd.Flag("file").Value.String(), env)
+		return pkg.Save(filename, env)
 	},
 }

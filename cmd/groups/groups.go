@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/gosimple/slug"
-	"github.com/jippi/dottie/pkg/cli/shared"
+	"github.com/jippi/dottie/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,9 @@ var Command = &cobra.Command{
 	Use:   "groups",
 	Short: "Print groups found in the .env file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		env, _, err := shared.Setup(cmd.Flags())
+		filename := cmd.Flag("file").Value.String()
+
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
-	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -17,7 +16,9 @@ var Command = &cobra.Command{
 	Use:   "update",
 	Short: "Update the .env file from a source",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		env, _, err := shared.Setup(cmd.Flags())
+		filename := cmd.Flag("file").Value.String()
+
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}

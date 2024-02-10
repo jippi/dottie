@@ -12,7 +12,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 )
 
-func Explain(env *ast.Document, keyErr ValidationError) {
+func Explain(env *ast.Document, keyErr ValidationError, fix bool) {
 	normal := tui.Theme.Dark.StderrPrinter()
 	bold := tui.Theme.Dark.StderrPrinter(tui.WithEmphasis(true))
 	danger := tui.Theme.Danger.StderrPrinter()
@@ -38,7 +38,10 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 			switch rule.ActualTag() {
 			case "dir":
 				light.Println("(dir) The directory [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
-				AskToCreateDirectory(keyErr.Assignment.Interpolated)
+
+				if fix {
+					AskToCreateDirectory(keyErr.Assignment.Interpolated)
+				}
 
 			case "file":
 				light.Println("(file) The file [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
@@ -51,14 +54,20 @@ func Explain(env *ast.Document, keyErr ValidationError) {
 
 			case "email":
 				light.Println("(email) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid e-mail")
-				AskToSetValue(env, keyErr.Assignment)
+
+				if fix {
+					AskToSetValue(env, keyErr.Assignment)
+				}
 
 			case "required":
 				light.Println("(required) This value must not be empty/blank.")
 
 			case "fqdn":
 				light.Println("(fqdn) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid Fully Qualified Domain Name (FQDN).")
-				AskToSetValue(env, keyErr.Assignment)
+
+				if fix {
+					AskToSetValue(env, keyErr.Assignment)
+				}
 
 			default:
 				light.Printfln("(%s) The value ["+bold.Sprintf(keyErr.Assignment.Interpolated)+"] failed validation", rule.ActualTag())

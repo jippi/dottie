@@ -9,8 +9,8 @@ const (
 )
 
 type Settings struct {
-	filterKeyPrefix       string
-	filterGroup           string
+	retainKeyPrefix       string
+	retainGroup           string
 	includeDisabled       bool
 	showBlankLines        bool
 	showColors            bool
@@ -37,4 +37,26 @@ func (s *Settings) Apply(options ...SettingsOption) *Settings {
 
 func (rs Settings) ShowBlankLines() bool {
 	return rs.formatOutput || (rs.showBlankLines && rs.showComments)
+}
+
+func (rs Settings) Handlers() []Handler {
+	var res []Handler
+
+	if !rs.showComments {
+		res = append(res, ExcludeComments)
+	}
+
+	if !rs.includeDisabled {
+		res = append(res, ExcludeDisabledAssignments)
+	}
+
+	if len(rs.retainGroup) > 0 {
+		res = append(res, RetainGroup(rs.retainGroup))
+	}
+
+	if len(rs.retainKeyPrefix) > 0 {
+		res = append(res, RetainKeyPrefix(rs.retainKeyPrefix))
+	}
+
+	return res
 }

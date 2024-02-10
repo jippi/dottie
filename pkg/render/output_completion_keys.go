@@ -13,7 +13,7 @@ func (CompletionOutputKeys) GroupBanner(group *ast.Group, settings Settings) *Li
 }
 
 func (CompletionOutputKeys) Assignment(a *ast.Assignment, settings Settings) *Lines {
-	return NewLinesCollection().Add(a.Name)
+	return NewLinesCollection().Add(a.Name + "\t" + a.DocumentationSummary())
 }
 
 func (r CompletionOutputKeys) Comment(comment *ast.Comment, settings Settings) *Lines {

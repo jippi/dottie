@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/spf13/cobra"
@@ -12,13 +13,15 @@ import (
 var Command = &cobra.Command{
 	Use:               "value KEY",
 	Short:             "Print value of a env key if it exists",
-	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.FilterDisabledStatements).Get(),
+	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeDisabledAssignments).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
 			return errors.New("Missing required argument: KEY")
 		}
 
-		env, _, err := shared.Setup(cmd.Flags())
+		filename := cmd.Flag("file").Value.String()
+
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}
