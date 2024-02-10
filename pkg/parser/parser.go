@@ -64,9 +64,11 @@ func (p *Parser) Parse() (*ast.Document, error) {
 		case *ast.Assignment:
 			val.Position.File = p.filename
 
-			val.Interpolated, err = doc.Interpolate(val)
-			if err != nil {
-				return nil, err
+			if val.Active {
+				val.Interpolated, err = doc.Interpolate(val)
+				if err != nil {
+					return nil, err
+				}
 			}
 
 			// Assign accumulated comments to this assignment
