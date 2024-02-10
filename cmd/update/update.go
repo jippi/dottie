@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/hashicorp/go-getter"
@@ -38,6 +39,12 @@ var Command = &cobra.Command{
 				return err
 			}
 
+			// Get the pwd
+			pwd, err := os.Getwd()
+			if err != nil {
+				log.Fatalf("Error getting wd: %s", err)
+			}
+
 			// Grab source file
 
 			client := getter.Client{
@@ -45,6 +52,7 @@ var Command = &cobra.Command{
 				Mode:            getter.ClientModeFile,
 				Src:             source,
 				Dst:             tmp.Name(),
+				Pwd:             pwd,
 			}
 
 			if err := client.Get(); err != nil {
