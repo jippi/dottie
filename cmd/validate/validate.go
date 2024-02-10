@@ -19,9 +19,9 @@ func Command() *cobra.Command {
 		RunE:  runE,
 	}
 
-	cmd.Flags().SortFlags = false
-	cmd.Flags().StringSlice("exclude-prefix", []string{}, "Exclude keys with this prefix")
-	cmd.Flags().StringSlice("ignore-rules", []string{}, "Ignore specific validation rules")
+	cmd.Flags().StringSlice("exclude-prefix", []string{}, "Exclude KEY with this prefix")
+	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
+
 	shared.BoolWithInverse(cmd, "fix", true, "Guide the user to fix supported validation errors", "Do not guide the user to fix supported validation errors")
 
 	return cmd
@@ -40,7 +40,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	//
 
 	fix := shared.BoolWithInverseValue(cmd.Flags(), "fix")
-	ignoreRules, _ := cmd.Flags().GetStringSlice("ignore-rules")
+	ignoreRules, _ := cmd.Flags().GetStringSlice("ignore-rule")
 
 	handlers := []render.Handler{}
 	handlers = append(handlers, render.ExcludeDisabledAssignments)
