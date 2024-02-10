@@ -60,7 +60,7 @@ func main() {
 	root.AddCommand(json.Command)
 	root.AddCommand(print_cmd.Command())
 	root.AddCommand(set.Command())
-	root.AddCommand(update.Command)
+	root.AddCommand(update.Command())
 	root.AddCommand(validate.Command())
 	root.AddCommand(value.Command)
 

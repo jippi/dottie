@@ -1,105 +1,157 @@
 package update
 
 import (
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
-var Command = &cobra.Command{
-	Use:   "update",
-	Short: "Update the .env file from a source",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		filename := cmd.Flag("file").Value.String()
+func Command() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Update the .env file from a source",
+		RunE:  runE,
+	}
 
-		env, err := pkg.Load(filename)
+	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
+
+	return cmd
+}
+
+func runE(cmd *cobra.Command, args []string) error {
+	filename := cmd.Flag("file").Value.String()
+
+	env, err := pkg.Load(filename)
+	if err != nil {
+		return err
+	}
+
+	dark := tui.Theme.Dark.StdoutPrinter()
+	info := tui.Theme.Info.StdoutPrinter()
+	danger := tui.Theme.Danger.StdoutPrinter()
+	success := tui.Theme.Success.StdoutPrinter()
+	primary := tui.Theme.Primary.StdoutPrinter()
+
+	info.Box("Starting update of " + filename + " from upstream")
+	info.Println()
+
+	dark.Println("Looking for upstream source")
+
+	source, _ := cmd.Flags().GetString("source")
+	if len(source) == 0 {
+		source, err = env.GetConfig("dottie/source")
 		if err != nil {
 			return err
 		}
 
-		fmt.Print("Finding source")
-		source, err := env.GetConfig("dottie/source")
+		success.Println("  Found source via [dottie/source] annotation in file", primary.Sprint(filename))
+	} else {
+		success.Println("  Found source via CLI flag")
+	}
+
+	fmt.Println()
+
+	dark.Println("Copying source from", primary.Sprint(source))
+
+	tmp, err := os.CreateTemp(os.TempDir(), ".dottie.source")
+	if err != nil {
+		return err
+	}
+
+	// Get the pwd
+	pwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("Error getting working directory: %w", err)
+	}
+
+	// Grab source file
+
+	client := getter.Client{
+		DisableSymlinks: true,
+		Mode:            getter.ClientModeFile,
+		Src:             source,
+		Dst:             tmp.Name(),
+		Pwd:             pwd,
+	}
+
+	if err := client.Get(); err != nil {
+		return err
+	}
+
+	success.Println("  OK")
+	success.Println()
+
+	// Load the soon-to-be-merged file
+	dark.Println("Loading and parsing source")
+
+	mergedEnv, err := pkg.Load(tmp.Name())
+	if err != nil {
+		return err
+	}
+
+	success.Println("  OK")
+	success.Println()
+
+	// Take current assignments and set them in the new doc
+	dark.Println("Updating upstream with key/value pairs from", primary.Sprint(filename))
+	dark.Println()
+
+	for _, stmt := range env.Assignments() {
+		if !stmt.Active {
+			continue
+		}
+
+		changed, err := mergedEnv.Upsert(stmt, ast.UpsertOptions{SkipIfSame: true, ErrorIfMissing: true})
 		if err != nil {
-			return err
-		}
-		fmt.Println(" ✅")
+			danger.Println("  ERROR", err.Error())
 
-		fmt.Print("Grabbing .env.docker from [", source, "]")
-
-		if _, err := os.Stat(".env.source"); errors.Is(err, os.ErrNotExist) {
-			tmp, err := os.OpenFile(".env.source", os.O_RDWR|os.O_CREATE, 0o666)
-			if err != nil {
-				return err
-			}
-
-			// Get the pwd
-			pwd, err := os.Getwd()
-			if err != nil {
-				log.Fatalf("Error getting wd: %s", err)
-			}
-
-			// Grab source file
-
-			client := getter.Client{
-				DisableSymlinks: true,
-				Mode:            getter.ClientModeFile,
-				Src:             source,
-				Dst:             tmp.Name(),
-				Pwd:             pwd,
-			}
-
-			if err := client.Get(); err != nil {
-				return err
-			}
-		}
-		fmt.Println(" ✅")
-
-		// Copy source to "new"
-		fmt.Print("Copying .env.source into .env.merged")
-		if err := Copy(".env.source", ".env.merged"); err != nil {
-			return err
-		}
-		fmt.Println(" ✅")
-
-		// Load the soon-to-be-merged file
-		fmt.Print("Loading and parsing .env.merged")
-		mergedEnv, err := pkg.Load(".env.merged")
-		if err != nil {
-			return err
-		}
-		fmt.Println(" ✅")
-
-		// Take current assignments and set them in the new doc
-		fmt.Println("Updating .env.merged with key/value pairs from .env")
-		for _, stmt := range env.Assignments() {
-			if !stmt.Active {
-				continue
-			}
-
-			changed, err := mergedEnv.Upsert(stmt, ast.UpsertOptions{SkipIfSame: true, ErrorIfMissing: true})
-			if err != nil {
-				fmt.Println("  ❌", err.Error())
-
-				continue
-			}
-
-			if changed != nil {
-				fmt.Println("  ✅", fmt.Sprintf("Key [%s] was successfully updated", stmt.Name))
-			}
+			continue
 		}
 
-		fmt.Println()
-		fmt.Println("Saving .env.merged")
+		if changed != nil {
+			success.Print("  OK! ")
+			primary.Print(stmt.Name)
+			success.Print(" was successfully set to ")
+			primary.Println(stmt.Literal)
+		}
+	}
 
-		return pkg.Save(".env.merged", mergedEnv)
-	},
+	dark.Println()
+	dark.Print("Backing up ")
+	primary.Print(filename)
+	dark.Print(" to ")
+	primary.Print(filename, ".dottie-backup")
+	primary.Println()
+
+	if err := Copy(filename, filename+".dottie-backup"); err != nil {
+		danger.Println("  ERROR", err.Error())
+
+		return err
+	}
+
+	success.Println("  OK")
+	success.Println()
+
+	dark.Println("Saving the new", primary.Sprint(filename))
+
+	if err := pkg.Save(filename, mergedEnv); err != nil {
+		danger.Println("  ERROR", err.Error())
+
+		return err
+	}
+
+	success.Println("  OK")
+	success.Println()
+
+	success.Box("Update successfully completed")
+
+	return nil
 }
 
 func Copy(src, dst string) error {
