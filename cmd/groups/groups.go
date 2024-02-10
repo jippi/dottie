@@ -2,10 +2,12 @@ package groups
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 
 	"github.com/gosimple/slug"
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -25,14 +27,31 @@ var Command = &cobra.Command{
 			return errors.New("No groups found")
 		}
 
-		fmt.Println("The following groups was found:")
-		fmt.Println()
+		width := longesGroupName(groups)
+
+		light := tui.Theme.Secondary.StdoutPrinter()
+		key := tui.Theme.Primary.StdoutPrinter()
+		info := tui.Theme.Info.StdoutPrinter()
+		info.Box("Groups in " + filename)
 
 		for _, group := range groups {
-			fmt.Printf("  '%s' with alias '%s' (line %d to %d)", group, slug.Make(group.String()), group.Position.FirstLine, group.Position.LastLine)
-			fmt.Println()
+			key.Printf("%-"+strconv.Itoa(width)+"s", slug.Make(group.String()))
+			key.Print(" ")
+			light.Printfln("(%s:%d)", filename, group.Position.FirstLine)
 		}
 
 		return nil
 	},
+}
+
+func longesGroupName(groups []*ast.Group) int {
+	length := 0
+
+	for _, group := range groups {
+		if len(group.Name) > length {
+			length = len(group.Name)
+		}
+	}
+
+	return length
 }
