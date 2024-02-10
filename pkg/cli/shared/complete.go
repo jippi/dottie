@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/spf13/cobra"
 )
@@ -36,13 +37,25 @@ func (c *Completer) Get() CobraCompleter {
 			return nil, cobra.ShellCompDirectiveError
 		}
 
-		settings.Apply(render.WithFilterKeyPrefix(toComplete))
-		settings.Apply(c.options...)
+		spew.Dump(toComplete)
 
-		return render.
-				NewUnfilteredRenderer(*settings, c.handlers...).
-				Statement(env).
-				Lines(),
-			cobra.ShellCompDirectiveDefault
+		settings.Apply(c.options...)
+		settings.Apply(render.WithFilterKeyPrefix(toComplete))
+
+		lines := render.
+			NewUnfilteredRenderer(*settings, c.handlers...).
+			Statement(env).
+			Lines()
+
+		switch len(lines) {
+		case 0:
+			return lines, cobra.ShellCompDirectiveNoSpace
+
+		case 1:
+			return []string{lines[0] + "="}, cobra.ShellCompDirectiveNoSpace
+
+		default:
+			return lines, cobra.ShellCompDirectiveNoSpace
+		}
 	}
 }
