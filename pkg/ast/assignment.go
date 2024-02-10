@@ -63,8 +63,13 @@ func (a *Assignment) DocumentationSummary() string {
 func (a *Assignment) Documentation(withoutPrefix bool) string {
 	var buff bytes.Buffer
 
-	for _, c := range a.Comments {
-		val := c.Value
+	for _, comment := range a.Comments {
+		// Exclude annotations from documentation
+		if comment.Annotation != nil {
+			continue
+		}
+
+		val := comment.Value
 
 		if withoutPrefix {
 			val = strings.TrimPrefix(val, "# ")

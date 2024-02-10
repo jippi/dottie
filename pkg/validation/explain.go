@@ -69,6 +69,20 @@ func Explain(env *ast.Document, keyErr ValidationError, fix bool) {
 					AskToSetValue(env, keyErr.Assignment)
 				}
 
+			case "hostname":
+				light.Println("(hostname) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid hostname (e.g., 'example.com').")
+
+				if fix {
+					AskToSetValue(env, keyErr.Assignment)
+				}
+
+			case "http_url":
+				light.Println("(http_url) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid HTTP URL (e.g., 'https://example.com').")
+
+				if fix {
+					AskToSetValue(env, keyErr.Assignment)
+				}
+
 			default:
 				light.Printfln("(%s) The value ["+bold.Sprintf(keyErr.Assignment.Interpolated)+"] failed validation", rule.ActualTag())
 			}
