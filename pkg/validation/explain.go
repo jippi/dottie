@@ -1,6 +1,8 @@
 package validation
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -12,12 +14,14 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 )
 
-func Explain(env *ast.Document, keyErr ValidationError, fix bool) {
-	normal := tui.Theme.Dark.StderrPrinter()
-	bold := tui.Theme.Dark.StderrPrinter(tui.WithEmphasis(true))
-	danger := tui.Theme.Danger.StderrPrinter()
-	light := tui.Theme.Light.StderrPrinter()
-	secondary := tui.Theme.Primary.StderrPrinter()
+func Explain(doc *ast.Document, keyErr ValidationError, fix, showField bool) string {
+	var buff bytes.Buffer
+
+	dark := tui.Theme.Dark.BuffPrinter(&buff)
+	bold := tui.Theme.Warning.BuffPrinter(&buff, tui.WithEmphasis(true))
+	danger := tui.Theme.Danger.BuffPrinter(&buff)
+	light := tui.Theme.Light.BuffPrinter(&buff)
+	primary := tui.Theme.Primary.BuffPrinter(&buff)
 
 	switch err := keyErr.Error.(type) {
 	// user configuration error
@@ -26,83 +30,103 @@ func Explain(env *ast.Document, keyErr ValidationError, fix bool) {
 
 	// actual validation error
 	case validator.ValidationErrors:
-		danger.Print(keyErr.Assignment.Name)
+		if showField {
+			danger.Print(keyErr.Assignment.Name)
 
-		light.Print(" (", keyErr.Assignment.Position, ")")
+			light.Print(" (", keyErr.Assignment.Position, ")")
 
-		normal.Println()
+			dark.Println()
+		}
 
 		for _, rule := range err {
-			secondary.Print("  * ")
+			askToFix := fix
+
+			if showField {
+				primary.Print("  * ")
+			}
 
 			switch rule.ActualTag() {
 			case "dir":
 				light.Println("(dir) The directory [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
 
-				if fix {
+				if askToFix {
+					fmt.Fprintln(os.Stderr, buff.String())
+					buff.Reset()
+
 					AskToCreateDirectory(keyErr.Assignment.Interpolated)
+
+					askToFix = false
 				}
 
 			case "file":
-				light.Println("(file) The file [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] does not exist.")
+				light.Print("(file) The file [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] does not exist.")
 
 			case "oneof":
-				light.Println("(oneof) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not one of [" + rule.Param() + "]")
+				light.Print("(oneof) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Print("] is not one of [")
+				bold.Print(rule.Param())
+				light.Println("]")
 
 			case "number":
-				light.Println("(number) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid number")
+				light.Print("(number) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] is not a valid number")
 
 			case "email":
-				light.Println("(email) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid e-mail")
-
-				if fix {
-					AskToSetValue(env, keyErr.Assignment)
-				}
+				light.Print("(email) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] is not a valid e-mail")
 
 			case "required":
 				light.Println("(required) This value must not be empty/blank.")
 
 			case "fqdn":
-				light.Println("(fqdn) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid Fully Qualified Domain Name (FQDN).")
-
-				if fix {
-					AskToSetValue(env, keyErr.Assignment)
-				}
+				light.Print("(fqdn) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("]is not a valid Fully Qualified Domain Name (FQDN).")
 
 			case "hostname":
-				light.Println("(hostname) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid hostname (e.g., 'example.com').")
-
-				if fix {
-					AskToSetValue(env, keyErr.Assignment)
-				}
+				light.Print("(hostname) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] is not a valid hostname (e.g., 'example.com').")
 
 			case "ne":
-				light.Println("(ne) The value must NOT be equal to [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "], please change it")
-
-				if fix {
-					AskToSetValue(env, keyErr.Assignment)
-				}
+				light.Print("(ne) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Print("] must NOT be equal to [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("], please change it")
 
 			case "http_url":
-				light.Println("(http_url) The value [" + bold.Sprintf(keyErr.Assignment.Interpolated) + "] is not a valid HTTP URL (e.g., 'https://example.com').")
-
-				if fix {
-					AskToSetValue(env, keyErr.Assignment)
-				}
+				light.Print("(http_url) The value [")
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] is not a valid HTTP URL (e.g., 'https://example.com').")
 
 			default:
-				light.Printfln("(%s) The value ["+bold.Sprintf(keyErr.Assignment.Interpolated)+"] failed validation", rule.ActualTag())
+				light.Printf("(%s) The value [", rule.ActualTag())
+				bold.Print(keyErr.Assignment.Interpolated)
+				light.Println("] failed validation")
+			}
+
+			if askToFix {
+				fmt.Fprintln(os.Stderr, buff.String())
+				buff.Reset()
+
+				AskToSetValue(doc, keyErr.Assignment)
 			}
 		}
 
-		normal.Println()
-
 	case error:
-		light.Printfln("(error) %s", err)
+		danger.Printfln("(error) %s", err)
 
 	default:
-		panic(fmt.Errorf("unknown error type for field type: %T", err))
+		panic(danger.Sprintf("unknown error type for field type: %T", err))
 	}
+
+	return buff.String()
 }
 
 func AskToCreateDirectory(path string) {
@@ -135,16 +159,19 @@ func AskToCreateDirectory(path string) {
 	tui.Theme.Success.StderrPrinter().Println("    Directory was successfully created")
 }
 
-func AskToSetValue(env *ast.Document, assignment *ast.Assignment) {
-	fmt.Println()
-
+func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
 	var value string
 
 	err := huh.NewInput().
 		Title("Please provide value for " + assignment.Name).
-		Description(strings.TrimSpace(assignment.Documentation(true))).
+		Description(strings.TrimSpace(assignment.Documentation(true)) + ". (Press Ctrl+C to exit/cancel)").
 		Validate(func(s string) error {
-			return validator.New().Var(s, assignment.ValidationRules())
+			err := validator.New().Var(s, assignment.ValidationRules())
+			if err != nil {
+				return errors.New(Explain(doc, ValidationError{Error: err, Assignment: assignment}, false, false))
+			}
+
+			return nil
 		}).
 		Value(&value).
 		Run()
@@ -155,7 +182,7 @@ func AskToSetValue(env *ast.Document, assignment *ast.Assignment) {
 	}
 
 	assignment.Literal = value
-	if err := pkg.Save(assignment.Position.File, env); err != nil {
+	if err := pkg.Save(assignment.Position.File, doc); err != nil {
 		tui.Theme.Danger.StderrPrinter().Println("    Could not update key with value [" + value + "]: " + err.Error())
 
 		return

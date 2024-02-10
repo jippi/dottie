@@ -3,6 +3,7 @@ package set
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -69,7 +70,7 @@ func Command() *cobra.Command {
 
 				assignment, err := env.Upsert(assignment, options)
 				if err != nil {
-					validation.Explain(env, validation.NewError(assignment, err), false)
+					fmt.Fprintln(os.Stderr, validation.Explain(env, validation.NewError(assignment, err), false, true))
 
 					return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
 				}

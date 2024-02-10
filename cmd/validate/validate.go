@@ -3,6 +3,7 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -66,7 +67,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	stderr.Println()
 
 	for _, errIsh := range res {
-		validation.Explain(env, errIsh, fix)
+		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, fix, true))
 	}
 
 	//
