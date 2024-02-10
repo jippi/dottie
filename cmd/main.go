@@ -43,7 +43,7 @@ var (
 )
 
 func main() {
-	__load()
+	__configureSpew()
 
 	root := &cobra.Command{
 		Use:           "dottie",
@@ -74,11 +74,9 @@ func main() {
 	}
 }
 
-func __load() {
+func __configureSpew() {
 	spew.Config.DisablePointerMethods = true
 	spew.Config.DisableMethods = true
-
-	spew.Dump()
 }
 
 func indent(in string) string {
