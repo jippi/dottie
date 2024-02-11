@@ -25,6 +25,7 @@ func Command() *cobra.Command {
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
 	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
+	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
 
 	return cmd
 }
@@ -231,7 +232,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println()
 
-	if sawError {
+	if sawError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 		return errors.New("some fields failed validation, aborting ...")
 	}
 
