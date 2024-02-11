@@ -43,3 +43,25 @@ func (g *Group) BelongsToGroup(name string) bool {
 func (g *Group) String() string {
 	return strings.TrimPrefix(g.Name, "# ")
 }
+
+func (g *Group) Assignments() []*Assignment {
+	var assignments []*Assignment
+
+	for _, statement := range g.Statements {
+		if assign, ok := statement.(*Assignment); ok {
+			assignments = append(assignments, assign)
+		}
+	}
+
+	return assignments
+}
+
+func (g *Group) GetAssignmentIndex(name string) (int, *Assignment) {
+	for i, assign := range g.Assignments() {
+		if assign.Name == name {
+			return i, assign
+		}
+	}
+
+	return -1, nil
+}

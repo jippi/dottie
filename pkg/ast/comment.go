@@ -2,6 +2,7 @@ package ast
 
 import (
 	"reflect"
+	"strings"
 
 	"github.com/jippi/dottie/pkg/token"
 )
@@ -49,4 +50,8 @@ func (c *Comment) statementNode() {
 
 func (c Comment) String() string {
 	return c.Value
+}
+
+func (c Comment) CleanString() string {
+	return strings.TrimPrefix(c.Value, "# ")
 }

@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/compose-spec/compose-go/template"
+	"github.com/jippi/dottie/pkg/token"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
@@ -40,7 +41,7 @@ func (d *Document) BelongsToGroup(name string) bool {
 func (d *Document) statementNode() {
 }
 
-func (d *Document) Assignments() []*Assignment {
+func (d *Document) AllAssignments() []*Assignment {
 	var assignments []*Assignment
 
 	for _, statement := range d.Statements {
@@ -70,8 +71,12 @@ func (d *Document) GetGroup(name string) *Group {
 	return nil
 }
 
+func (d *Document) HasGroup(name string) bool {
+	return d.GetGroup(name) != nil
+}
+
 func (d *Document) Get(name string) *Assignment {
-	for _, assign := range d.Assignments() {
+	for _, assign := range d.AllAssignments() {
 		if assign.Name == name {
 			return assign
 		}
@@ -80,9 +85,17 @@ func (d *Document) Get(name string) *Assignment {
 	return nil
 }
 
+func (d *Document) Has(name string) bool {
+	return d.Get(name) != nil
+}
+
 func (doc *Document) Interpolate(target *Assignment) (string, error) {
 	if target == nil {
 		return "", errors.New("can't interpolate a nil assignment")
+	}
+
+	if target.Quote.Is(token.SingleQuotes.Rune()) {
+		return target.Literal, nil
 	}
 
 	lookup := func(input string) (string, bool) {
@@ -114,14 +127,24 @@ func (doc *Document) Interpolate(target *Assignment) (string, error) {
 	return template.Substitute(target.Literal, lookup)
 }
 
+type UpsertPlacement uint
+
+const (
+	UpsertLast UpsertPlacement = iota
+	UpsertAfter
+	UpsertBefore
+	UpsertFirst
+)
+
 type UpsertOptions struct {
-	InsertBefore   string
-	Comments       []string
-	ErrorIfMissing bool
-	Group          string
-	SkipIfSame     bool
-	SkipIfSet      bool
-	SkipValidation bool
+	UpsertPlacementType  UpsertPlacement
+	UpsertPlacementValue string
+	Comments             []string
+	ErrorIfMissing       bool
+	Group                string
+	SkipIfSame           bool
+	SkipIfSet            bool
+	SkipValidation       bool
 }
 
 func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignment, error) {
@@ -154,12 +177,22 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 			Group:   group,
 		}
 
-		if len(options.InsertBefore) > 0 {
-			before := options.InsertBefore
+		existingStatements := doc.Statements
+		if existing.Group != nil {
+			existingStatements = group.Statements
+		}
 
-			var res []Statement
+		var res []Statement
 
-			for _, stmt := range group.Statements {
+		switch options.UpsertPlacementType {
+		case UpsertFirst:
+			res = append([]Statement{existing}, existingStatements...)
+
+		case UpsertLast:
+			res = append(existingStatements, existing)
+
+		case UpsertAfter, UpsertBefore:
+			for _, stmt := range existingStatements {
 				assignment, ok := stmt.(*Assignment)
 				if !ok {
 					res = append(res, stmt)
@@ -167,28 +200,23 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 					continue
 				}
 
-				if assignment.Name == before {
-					res = append(res, existing)
+				switch {
+				case options.UpsertPlacementType == UpsertBefore && assignment.Name == options.UpsertPlacementValue:
+					res = append(res, existing, stmt)
+
+				case options.UpsertPlacementType == UpsertAfter && assignment.Name == options.UpsertPlacementValue:
+					res = append(res, stmt, existing)
+
+				default:
+					res = append(res, stmt)
 				}
-
-				res = append(res, stmt)
 			}
-
-			group.Statements = res
 		}
 
 		if group != nil {
-			group.Statements = append(group.Statements, existing)
+			group.Statements = res
 		} else {
-			idx := len(doc.Statements) - 1
-
-			// if last statement is a newline, replace it with the new assignment
-			if idx > 1 && doc.Statements[idx].Is(&Newline{}) {
-				doc.Statements[idx] = existing
-			} else {
-				// otherwise append it
-				doc.Statements = append(doc.Statements, existing)
-			}
+			doc.Statements = res
 		}
 	}
 
@@ -259,7 +287,19 @@ func (d *Document) GetConfig(name string) (string, error) {
 	return "", fmt.Errorf("could not find config key: [%s]", name)
 }
 
-func (d *Document) GetPosition(name string) (int, *Assignment) {
+func (d *Document) Assignments() []*Assignment {
+	var assignments []*Assignment
+
+	for _, statement := range d.Statements {
+		if assign, ok := statement.(*Assignment); ok {
+			assignments = append(assignments, assign)
+		}
+	}
+
+	return assignments
+}
+
+func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 	for i, assign := range d.Assignments() {
 		if assign.Name == name {
 			return i, assign

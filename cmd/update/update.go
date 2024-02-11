@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
@@ -23,6 +24,7 @@ func Command() *cobra.Command {
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
+	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 
 	return cmd
 }
@@ -94,7 +96,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	mergedEnv, err := pkg.Load(tmp.Name())
+	sourceDoc, err := pkg.Load(tmp.Name())
 	if err != nil {
 		return err
 	}
@@ -108,15 +110,83 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	sawError := false
 	lastWasError := false
+	counter := 0
 
-	for _, stmt := range env.Assignments() {
+	for _, stmt := range env.AllAssignments() {
 		if !stmt.Active {
 			continue
 		}
 
-		changed, err := mergedEnv.Upsert(stmt, ast.UpsertOptions{SkipIfSame: true, ErrorIfMissing: true})
+		options := ast.UpsertOptions{
+			SkipIfSame:     true,
+			ErrorIfMissing: shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key"),
+		}
+
+		// If the KEY does not exists in the SOURCE doc
+		if sourceDoc.Get(stmt.Name) == nil {
+			// Copy comments if the KEY doesn't exist in the SOURCE document
+			options.Comments = stmt.CommentsSlice()
+
+			// Try to find positioning in the statement list for the new KEY pair
+			var parent ast.StatementCollection = env
+			if stmt.Group != nil {
+				parent = stmt.Group
+			}
+
+			idx, _ := parent.GetAssignmentIndex(stmt.Name)
+
+			// Try to keep the position of the KEY around where it was before
+			switch {
+			// If we can't find any placement, put us last in the list
+			case idx == -1:
+				options.UpsertPlacementType = ast.UpsertLast
+
+				// Retain the group name if its still present in the SOURCE doc
+				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
+					options.Group = stmt.Group.String()
+				}
+
+			// If we were first in the FILE doc, make sure we're first again
+			case idx == 0:
+				options.UpsertPlacementType = ast.UpsertFirst
+
+				// Retain the group name if its still present in the SOURCE doc
+				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
+					options.Group = stmt.Group.String()
+				}
+
+			// If we were not first, then put us behind the key that was
+			// just before us in the FILE doc
+			case idx > 0:
+				before := parent.Assignments()[idx-1]
+
+				options.UpsertPlacementType = ast.UpsertAfter
+				options.UpsertPlacementValue = before.Name
+
+				if before.Group != nil && sourceDoc.HasGroup(before.Group.String()) {
+					options.Group = before.Group.String()
+				}
+			}
+		}
+
+		changed, err := sourceDoc.Upsert(stmt, options)
 		if err != nil {
-			danger.Println("  ERROR", err.Error())
+			sawError = true
+			lastWasError = true
+
+			if counter > 0 {
+				dark.Println()
+			}
+
+			dark.Print("  ")
+			dangerEmphasis.Print(stmt.Name)
+			dark.Print(" could not be set to ")
+			primary.Print(stmt.Literal)
+			dark.Println(" due to error:")
+
+			danger.Println(" ", strings.Repeat(" ", len(stmt.Name)), err.Error())
+
+			counter++
 
 			continue
 		}
@@ -125,7 +195,10 @@ func runE(cmd *cobra.Command, args []string) error {
 			sawError = true
 			lastWasError = true
 
-			dark.Println()
+			if counter > 0 {
+				dark.Println()
+			}
+
 			dark.Print("  ")
 			dangerEmphasis.Print(stmt.Name)
 			dark.Print(" could not be set to ")
@@ -136,10 +209,14 @@ func runE(cmd *cobra.Command, args []string) error {
 				danger.Println(" ", strings.Repeat(" ", len(stmt.Name)), strings.TrimSpace(validation.Explain(env, errIsh, false, false)))
 			}
 
+			counter++
+
 			continue
 		}
 
 		if changed != nil {
+			counter++
+
 			if lastWasError {
 				danger.Println()
 			}
@@ -175,7 +252,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Saving the new", primary.Sprint(filename))
 
-	if err := pkg.Save(filename, mergedEnv); err != nil {
+	if err := pkg.Save(filename, sourceDoc); err != nil {
 		danger.Println("  ERROR", err.Error())
 
 		return err

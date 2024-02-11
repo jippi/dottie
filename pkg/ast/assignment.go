@@ -113,3 +113,13 @@ func (a *Assignment) Disable() {
 func (a *Assignment) Enable() {
 	a.Active = true
 }
+
+func (a *Assignment) CommentsSlice() []string {
+	res := []string{}
+
+	for _, comment := range a.Comments {
+		res = append(res, comment.CleanString())
+	}
+
+	return res
+}

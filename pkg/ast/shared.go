@@ -11,6 +11,11 @@ type Statement interface {
 	Type() string
 }
 
+type StatementCollection interface {
+	Assignments() []*Assignment
+	GetAssignmentIndex(name string) (int, *Assignment)
+}
+
 type Position struct {
 	File      string `json:"file"`
 	Line      uint   `json:"line"`

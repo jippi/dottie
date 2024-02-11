@@ -31,7 +31,7 @@ func Validate(doc *ast.Document, handlers []render.Handler, ignoreErrors []strin
 	fieldOrder := []string{}
 
 NEXT:
-	for _, assignment := range doc.Assignments() {
+	for _, assignment := range doc.AllAssignments() {
 		handlerInput := &render.HandlerInput{
 			CurrentStatement:  assignment,
 			PreviousStatement: nil,
