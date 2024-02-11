@@ -156,7 +156,7 @@ func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignme
 		return nil, nil
 	}
 
-	if options.SkipIfSame && existing != nil && existing.Literal == input.Literal {
+	if options.SkipIfSame && existing != nil && existing.Literal == input.Literal && existing.Active == input.Active {
 		return nil, nil
 	}
 
