@@ -65,9 +65,18 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			val.Position.File = p.filename
 
 			if val.Active {
-				val.Interpolated, err = doc.Interpolate(val)
-				if err != nil {
-					return nil, err
+				switch {
+				// In "single”-quote mode we skip interpolation
+				// and use the string as-is
+				case val.Quote.Is(token.SingleQuotes.Rune()):
+					val.Interpolated = val.Literal
+
+				// In "double" and "no"-quote mode, we interpolate
+				default:
+					val.Interpolated, err = doc.Interpolate(val)
+					if err != nil {
+						return nil, err
+					}
 				}
 			}
 
