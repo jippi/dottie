@@ -18,8 +18,9 @@ import (
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set KEY=VALUE [KEY=VALUE ...]",
-		Short: "Set/update one or multiple key=value pairs",
+		Use:     "set KEY=VALUE [KEY=VALUE ...]",
+		Short:   "Set/update one or multiple key=value pairs",
+		GroupID: "manipulate",
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
 			WithHandlers(render.ExcludeDisabledAssignments).

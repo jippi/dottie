@@ -13,8 +13,9 @@ import (
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "print",
-		Short: "Print environment variables",
+		Use:     "print",
+		Short:   "Print environment variables",
+		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, err := setup(cmd.Flags())
 			if err != nil {

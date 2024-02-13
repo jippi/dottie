@@ -15,9 +15,10 @@ import (
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "validate",
-		Short: "Validate an .env file",
-		RunE:  runE,
+		Use:     "validate",
+		Short:   "Validate an .env file",
+		GroupID: "output",
+		RunE:    runE,
 	}
 
 	cmd.Flags().StringSlice("exclude-prefix", []string{}, "Exclude KEY with this prefix")

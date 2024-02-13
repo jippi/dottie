@@ -7,8 +7,9 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "fmt",
-	Short: "Format a .env file",
+	Use:     "fmt",
+	Short:   "Format a .env file",
+	GroupID: "manipulate",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := cmd.Flag("file").Value.String()
 

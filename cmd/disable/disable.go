@@ -13,6 +13,7 @@ import (
 var Command = &cobra.Command{
 	Use:               "disable KEY",
 	Short:             "Disable (comment out) a KEY if it exists",
+	GroupID:           "manipulate",
 	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeDisabledAssignments).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {

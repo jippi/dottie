@@ -18,9 +18,10 @@ import (
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update",
-		Short: "Update the .env file from a source",
-		RunE:  runE,
+		Use:     "update",
+		Short:   "Update the .env file from a source",
+		GroupID: "manipulate",
+		RunE:    runE,
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")

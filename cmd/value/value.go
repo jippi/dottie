@@ -13,6 +13,7 @@ import (
 var Command = &cobra.Command{
 	Use:               "value KEY",
 	Short:             "Print value of a env key if it exists",
+	GroupID:           "output",
 	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeDisabledAssignments).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {

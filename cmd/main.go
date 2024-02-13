@@ -45,6 +45,8 @@ var (
 func main() {
 	__configureSpew()
 
+	cobra.EnableCommandSorting = false
+
 	root := &cobra.Command{
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
@@ -53,16 +55,20 @@ func main() {
 		Version:       buildVersion().String(),
 	}
 
-	root.AddCommand(disable.Command)
-	root.AddCommand(enable.Command)
+	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
+	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
+
+	root.AddCommand(set.Command())
 	root.AddCommand(fmt.Command)
+	root.AddCommand(enable.Command)
+	root.AddCommand(disable.Command)
+	root.AddCommand(update.Command())
+
+	root.AddCommand(print_cmd.Command())
+	root.AddCommand(value.Command)
+	root.AddCommand(validate.Command())
 	root.AddCommand(groups.Command)
 	root.AddCommand(json.Command)
-	root.AddCommand(print_cmd.Command())
-	root.AddCommand(set.Command())
-	root.AddCommand(update.Command())
-	root.AddCommand(validate.Command())
-	root.AddCommand(value.Command)
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 

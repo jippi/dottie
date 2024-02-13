@@ -12,8 +12,9 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "groups",
-	Short: "Print groups found in the .env file",
+	Use:     "groups",
+	Short:   "Print groups found in the .env file",
+	GroupID: "output",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := cmd.Flag("file").Value.String()
 

@@ -9,8 +9,9 @@ import (
 )
 
 var Command = &cobra.Command{
-	Use:   "json",
-	Short: "Print as JSON",
+	Use:     "json",
+	Short:   "Print as JSON",
+	GroupID: "output",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := cmd.Flag("file").Value.String()
 

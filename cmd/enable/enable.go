@@ -13,6 +13,7 @@ import (
 var Command = &cobra.Command{
 	Use:               "enable KEY",
 	Short:             "Enable (uncomment) a KEY if it exists",
+	GroupID:           "manipulate",
 	ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeActiveAssignments).Get(),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
