@@ -8,6 +8,7 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/token"
@@ -55,44 +56,22 @@ func runE(cmd *cobra.Command, args []string) error {
 		return errors.New("Missing required argument: KEY=VALUE")
 	}
 
-	comments, _ := cmd.Flags().GetStringArray("comment")
-
-	options := ast.UpsertOptions{
-		UpsertPlacementType: ast.UpsertLast,
-		Comments:            comments,
-		ErrorIfMissing:      shared.BoolFlag(cmd.Flags(), "error-if-missing"),
-		Group:               shared.StringFlag(cmd.Flags(), "group"),
-		SkipValidation:      !shared.BoolWithInverseValue(cmd.Flags(), "validate"),
+	upserter, err := upsert.New(
+		env,
+		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
+		upsert.WithComments(shared.StringSliceFlag(cmd.Flags(), "comments")),
+		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+	)
+	if err != nil {
+		return fmt.Errorf("error setting up upserter: %w", err)
 	}
 
-	// If we want placement *BEFORE* another statement
-	if before, _ := cmd.Flags().GetString("before"); len(before) > 0 {
-		other := env.Get(before)
-		if other == nil {
-			return fmt.Errorf("The key [%s] does not exists in [%s]. Can't be used in [--before]", before, filename)
-		}
-
-		options.UpsertPlacementType = ast.UpsertBefore
-		options.UpsertPlacementValue = before
-
-		if other.Group != nil {
-			options.Group = other.Group.String()
-		}
+	if err := upserter.Apply(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddBeforeKey, shared.StringFlag(cmd.Flags(), "before"))); err != nil {
+		return fmt.Errorf("error in processing [--before] flag: %w", err)
 	}
 
-	// If we want placement *AFTER* another statement
-	if after, _ := cmd.Flags().GetString("after"); len(after) > 0 {
-		other := env.Get(after)
-		if other == nil {
-			return fmt.Errorf("The key [%s] does not exists in [%s]. Can't be used in [--after]", after, filename)
-		}
-
-		options.UpsertPlacementType = ast.UpsertAfter
-		options.UpsertPlacementValue = after
-
-		if other.Group != nil {
-			options.Group = other.Group.String()
-		}
+	if err := upserter.Apply(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddAfterKey, shared.StringFlag(cmd.Flags(), "after"))); err != nil {
+		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
 	// Loop arguments and place them
@@ -114,10 +93,10 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		//
-		// Upsert key
+		// Upsert the assignment
 		//
 
-		assignment, err := env.Upsert(assignment, options)
+		assignment, err := upserter.Upsert(assignment)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, validation.Explain(env, validation.NewError(assignment, err), false, true))
 
@@ -129,7 +108,9 @@ func runE(cmd *cobra.Command, args []string) error {
 				fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, false, false))
 			}
 
-			return errors.New("validation failed")
+			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
+				return errors.New("validation failed")
+			}
 		}
 
 		tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)

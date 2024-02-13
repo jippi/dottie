@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
@@ -119,15 +120,19 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		options := ast.UpsertOptions{
-			SkipIfSame:     true,
-			ErrorIfMissing: shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key"),
+		upserter, err := upsert.New(
+			sourceDoc,
+			upsert.WithSetting(upsert.SkipIfSame),
+			upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
+		)
+		if err != nil {
+			return err
 		}
 
-		// If the KEY does not exists in the SOURCE doc
+		// If the KEY does *NOT* exists in the SOURCE doc
 		if sourceDoc.Get(stmt.Name) == nil {
 			// Copy comments if the KEY doesn't exist in the SOURCE document
-			options.Comments = stmt.CommentsSlice()
+			upserter.Apply(upsert.WithComments(stmt.CommentsSlice()))
 
 			// Try to find positioning in the statement list for the new KEY pair
 			var parent ast.StatementCollection = env
@@ -141,20 +146,20 @@ func runE(cmd *cobra.Command, args []string) error {
 			switch {
 			// If we can't find any placement, put us last in the list
 			case idx == -1:
-				options.UpsertPlacementType = ast.UpsertLast
+				upserter.Apply(upsert.WithPlacement(upsert.AddLast))
 
 				// Retain the group name if its still present in the SOURCE doc
 				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
-					options.Group = stmt.Group.String()
+					upserter.Apply(upsert.WithGroup(stmt.Group.String()))
 				}
 
 			// If we were first in the FILE doc, make sure we're first again
 			case idx == 0:
-				options.UpsertPlacementType = ast.UpsertFirst
+				upserter.Apply(upsert.WithPlacement(upsert.AddFirst))
 
 				// Retain the group name if its still present in the SOURCE doc
 				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
-					options.Group = stmt.Group.String()
+					upserter.Apply(upsert.WithGroup(stmt.Group.String()))
 				}
 
 			// If we were not first, then put us behind the key that was
@@ -162,16 +167,17 @@ func runE(cmd *cobra.Command, args []string) error {
 			case idx > 0:
 				before := parent.Assignments()[idx-1]
 
-				options.UpsertPlacementType = ast.UpsertAfter
-				options.UpsertPlacementValue = before.Name
+				if err := upserter.Apply(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
+					return err
+				}
 
 				if before.Group != nil && sourceDoc.HasGroup(before.Group.String()) {
-					options.Group = before.Group.String()
+					upserter.Apply(upsert.WithGroup(before.Group.String()))
 				}
 			}
 		}
 
-		changed, err := sourceDoc.Upsert(stmt, options)
+		changed, err := upserter.Upsert(stmt)
 		if err != nil {
 			sawError = true
 			lastWasError = true
