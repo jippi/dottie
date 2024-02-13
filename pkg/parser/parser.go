@@ -5,6 +5,7 @@ import (
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
+	"go.uber.org/multierr"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -30,19 +31,22 @@ func New(scanner Scanner, filename string) *Parser {
 }
 
 // Parse parses the .env file and returns an ast.Statement.
-func (p *Parser) Parse() (*ast.Document, error) {
+func (p *Parser) Parse() (*ast.Document, error, error) {
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group
-		doc               = &ast.Document{}
+		document          = &ast.Document{}
 		previousStatement ast.Statement
 		statementIndex    int
+		warnings          error
 	)
 
 	for p.token.Type != token.EOF {
+		var warn error
+
 		stmt, err := p.parseStatement()
 		if err != nil {
-			return nil, err
+			return nil, warnings, err
 		}
 
 		switch val := stmt.(type) {
@@ -58,7 +62,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			currentGroup = val
 
 			// Append the group
-			doc.Groups = append(doc.Groups, currentGroup)
+			document.Groups = append(document.Groups, currentGroup)
 
 			previousStatement = val
 
@@ -77,9 +81,13 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 				// In "double" and "no"-quote mode, we interpolate
 				default:
-					val.Interpolated, err = doc.Interpolate(val)
+					val.Interpolated, warn, err = document.Interpolate(val)
+					if warn != nil {
+						warnings = multierr.Append(warnings, warn)
+					}
+
 					if err != nil {
-						return nil, err
+						return nil, warnings, err
 					}
 				}
 			}
@@ -100,7 +108,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 				val.Group = currentGroup
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				doc.Statements = append(doc.Statements, stmt)
+				document.Statements = append(document.Statements, stmt)
 			}
 
 			// Reset comment block
@@ -111,7 +119,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			val.Position.File = p.filename
 
 			if val.Annotation != nil {
-				doc.Annotations = append(doc.Annotations, val)
+				document.Annotations = append(document.Annotations, val)
 			}
 
 			comments = append(comments, val)
@@ -141,7 +149,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 					currentGroup.Statements = append(currentGroup.Statements, comment)
 				} else {
-					doc.Statements = append(doc.Statements, comment)
+					document.Statements = append(document.Statements, comment)
 				}
 			}
 
@@ -153,7 +161,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			if currentGroup != nil {
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				doc.Statements = append(doc.Statements, val)
+				document.Statements = append(document.Statements, val)
 			}
 
 			// Reset the accumulated comments slice
@@ -173,12 +181,12 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			}
 		} else {
 			for _, c := range comments {
-				doc.Statements = append(doc.Statements, c)
+				document.Statements = append(document.Statements, c)
 			}
 		}
 	}
 
-	return doc, nil
+	return document, warnings, nil
 }
 
 func (p *Parser) parseStatement() (ast.Statement, error) {

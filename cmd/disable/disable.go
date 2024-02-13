@@ -7,6 +7,7 @@ import (
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +25,10 @@ var Command = &cobra.Command{
 
 		filename := cmd.Flag("file").Value.String()
 
-		env, err := pkg.Load(filename)
+		env, warn, err := pkg.Load(filename)
+		if warn != nil {
+			tui.Theme.Warning.StderrPrinter().Println(warn)
+		}
 		if err != nil {
 			return err
 		}

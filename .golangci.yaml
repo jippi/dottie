@@ -230,6 +230,7 @@ linters-settings:
     ignore-names:
       - tt
       - err
+      - i
 
   tagalign:
     # Align and sort can be used together or separately.

@@ -129,7 +129,7 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 		}
 
 	default:
-		danger.Printfln("(error %T) %s", err, err)
+		danger.Printfln("(error) %+s", err)
 	}
 
 	return buff.String()

@@ -5,6 +5,7 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,10 @@ func (c *Completer) Get() CobraCompleter {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		filename := cmd.Flag("file").Value.String()
 
-		doc, err := pkg.Load(filename)
+		doc, warn, err := pkg.Load(filename)
+		if warn != nil {
+			tui.Theme.Warning.StderrPrinter().Println(warn)
+		}
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

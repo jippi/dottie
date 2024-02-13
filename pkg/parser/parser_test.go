@@ -429,8 +429,9 @@ func TestParser_Parse(t *testing.T) {
 				s := scanner.New(tt.input)
 				p := parser.New(s, "-")
 
-				stmts, err := p.Parse()
+				stmts, warnings, err := p.Parse()
 				require.NoError(t, err)
+				require.NoError(t, warnings)
 				require.EqualValues(t, tt.expected, stmts)
 			})
 		}
@@ -472,8 +473,9 @@ func TestParser_Parse(t *testing.T) {
 				s := scanner.New(tt.input)
 				p := parser.New(s, "-")
 
-				stmts, err := p.Parse()
+				stmts, warnings, err := p.Parse()
 				require.Error(t, err, "expected an error")
+				require.NoError(t, warnings, "did not expect any warnings")
 				require.Nil(t, stmts, "did not expect a statement")
 			})
 		}

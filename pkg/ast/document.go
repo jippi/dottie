@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/compose-spec/compose-go/template"
+	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 )
 
@@ -90,23 +90,23 @@ func (d *Document) Has(name string) bool {
 	return d.Get(name) != nil
 }
 
-func (doc *Document) Interpolate(target *Assignment) (string, error) {
+func (doc *Document) Interpolate(target *Assignment) (string, error, error) {
 	if target == nil {
-		return "", errors.New("can't interpolate a nil assignment")
+		return "", nil, errors.New("can't interpolate a nil assignment")
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
 	if target.Quote.Is(token.SingleQuotes.Rune()) {
-		return target.Literal, nil
+		return target.Literal, nil, nil
 	}
 
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		return target.Literal, nil
+		return target.Literal, nil, nil
 	}
 
-	lookup := func(input string) (string, bool) {
+	mapping := func(input string) (string, bool) {
 		// Lookup in process environment
 		if val, ok := os.LookupEnv(input); ok {
 			return val, ok
@@ -125,14 +125,14 @@ func (doc *Document) Interpolate(target *Assignment) (string, error) {
 		// If the assignment we found is on a index (sorted) *after* the target
 		// assignment, don't count it as found, since all normal shell interpolation
 		// are handled in order (e.g. line 5 can't use a variable from line 10)
-		if result.Position.Index >= target.Position.Index {
+		if result.Position.Index > target.Position.Index {
 			return "", false
 		}
 
 		return result.Interpolated, true
 	}
 
-	return template.Substitute(target.Literal, lookup)
+	return template.Substitute(target.Literal, mapping)
 }
 
 func (doc *Document) EnsureGroup(name string) *Group {

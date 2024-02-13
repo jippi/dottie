@@ -29,16 +29,16 @@ func WithSettingIf(setting Setting, boolean bool) Option {
 	return WithoutSetting(setting)
 }
 
-// WithSetting will enable the provided [Setting] in the [Upserter] settings bitmask.
+// WithSetting will set the provided [Setting] in the [Upserter] settings bitmask.
 func WithSetting(setting Setting) Option {
 	return func(upserter *Upserter) error {
-		upserter.settings = upserter.settings ^ setting
+		upserter.settings = upserter.settings | setting
 
 		return nil
 	}
 }
 
-// WithSetting will disable the provided [Setting] in the [Upserter] settings bitmask.
+// WithSetting will remove the provided [Setting] in the [Upserter] settings bitmask.
 func WithoutSetting(setting Setting) Option {
 	return func(upserter *Upserter) error {
 		upserter.settings = upserter.settings &^ setting

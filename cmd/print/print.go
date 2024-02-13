@@ -7,6 +7,7 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -17,7 +18,10 @@ func Command() *cobra.Command {
 		Short:   "Print environment variables",
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			env, settings, err := setup(cmd.Flags())
+			env, settings, warnings, err := setup(cmd.Flags())
+			if warnings != nil {
+				tui.Theme.Warning.StderrPrinter().Println(warnings)
+			}
 			if err != nil {
 				return err
 			}
@@ -43,7 +47,7 @@ func Command() *cobra.Command {
 	return cmd
 }
 
-func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
+func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error) {
 	boolFlag := func(name string) bool {
 		return shared.BoolFlag(flags, name)
 	}
@@ -52,9 +56,9 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
 		return shared.StringFlag(flags, name)
 	}
 
-	env, err := pkg.Load(stringFlag("file"))
+	env, warnings, err := pkg.Load(stringFlag("file"))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, warnings, err
 	}
 
 	settings := render.NewSettings(
@@ -73,5 +77,5 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
-	return env, settings, nil
+	return env, settings, warnings, nil
 }

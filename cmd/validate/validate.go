@@ -32,7 +32,10 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, err := pkg.Load(filename)
+	env, warn, err := pkg.Load(filename)
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Println(warn)
+	}
 	if err != nil {
 		return err
 	}
@@ -75,7 +78,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Validate file again, in case some of the fixers from before fixed them
 	//
 
-	env, err = pkg.Load(cmd.Flag("file").Value.String())
+	env, warn, err = pkg.Load(cmd.Flag("file").Value.String())
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Println(warn)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}

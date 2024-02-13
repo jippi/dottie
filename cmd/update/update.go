@@ -35,7 +35,10 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	originalEnv, err := pkg.Load(filename)
+	originalEnv, warn, err := pkg.Load(filename)
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Println(warn)
+	}
 	if err != nil {
 		return err
 	}
@@ -99,7 +102,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	sourceDoc, err := pkg.Load(tmp.Name())
+	sourceDoc, warn, err := pkg.Load(tmp.Name())
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Println(warn)
+	}
 	if err != nil {
 		return err
 	}
@@ -175,7 +181,11 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		changed, err := upserter.Upsert(originalStatement)
+		changed, warn, err := upserter.Upsert(originalStatement)
+		if warn != nil {
+			tui.Theme.Warning.StderrPrinter().Println(warn)
+		}
+
 		if err != nil {
 			sawError = true
 			lastWasError = true

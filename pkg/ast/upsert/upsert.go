@@ -23,6 +23,7 @@ func New(document *ast.Document, options ...Option) (*Upserter, error) {
 	upserter := &Upserter{
 		document:  document,
 		placement: AddLast,
+		settings:  Validate,
 	}
 
 	if err := upserter.ApplyOptions(options...); err != nil {
@@ -45,7 +46,7 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 }
 
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
-func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error) {
+func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error) {
 	assignment := u.document.Get(input.Name)
 	found := assignment != nil
 
@@ -54,19 +55,19 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error) {
 	switch {
 	// The assignment exists, so return early
 	case found && u.settings.Has(SkipIfExists):
-		return nil, nil
+		return nil, nil, nil
 
 	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
 	case found && u.settings.Has(SkipIfSet) && len(assignment.Literal) > 0 && !slices.Contains(u.valuesConsideredEmpty, assignment.Literal):
-		return nil, nil
+		return nil, nil, nil
 
 	// The assignment exists, the literal values are the same, and they have same 'Enabled' level
 	case found && u.settings.Has(SkipIfSame) && assignment.Literal == input.Literal && assignment.Enabled == input.Enabled:
-		return nil, nil
+		return nil, nil, nil
 
 	// The assignment does *NOT* exists, and we require it to
 	case !found && u.settings.Has(ErrorIfMissing):
-		return nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
+		return nil, nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
 
 	// The KEY was *NOT* found, and all other preconditions are not triggering
 	case !found:
@@ -75,14 +76,15 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error) {
 		// Create and insert the (*ast.Assignment) into the Statement list
 		assignment, err = u.createAndInsert(input)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		// Recalculate the index order of all Statements (for interpolation)
 		u.document.ReindexStatements()
 	}
 
-	if u.settings.Has(ReplaceComments) {
+	// Replace comments on the assignment if the Setting is on
+	if u.settings.Has(UpdateComments) {
 		assignment.Comments = input.Comments
 	}
 
@@ -91,21 +93,24 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error) {
 	assignment.Quote = input.Quote
 	assignment.Interpolated = input.Literal
 
+	var err, warnings error
+
 	// Interpolate the Assignment if it is enabled
 	if assignment.Enabled {
-		var err error
-
-		assignment.Interpolated, err = u.document.Interpolate(assignment)
+		assignment.Interpolated, warnings, err = u.document.Interpolate(assignment)
 		if err != nil {
-			return nil, fmt.Errorf("could not interpolate variable: %w", err)
+			return nil, warnings, fmt.Errorf("could not interpolate variable: %w", err)
 		}
 	}
 
-	if errors := validation.ValidateSingleAssignment(u.document, assignment.Name, nil, nil); len(errors) > 0 {
-		return nil, errors[0]
+	// Validate
+	if u.settings.Has(Validate) {
+		if errors := validation.ValidateSingleAssignment(u.document, assignment.Name, nil, nil); len(errors) > 0 {
+			return nil, warnings, errors[0]
+		}
 	}
 
-	return assignment, nil
+	return assignment, warnings, nil
 }
 
 func (u *Upserter) createAndInsert(input *ast.Assignment) (*ast.Assignment, error) {

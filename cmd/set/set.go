@@ -15,6 +15,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
+	"go.uber.org/multierr"
 )
 
 func Command() *cobra.Command {
@@ -47,7 +48,11 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	document, err := pkg.Load(filename)
+	document, warnings, err := pkg.Load(filename)
+	if warnings != nil {
+		tui.Theme.Warning.StderrPrinter().Println("warnings", warnings)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -64,7 +69,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		document,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
 		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
-		upsert.WithSettingIf(upsert.ReplaceComments, cmd.Flag("comment").Changed),
+		upsert.WithSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
 	)
 	if err != nil {
 		return fmt.Errorf("error setting up upserter: %w", err)
@@ -78,7 +83,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
-	if err := upserter.ApplyOptions(upsert.WithSettingIf(upsert.SkipValidation, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
+	if err := upserter.ApplyOptions(upsert.WithSettingIf(upsert.Validate, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
 		return fmt.Errorf("error configuring [--validate] flag: %w", err)
 	}
 
@@ -86,10 +91,14 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Loop arguments and place them
 	//
 
+	var allErrors error
+
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) != 2 {
-			return errors.New("expected KEY=VALUE pair, missing '='")
+			allErrors = multierr.Append(allErrors, fmt.Errorf("Key: '%s' Error: expected KEY=VALUE pair, missing '='", stringPair))
+
+			continue
 		}
 
 		key := pairSlice[0]
@@ -108,16 +117,26 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Upsert the assignment
 		//
 
-		assignment, err := upserter.Upsert(assignment)
+		assignment, warnings, err := upserter.Upsert(assignment)
+		if warnings != nil {
+			tui.Theme.Warning.StderrPrinter().Println("WARNING:", warnings)
+		}
+
 		if err != nil {
 			fmt.Fprintln(os.Stderr, validation.Explain(document, validation.NewError(assignment, err), false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
-				return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
+				allErrors = multierr.Append(allErrors, err)
+
+				continue
 			}
 		}
 
 		tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)
+	}
+
+	if allErrors != nil {
+		return fmt.Errorf("%+w", allErrors)
 	}
 
 	//
