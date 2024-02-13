@@ -16,6 +16,8 @@ const (
 	// SkipIfSet will skip the upsert operation if the KEY exists in the document and *NOT* empty.
 	SkipIfSet
 
+	SkipValidation
+
 	// ErrorIfMissing will abort if the KEY does *NOT* exists in the target document. This is useful for ensuring
 	// you only update keys, not accidentally creating new keys (e.g. in case of a typo)
 	ErrorIfMissing

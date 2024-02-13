@@ -23,7 +23,11 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 	light := tui.Theme.Light.BuffPrinter(&buff)
 	primary := tui.Theme.Primary.BuffPrinter(&buff)
 
-	switch err := keyErr.Error.(type) {
+	switch err := keyErr.WrappedError.(type) {
+	// Unwrap the ValidationError
+	case ValidationError:
+		return Explain(doc, err, applyFixer, showField)
+
 	// user configuration error
 	case validator.InvalidValidationError:
 		danger.Println("invalid validation rules: " + err.Error())
@@ -124,11 +128,8 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 			}
 		}
 
-	case error:
-		danger.Printfln("(error) %s", err)
-
 	default:
-		panic(danger.Sprintf("unknown error type for field type: %T", err))
+		danger.Printfln("(error %T) %s", err, err)
 	}
 
 	return buff.String()
@@ -173,7 +174,7 @@ func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
 		Validate(func(s string) error {
 			err := validator.New().Var(s, assignment.ValidationRules())
 			if err != nil {
-				return errors.New(Explain(doc, ValidationError{Error: err, Assignment: assignment}, false, false))
+				return errors.New(Explain(doc, ValidationError{WrappedError: err, Assignment: assignment}, false, false))
 			}
 
 			return nil

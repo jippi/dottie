@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/validation"
 )
 
 type Upserter struct {
@@ -98,6 +99,10 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not interpolate variable: %w", err)
 		}
+	}
+
+	if errors := validation.ValidateSingleAssignment(u.document, assignment.Name, nil, nil); len(errors) > 0 {
+		return nil, errors[0]
 	}
 
 	return assignment, nil

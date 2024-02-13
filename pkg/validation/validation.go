@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"fmt"
 	"slices"
 
 	"github.com/go-playground/validator/v10"
@@ -9,14 +10,22 @@ import (
 )
 
 type ValidationError struct {
-	Error      any
-	Assignment *ast.Assignment
+	WrappedError any
+	Assignment   *ast.Assignment
+}
+
+func (e ValidationError) Error() string {
+	if val, ok := e.WrappedError.(error); ok {
+		return val.Error()
+	}
+
+	return fmt.Sprintf("%+v", e.WrappedError)
 }
 
 func NewError(assignment *ast.Assignment, err error) ValidationError {
 	return ValidationError{
-		Error:      err,
-		Assignment: assignment,
+		WrappedError: err,
+		Assignment:   assignment,
 	}
 }
 
@@ -88,8 +97,8 @@ NEXT_FIELD:
 		}
 
 		result = append(result, ValidationError{
-			Error:      err,
-			Assignment: doc.Get(field),
+			WrappedError: err,
+			Assignment:   doc.Get(field),
 		})
 	}
 

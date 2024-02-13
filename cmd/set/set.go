@@ -47,7 +47,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, err := pkg.Load(filename)
+	document, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -56,8 +56,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		return errors.New("Missing required argument: KEY=VALUE")
 	}
 
+	//
+	// Initialize Upserter
+	//
+
 	upserter, err := upsert.New(
-		env,
+		document,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
 		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
 		upsert.WithSettingIf(upsert.ReplaceComments, cmd.Flag("comment").Changed),
@@ -74,7 +78,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
+	if err := upserter.ApplyOptions(upsert.WithSettingIf(upsert.SkipValidation, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
+		return fmt.Errorf("error configuring [--validate] flag: %w", err)
+	}
+
+	//
 	// Loop arguments and place them
+	//
+
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) != 2 {
@@ -99,18 +110,10 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		assignment, err := upserter.Upsert(assignment)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, validation.Explain(env, validation.NewError(assignment, err), false, true))
-
-			return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
-		}
-
-		if validationErrors := validation.ValidateSingleAssignment(env, assignment.Name, nil, nil); len(validationErrors) > 0 {
-			for _, errIsh := range validationErrors {
-				fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, false, false))
-			}
+			fmt.Fprintln(os.Stderr, validation.Explain(document, validation.NewError(assignment, err), false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
-				return errors.New("validation failed")
+				return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
 			}
 		}
 
@@ -121,7 +124,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Save file
 	//
 
-	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), env); err != nil {
+	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 
