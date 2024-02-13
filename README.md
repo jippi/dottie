@@ -24,7 +24,7 @@
 touch .env
 
 # Create a key/pair value
-dottie set my_key value
+dottie set my_key=value
 
 # Create another key (PORT) with value "3306"
 #  * One comment
@@ -34,7 +34,7 @@ dottie set \
   --comment 'A port for some service' \
   --comment '@dottie/validate number' \
   --quote-style none \
-  PORT 3306
+  PORT=3306
 
 # Check validation (success)
 dottie validate
@@ -47,13 +47,13 @@ dottie print --pretty
 
 # Change the "PORT" value to a "test" (a non-number).
 # NOTE: the comments are kept in the file, even if they are omitted here
-dottie set PORT test
+dottie set PORT=test
 
 # Test validation again (it now fails)
 dottie validate
 
 # Fix the port value
-dottie set PORT 3306
+dottie set PORT=3306
 
 # Create a new key/value pair in a group named "database"
 # NOTE: the group will be created on-demand if it does not exists
