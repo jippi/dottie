@@ -59,18 +59,18 @@ func runE(cmd *cobra.Command, args []string) error {
 	upserter, err := upsert.New(
 		env,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
-		upsert.WithComments(shared.StringSliceFlag(cmd.Flags(), "comments")),
 		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+		upsert.WithSettingIf(upsert.ReplaceComments, cmd.Flag("comment").Changed),
 	)
 	if err != nil {
 		return fmt.Errorf("error setting up upserter: %w", err)
 	}
 
-	if err := upserter.Apply(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddBeforeKey, shared.StringFlag(cmd.Flags(), "before"))); err != nil {
+	if err := upserter.ApplyOptions(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddBeforeKey, shared.StringFlag(cmd.Flags(), "before"))); err != nil {
 		return fmt.Errorf("error in processing [--before] flag: %w", err)
 	}
 
-	if err := upserter.Apply(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddAfterKey, shared.StringFlag(cmd.Flags(), "after"))); err != nil {
+	if err := upserter.ApplyOptions(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddAfterKey, shared.StringFlag(cmd.Flags(), "after"))); err != nil {
 		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
@@ -88,8 +88,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			Name:         key,
 			Literal:      value,
 			Interpolated: value,
-			Active:       !shared.BoolFlag(cmd.Flags(), "disabled"),
+			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
+			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comments")),
 		}
 
 		//

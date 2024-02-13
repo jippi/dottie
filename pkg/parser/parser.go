@@ -36,6 +36,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 		currentGroup      *ast.Group
 		doc               = &ast.Document{}
 		previousStatement ast.Statement
+		statementIndex    int
 	)
 
 	for p.token.Type != token.EOF {
@@ -63,8 +64,11 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 		case *ast.Assignment:
 			val.Position.File = p.filename
+			val.Position.Index = statementIndex
 
-			if val.Active {
+			statementIndex++
+
+			if val.Enabled {
 				switch {
 				// In "single”-quote mode we skip interpolation
 				// and use the string as-is
@@ -299,7 +303,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	}
 
 	if stmt != nil {
-		stmt.Active = active
+		stmt.Enabled = active
 
 		return stmt, err
 	}
@@ -311,9 +315,9 @@ func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
 	defer p.nextToken()
 
 	return &ast.Assignment{
-		Name:   name,
-		Active: p.token.Commented,
-		Quote:  token.NoQuotes,
+		Name:    name,
+		Enabled: p.token.Commented,
+		Quote:   token.NoQuotes,
 		Position: ast.Position{
 			FirstLine: p.token.LineNumber,
 			Line:      p.token.LineNumber,
@@ -336,7 +340,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 			Name:     name,
 			Literal:  value,
 			Complete: true,
-			Active:   p.token.Commented,
+			Enabled:  p.token.Commented,
 			Quote:    quoted,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,

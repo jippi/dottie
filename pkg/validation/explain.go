@@ -86,7 +86,7 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 			case "fqdn":
 				light.Print("(fqdn) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("]is not a valid Fully Qualified Domain Name (FQDN).")
+				light.Println("] is not a valid Fully Qualified Domain Name (FQDN).")
 
 			case "hostname":
 				light.Print("(hostname) The value [")

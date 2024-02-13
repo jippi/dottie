@@ -34,7 +34,7 @@ var Command = &cobra.Command{
 			return fmt.Errorf("Key [%s] does not exists", key)
 		}
 
-		if !existing.Active && !shared.BoolFlag(cmd.Flags(), "include-commented") {
+		if !existing.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
 			return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
 		}
 

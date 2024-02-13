@@ -8,16 +8,6 @@ import (
 // Option is used to configure the [Upserter]
 type Option func(*Upserter) error
 
-// WithComments configures the [Upserter] to add theses lines
-// to the [ast.Assignment] when creating it within the [ast.Document]
-func WithComments(comments []string) Option {
-	return func(upserter *Upserter) error {
-		upserter.comments = comments
-
-		return nil
-	}
-}
-
 // WithGroup configures the [Upserter] to the new [ast.Assignment] to this
 // group when creating it within the [ast.Document]
 func WithGroup(name string) Option {

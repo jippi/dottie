@@ -15,6 +15,20 @@ type Comment struct {
 	Position   Position          `json:"position"`   // Information about position of the assignment in the file
 }
 
+func NewCommentsFromSlice(commentsSlice []string) []*Comment {
+	if len(commentsSlice) == 0 {
+		return nil
+	}
+
+	comments := make([]*Comment, len(commentsSlice))
+
+	for i, comment := range commentsSlice {
+		comments[i] = NewComment(comment)
+	}
+
+	return comments
+}
+
 func NewComment(value string) *Comment {
 	return &Comment{
 		Value: "# " + value,

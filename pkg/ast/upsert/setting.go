@@ -8,14 +8,19 @@ const (
 	// This is mostly used in the [update] command where it would not emit a "changed" event.
 	SkipIfSame Setting = 1 << iota
 
-	// SkipIfSet will skip the upsert operation if the KEY exists in the document.
+	// SkipIfExists will skip the upsert operation if the KEY exists in the document (empty or not).
 	// This is useful for adding new KEY to the config file (e.g. during migration/upgrade), but never changing the key
 	// if it already exists, regardless of the VALUE/Assignment configuration
+	SkipIfExists
+
+	// SkipIfSet will skip the upsert operation if the KEY exists in the document and *NOT* empty.
 	SkipIfSet
 
 	// ErrorIfMissing will abort if the KEY does *NOT* exists in the target document. This is useful for ensuring
 	// you only update keys, not accidentally creating new keys (e.g. in case of a typo)
 	ErrorIfMissing
+
+	ReplaceComments
 )
 
 // Has checks if [check] exists in the [settings] bitmask or not.

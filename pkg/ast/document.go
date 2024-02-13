@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/compose-spec/compose-go/template"
 	"github.com/jippi/dottie/pkg/token"
@@ -94,7 +95,14 @@ func (doc *Document) Interpolate(target *Assignment) (string, error) {
 		return "", errors.New("can't interpolate a nil assignment")
 	}
 
+	// If the assignment is wrapped in single quotes, no interpolation should happen
 	if target.Quote.Is(token.SingleQuotes.Rune()) {
+		return target.Literal, nil
+	}
+
+	// If the assignment literal doesn't count any '$' it would never change from the
+	// interpolated value
+	if !strings.Contains(target.Literal, "$") {
 		return target.Literal, nil
 	}
 
@@ -110,14 +118,14 @@ func (doc *Document) Interpolate(target *Assignment) (string, error) {
 			return "", false
 		}
 
-		if !result.Active {
+		if !result.Enabled {
 			return "", false
 		}
 
-		// If the assignment we found is on a line *after* the target
+		// If the assignment we found is on a index (sorted) *after* the target
 		// assignment, don't count it as found, since all normal shell interpolation
 		// are handled in order (e.g. line 5 can't use a variable from line 10)
-		if result.Position.Line >= target.Position.Line {
+		if result.Position.Index >= target.Position.Index {
 			return "", false
 		}
 
@@ -171,6 +179,12 @@ func (d *Document) Assignments() []*Assignment {
 	}
 
 	return assignments
+}
+
+func (d *Document) ReindexStatements() {
+	for i, stmt := range d.AllAssignments() {
+		stmt.Position.Index = i
+	}
 }
 
 func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
