@@ -1,4 +1,4 @@
-package disable_test
+package enable_test
 
 import (
 	"testing"

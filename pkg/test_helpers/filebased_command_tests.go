@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/jippi/dottie/cmd"
 	"github.com/sebdah/goldie/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +19,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 
 	files, err := os.ReadDir("tests")
 	if err != nil {
-		log.Fatal(err)
+		require.NoError(t, err, "could not read the tests/ directory")
 	}
 
 	// Build test data set
@@ -79,7 +79,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 			tmpDir := t.TempDir()
 
 			// Copy the input.env to temporary place
-			err := copyFile("tests/"+tt.envFile, tmpDir+"/tmp.env")
+			err := copyFile(t, "tests/"+tt.envFile, tmpDir+"/tmp.env")
 			require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
 
 			// Point args to the copied temp env file
@@ -111,14 +111,26 @@ func RunFilebasedCommandTests(t *testing.T) {
 			require.NoErrorf(t, err, "failed to read file: %s/tmp.env", tmpDir)
 
 			// Assert stdout + stderr + modified env file is as expected
-			golden.Assert(t, tt.goldenStdout, stdout.Bytes())
-			golden.Assert(t, tt.goldenStderr, stderr.Bytes())
+			if stdout.Len() == 0 {
+				assert.NoFileExists(t, "tests/"+tt.name+"/stdout.golden")
+			} else {
+				golden.Assert(t, tt.goldenStdout, stdout.Bytes())
+			}
+
+			if stderr.Len() == 0 {
+				assert.NoFileExists(t, "tests/"+tt.name+"/stderr.golden")
+			} else {
+				golden.Assert(t, tt.goldenStderr, stderr.Bytes())
+			}
+
 			golden.Assert(t, tt.goldenEnv, modifiedEnv)
 		})
 	}
 }
 
-func copyFile(src, dst string) error {
+func copyFile(t *testing.T, src, dst string) error {
+	t.Helper()
+
 	srcF, err := os.Open(src)
 	if err != nil {
 		return err
