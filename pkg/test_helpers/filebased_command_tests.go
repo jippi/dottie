@@ -53,7 +53,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 			goldenStdout: "stdout",
 			goldenStderr: "stderr",
 			goldenEnv:    "env",
-			envFile:      file.Name(),
+			envFile:      base + ".env",
 			command:      strings.Split(strings.TrimSpace(string(content)), "\n"),
 		}
 
@@ -61,6 +61,14 @@ func RunFilebasedCommandTests(t *testing.T) {
 	}
 
 	// Run tests
+
+	golden := goldie.New(
+		t,
+		goldie.WithFixtureDir("tests/"),
+		goldie.WithSubTestNameForDir(true),
+		goldie.WithNameSuffix(".golden"),
+		goldie.WithDiffEngine(goldie.ColoredDiff),
+	)
 
 	for _, tt := range tests {
 		tt := tt
@@ -71,7 +79,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 			tmpDir := t.TempDir()
 
 			// Copy the input.env to temporary place
-			err := Copy("tests/"+tt.envFile, tmpDir+"/tmp.env")
+			err := copyFile("tests/"+tt.envFile, tmpDir+"/tmp.env")
 			require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
 
 			// Point args to the copied temp env file
@@ -102,15 +110,6 @@ func RunFilebasedCommandTests(t *testing.T) {
 			modifiedEnv, err := os.ReadFile(tmpDir + "/tmp.env")
 			require.NoErrorf(t, err, "failed to read file: %s/tmp.env", tmpDir)
 
-			golden := goldie.New(
-				t,
-				goldie.WithFixtureDir("tests/"),
-				// goldie.WithTestNameForDir(false),
-				goldie.WithSubTestNameForDir(true),
-				goldie.WithNameSuffix(".golden"),
-				goldie.WithDiffEngine(goldie.ColoredDiff),
-			)
-
 			// Assert stdout + stderr + modified env file is as expected
 			golden.Assert(t, tt.goldenStdout, stdout.Bytes())
 			golden.Assert(t, tt.goldenStderr, stderr.Bytes())
@@ -119,7 +118,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 	}
 }
 
-func Copy(src, dst string) error {
+func copyFile(src, dst string) error {
 	srcF, err := os.Open(src)
 	if err != nil {
 		return err
