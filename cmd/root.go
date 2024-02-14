@@ -1,7 +1,6 @@
-package main
+package cmd
 
 import (
-	"os"
 	"strings"
 
 	goversion "github.com/caarlos0/go-version"
@@ -16,9 +15,6 @@ import (
 	"github.com/jippi/dottie/cmd/update"
 	"github.com/jippi/dottie/cmd/validate"
 	"github.com/jippi/dottie/cmd/value"
-	"github.com/jippi/dottie/pkg/ast"
-	"github.com/jippi/dottie/pkg/render"
-	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -37,12 +33,7 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 {{end}}
 `
 
-var (
-	env      *ast.Document
-	settings *render.Settings
-)
-
-func main() {
+func NewCommand() *cobra.Command {
 	__configureSpew()
 
 	cobra.EnableCommandSorting = false
@@ -72,12 +63,7 @@ func main() {
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
-	if c, err := root.ExecuteC(); err != nil {
-		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Printfln("%s %+v", c.ErrPrefix(), err)
-		tui.Theme.Info.StderrPrinter().Printfln("Run '%v --help' for usage.\n", c.CommandPath())
-
-		os.Exit(1)
-	}
+	return root
 }
 
 func __configureSpew() {
