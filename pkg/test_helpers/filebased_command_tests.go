@@ -93,10 +93,7 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 			// Point args to the copied temp env file
 			args := []string{"-f", tmpDir + "/tmp.env"}
 			args = append(args, globalArgs...)
-
-			if len(tt.commandArgs) > 0 {
-				args = append(args, tt.commandArgs...)
-			}
+			args = append(args, tt.commandArgs...)
 
 			// Prepare output buffers
 			stdout := bytes.Buffer{}
