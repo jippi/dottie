@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"strings"
+	"sync"
 
 	goversion "github.com/caarlos0/go-version"
 	"github.com/davecgh/go-spew/spew"
@@ -33,10 +34,10 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 {{end}}
 `
 
-func NewCommand() *cobra.Command {
-	__configureSpew()
+var mutex sync.Mutex
 
-	cobra.EnableCommandSorting = false
+func NewCommand() *cobra.Command {
+	__globalSetup()
 
 	root := &cobra.Command{
 		Use:           "dottie",
@@ -66,9 +67,13 @@ func NewCommand() *cobra.Command {
 	return root
 }
 
-func __configureSpew() {
+func __globalSetup() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	spew.Config.DisablePointerMethods = true
 	spew.Config.DisableMethods = true
+	cobra.EnableCommandSorting = false
 }
 
 func indent(in string) string {
