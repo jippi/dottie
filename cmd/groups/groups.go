@@ -31,9 +31,9 @@ func NewCommand() *cobra.Command {
 
 			width := longesGroupName(groups)
 
-			light := tui.Theme.Secondary.StdoutPrinter()
-			key := tui.Theme.Primary.StdoutPrinter()
-			info := tui.Theme.Info.StdoutPrinter()
+			light := tui.Theme.Secondary.BuffPrinter(cmd.OutOrStdout())
+			key := tui.Theme.Primary.BuffPrinter(cmd.OutOrStdout())
+			info := tui.Theme.Info.BuffPrinter(cmd.OutOrStdout())
 			info.Box("Groups in " + filename)
 
 			for _, group := range groups {

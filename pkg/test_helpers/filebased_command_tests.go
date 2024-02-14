@@ -15,7 +15,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
+// Setting is a bitmask for controlling Upsert behavior
+type Setting int
+
+const (
+	SkipEnvCopy Setting = 1 << iota
+)
+
+// Has checks if [check] exists in the [settings] bitmask or not.
+func (bitmask Setting) Has(setting Setting) bool {
+	// If [settings] is 0, its an initialized/unconfigured bitmask, so no settings exists.
+	//
+	// This is true since all UpsertSetting starts from "1", not "0".
+	if bitmask == 0 {
+		return false
+	}
+
+	return bitmask&setting != 0
+}
+
+func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...string) {
 	t.Helper()
 
 	files, err := os.ReadDir("tests")
@@ -84,14 +103,19 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			tmpDir := t.TempDir()
+			dotEnvFile := "tests/" + tt.envFile
 
-			// Copy the input.env to temporary place
-			err := copyFile(t, "tests/"+tt.envFile, tmpDir+"/tmp.env")
-			require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
+			if !settings.Has(SkipEnvCopy) {
+				tmpDir := t.TempDir()
+				dotEnvFile = tmpDir + "/tmp.env"
+
+				// Copy the input.env to temporary place
+				err := copyFile(t, "tests/"+tt.envFile, tmpDir+"/tmp.env")
+				require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
+			}
 
 			// Point args to the copied temp env file
-			args := []string{"-f", tmpDir + "/tmp.env"}
+			args := []string{"--file", dotEnvFile}
 			args = append(args, globalArgs...)
 			args = append(args, tt.commandArgs...)
 
@@ -115,10 +139,6 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 			// Assert we got a Cobra command back
 			require.NotNil(t, out, "expected a return value")
 
-			// Read the modified .env file back
-			modifiedEnv, err := os.ReadFile(tmpDir + "/tmp.env")
-			require.NoErrorf(t, err, "failed to read file: %s/tmp.env", tmpDir)
-
 			// Assert stdout + stderr + modified env file is as expected
 			if stdout.Len() == 0 {
 				assert.NoFileExists(t, "tests/"+tt.name+"/stdout.golden")
@@ -132,7 +152,15 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 				golden.Assert(t, tt.goldenStderr, stderr.Bytes())
 			}
 
-			golden.Assert(t, tt.goldenEnv, modifiedEnv)
+			if !settings.Has(SkipEnvCopy) {
+				// Read the modified .env file back
+				modifiedEnv, err := os.ReadFile(dotEnvFile)
+
+				require.NoErrorf(t, err, "failed to read file: %s", dotEnvFile)
+				golden.Assert(t, tt.goldenEnv, modifiedEnv)
+			} else {
+				assert.NoFileExists(t, "tests/"+tt.name+"/env.golden")
+			}
 		})
 	}
 }

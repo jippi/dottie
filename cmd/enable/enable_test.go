@@ -9,5 +9,5 @@ import (
 func TestCommand(t *testing.T) {
 	t.Parallel()
 
-	test_helpers.RunFilebasedCommandTests(t, "enable")
+	test_helpers.RunFilebasedCommandTests(t, 0, "enable")
 }

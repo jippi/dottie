@@ -1,4 +1,4 @@
-package disable_test
+package groups_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 func TestCommand(t *testing.T) {
 	t.Parallel()
 
-	test_helpers.RunFilebasedCommandTests(t, 0, "disable")
+	test_helpers.RunFilebasedCommandTests(t, test_helpers.SkipEnvCopy, "groups")
 }
