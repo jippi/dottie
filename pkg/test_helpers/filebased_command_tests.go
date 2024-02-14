@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
@@ -48,13 +49,17 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 		content, err := os.ReadFile("tests/" + file.Name())
 		require.NoErrorf(t, err, "failed to read file: %s", "tests/"+file.Name())
 
+		commandArgs := strings.Split(strings.TrimSpace(string(content)), "\n")
+		spew.Dump(commandArgs)
+		require.Nil(t, commandArgs)
+
 		test := testData{
 			name:         base,
 			goldenStdout: "stdout",
 			goldenStderr: "stderr",
 			goldenEnv:    "env",
 			envFile:      base + ".env",
-			command:      strings.Split(strings.TrimSpace(string(content)), "\n"),
+			command:      commandArgs,
 		}
 
 		tests = append(tests, test)
@@ -86,6 +91,8 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 			args := []string{"-f", tmpDir + "/tmp.env"}
 			args = append(args, globalArgs...)
 			args = append(args, tt.command...)
+
+			spew.Dump(args)
 
 			// Prepare output buffers
 			stdout := bytes.Buffer{}
