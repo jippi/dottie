@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func RunFilebasedCommandTests(t *testing.T) {
+func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 	t.Helper()
 
 	files, err := os.ReadDir("tests")
@@ -84,6 +84,7 @@ func RunFilebasedCommandTests(t *testing.T) {
 
 			// Point args to the copied temp env file
 			args := []string{"-f", tmpDir + "/tmp.env"}
+			args = append(args, globalArgs...)
 			args = append(args, tt.command...)
 
 			// Prepare output buffers

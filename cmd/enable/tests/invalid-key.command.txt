@@ -1,2 +1,1 @@
-enable
 NONEXISTING_KEY
