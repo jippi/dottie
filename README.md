@@ -60,7 +60,7 @@ dottie set PORT=3306
 dottie set \
   --group database \
   --comment 'the hostname to the database' \
-  DB_HOST "db"
+  DB_HOST="db"
 
 # Create a "DB_PORT" key pair in the same "database" group as before
 # NOTE: this value refer to the 'PORT' key we set above via interpolation
@@ -68,7 +68,7 @@ dottie set \
   --group database \
   --comment 'the port for the database' \
   --comment '@dottie/validate number' \
-  DB_PORT '${PORT}'
+  DB_PORT='${PORT}'
 
 # Print the file again
 dottie print --pretty
