@@ -35,10 +35,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	originalEnv, warn, err := pkg.Load(filename)
-	if warn != nil {
-		tui.Theme.Warning.StderrPrinter().Println(warn)
-	}
+	originalEnv, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -102,10 +99,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	sourceDoc, warn, err := pkg.Load(tmp.Name())
-	if warn != nil {
-		tui.Theme.Warning.StderrPrinter().Println(warn)
-	}
+	sourceDoc, err := pkg.Load(tmp.Name())
 	if err != nil {
 		return err
 	}
@@ -207,7 +201,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if errors := validation.ValidateSingleAssignment(originalEnv, originalStatement.Name, nil, []string{"file", "dir"}); len(errors) > 0 {
+		if errors := validation.ValidateSingleAssignment(originalEnv, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
 			sawError = true
 			lastWasError = true
 
@@ -222,7 +216,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			dark.Println(" due to validation error:")
 
 			for _, errIsh := range errors {
-				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(originalEnv, errIsh, false, false)))
+				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(originalEnv, errIsh, errIsh, false, false)))
 			}
 
 			counter++

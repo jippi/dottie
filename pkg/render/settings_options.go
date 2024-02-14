@@ -61,7 +61,7 @@ func WithFormattedOutput(boolean bool) SettingsOption {
 
 func WithInterpolation(b bool) SettingsOption {
 	return func(s *Settings) {
-		s.useInterpolatedValues = b
+		s.InterpolatedValues = b
 	}
 }
 

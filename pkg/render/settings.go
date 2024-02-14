@@ -9,16 +9,16 @@ const (
 )
 
 type Settings struct {
-	retainKeyPrefix       string
-	retainGroup           string
-	includeDisabled       bool
-	showBlankLines        bool
-	showColors            bool
-	showComments          bool
-	ShowGroupBanners      bool
-	formatOutput          bool
-	useInterpolatedValues bool
-	outputter             Output
+	retainKeyPrefix    string
+	retainGroup        string
+	includeDisabled    bool
+	showBlankLines     bool
+	showColors         bool
+	showComments       bool
+	ShowGroupBanners   bool
+	formatOutput       bool
+	InterpolatedValues bool
+	outputter          Output
 }
 
 func NewSettings(options ...SettingsOption) *Settings {

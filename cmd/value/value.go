@@ -23,10 +23,7 @@ var Command = &cobra.Command{
 
 		filename := cmd.Flag("file").Value.String()
 
-		env, warn, err := pkg.Load(filename)
-		if warn != nil {
-			tui.Theme.Warning.StderrPrinter().Println(warn)
-		}
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}
@@ -40,6 +37,14 @@ var Command = &cobra.Command{
 
 		if !existing.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
 			return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
+		}
+
+		warn, err := env.InterpolateStatement(existing)
+		if warn != nil {
+			tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
+		}
+		if err != nil {
+			return err
 		}
 
 		fmt.Println(existing.Interpolated)

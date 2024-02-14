@@ -30,7 +30,7 @@ func (PlainOutput) Assignment(assignment *ast.Assignment, settings Settings) *Li
 
 	val := assignment.Literal
 
-	if settings.useInterpolatedValues {
+	if settings.InterpolatedValues {
 		val = assignment.Interpolated
 	}
 

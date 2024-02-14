@@ -105,16 +105,34 @@ NEXT_FIELD:
 	return result
 }
 
-func ValidateSingleAssignment(doc *ast.Document, name string, handlers []render.Handler, ignoreErrors []string) []ValidationError {
+func ValidateSingleAssignment(doc *ast.Document, assignment *ast.Assignment, handlers []render.Handler, ignoreErrors []string) []ValidationError {
+	keys := AssignmentsToValidateRecursive(assignment)
+
 	return Validate(
 		doc,
 		append(
 			[]render.Handler{
 				render.ExcludeDisabledAssignments,
-				render.RetainExactKey(name),
+				render.RetainExactKey(keys...),
 			},
 			handlers...,
 		),
 		ignoreErrors,
 	)
+}
+
+func AssignmentsToValidateRecursive(assignment *ast.Assignment) []string {
+	keys := []string{assignment.Name}
+
+	for _, dependent := range assignment.Dependents {
+		keys = append(keys, dependent.Name)
+
+		if len(dependent.Dependents) > 0 {
+			for _, d := range dependent.Dependents {
+				keys = append(keys, AssignmentsToValidateRecursive(d)...)
+			}
+		}
+	}
+
+	return slices.Compact(keys)
 }

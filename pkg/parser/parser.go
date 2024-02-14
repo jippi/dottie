@@ -5,7 +5,6 @@ import (
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
-	"go.uber.org/multierr"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -31,22 +30,19 @@ func New(scanner Scanner, filename string) *Parser {
 }
 
 // Parse parses the .env file and returns an ast.Statement.
-func (p *Parser) Parse() (*ast.Document, error, error) {
+func (p *Parser) Parse() (*ast.Document, error) {
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group
-		document          = &ast.Document{}
+		document          = ast.NewDocument()
 		previousStatement ast.Statement
 		statementIndex    int
-		warnings          error
 	)
 
 	for p.token.Type != token.EOF {
-		var warn error
-
 		stmt, err := p.parseStatement()
 		if err != nil {
-			return nil, warnings, err
+			return nil, err
 		}
 
 		switch val := stmt.(type) {
@@ -71,26 +67,6 @@ func (p *Parser) Parse() (*ast.Document, error, error) {
 			val.Position.Index = statementIndex
 
 			statementIndex++
-
-			if val.Enabled {
-				switch {
-				// In "single”-quote mode we skip interpolation
-				// and use the string as-is
-				case val.Quote.Is(token.SingleQuotes.Rune()):
-					val.Interpolated = val.Literal
-
-				// In "double" and "no"-quote mode, we interpolate
-				default:
-					val.Interpolated, warn, err = document.Interpolate(val)
-					if warn != nil {
-						warnings = multierr.Append(warnings, warn)
-					}
-
-					if err != nil {
-						return nil, warnings, err
-					}
-				}
-			}
 
 			// Assign accumulated comments to this assignment
 			val.Comments = comments
@@ -186,7 +162,7 @@ func (p *Parser) Parse() (*ast.Document, error, error) {
 		}
 	}
 
-	return document, warnings, nil
+	return document, nil
 }
 
 func (p *Parser) parseStatement() (ast.Statement, error) {

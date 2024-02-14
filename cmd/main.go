@@ -73,7 +73,7 @@ func main() {
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
 	if c, err := root.ExecuteC(); err != nil {
-		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Println(c.ErrPrefix(), err.Error())
+		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Printfln("%s %+v", c.ErrPrefix(), err)
 		tui.Theme.Info.StderrPrinter().Printfln("Run '%v --help' for usage.\n", c.CommandPath())
 
 		os.Exit(1)

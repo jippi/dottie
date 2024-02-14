@@ -10,6 +10,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.uber.org/multierr"
 )
 
 func Command() *cobra.Command {
@@ -20,7 +21,7 @@ func Command() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, warnings, err := setup(cmd.Flags())
 			if warnings != nil {
-				tui.Theme.Warning.StderrPrinter().Println(warnings)
+				tui.Theme.Warning.StderrPrinter().Printfln("%+v", warnings)
 			}
 			if err != nil {
 				return err
@@ -56,9 +57,9 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 		return shared.StringFlag(flags, name)
 	}
 
-	env, warnings, err := pkg.Load(stringFlag("file"))
+	doc, err := pkg.Load(stringFlag("file"))
 	if err != nil {
-		return nil, nil, warnings, err
+		return nil, nil, nil, err
 	}
 
 	settings := render.NewSettings(
@@ -73,9 +74,26 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
 	)
 
+	var allErrors, allWarnings error
+
+	if settings.InterpolatedValues {
+		var warn, err error
+
+		for _, assignment := range doc.AllAssignments() {
+			if !assignment.Enabled {
+				continue
+			}
+
+			warn, err = doc.InterpolateStatement(assignment)
+
+			allWarnings = multierr.Append(allWarnings, warn)
+			allErrors = multierr.Append(allErrors, err)
+		}
+	}
+
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
-	return env, settings, warnings, nil
+	return doc, settings, allWarnings, allErrors
 }

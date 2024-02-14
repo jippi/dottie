@@ -6,6 +6,7 @@ import (
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/validation"
+	"go.uber.org/multierr"
 )
 
 type Upserter struct {
@@ -92,12 +93,19 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	assignment.Literal = input.Literal
 	assignment.Quote = input.Quote
 	assignment.Interpolated = input.Literal
+	assignment.Initialize()
+
+	if _, ok := assignment.Dependencies[assignment.Name]; ok {
+		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", assignment.Name)
+	}
+
+	u.document.Initialize()
 
 	var err, warnings error
 
 	// Interpolate the Assignment if it is enabled
 	if assignment.Enabled {
-		assignment.Interpolated, warnings, err = u.document.Interpolate(assignment)
+		warnings, err = u.document.InterpolateStatement(assignment)
 		if err != nil {
 			return nil, warnings, fmt.Errorf("could not interpolate variable: %w", err)
 		}
@@ -105,8 +113,14 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if errors := validation.ValidateSingleAssignment(u.document, assignment.Name, nil, nil); len(errors) > 0 {
-			return nil, warnings, errors[0]
+		if validationErrors := validation.ValidateSingleAssignment(u.document, assignment, nil, nil); len(validationErrors) > 0 {
+			var errorCollection error
+
+			for _, err := range validationErrors {
+				errorCollection = multierr.Append(errorCollection, err)
+			}
+
+			return nil, warnings, errorCollection
 		}
 	}
 

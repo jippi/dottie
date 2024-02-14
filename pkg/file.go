@@ -11,10 +11,10 @@ import (
 	"github.com/jippi/dottie/pkg/scanner"
 )
 
-func Load(filename string) (*ast.Document, error, error) {
+func Load(filename string) (*ast.Document, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer file.Close()
 
@@ -39,10 +39,10 @@ func Save(filename string, doc *ast.Document) error {
 }
 
 // Parse reads an env file from io.Reader, returning a map of keys and values.
-func Parse(r io.Reader, filename string) (*ast.Document, error, error) {
+func Parse(r io.Reader, filename string) (*ast.Document, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	return parser.

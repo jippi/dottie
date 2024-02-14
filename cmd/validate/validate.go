@@ -32,10 +32,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, warn, err := pkg.Load(filename)
-	if warn != nil {
-		tui.Theme.Warning.StderrPrinter().Println(warn)
-	}
+	env, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -56,6 +53,20 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	//
+	// Interpolate
+	//
+
+	warn, err := env.InterpolateAll()
+
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	//
 	// Validate
 	//
 
@@ -71,17 +82,14 @@ func runE(cmd *cobra.Command, args []string) error {
 	stderr.Println()
 
 	for _, errIsh := range res {
-		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, fix, true))
+		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, errIsh, fix, true))
 	}
 
 	//
 	// Validate file again, in case some of the fixers from before fixed them
 	//
 
-	env, warn, err = pkg.Load(cmd.Flag("file").Value.String())
-	if warn != nil {
-		tui.Theme.Warning.StderrPrinter().Println(warn)
-	}
+	env, err = pkg.Load(cmd.Flag("file").Value.String())
 	if err != nil {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}

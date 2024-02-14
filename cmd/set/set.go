@@ -48,11 +48,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	document, warnings, err := pkg.Load(filename)
-	if warnings != nil {
-		tui.Theme.Warning.StderrPrinter().Println("warnings", warnings)
-	}
-
+	document, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -123,7 +119,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		if err != nil {
-			fmt.Fprintln(os.Stderr, validation.Explain(document, validation.NewError(assignment, err), false, true))
+			z := validation.NewError(assignment, err)
+			fmt.Fprintln(os.Stderr, validation.Explain(document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
@@ -136,7 +133,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if allErrors != nil {
-		return fmt.Errorf("%+w", allErrors)
+		return errors.New("validation error")
 	}
 
 	//

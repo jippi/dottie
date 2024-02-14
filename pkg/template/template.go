@@ -240,7 +240,7 @@ func Substitute(template string, mapping Mapping) (string, error, error) {
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict map[string]interface{}, pattern *regexp.Regexp) map[string]Variable {
+func ExtractVariables(configDict any, pattern *regexp.Regexp) map[string]Variable {
 	if pattern == nil {
 		pattern = defaultPattern
 	}

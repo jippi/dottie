@@ -32,7 +32,7 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 
 	val := assignment.Literal
 
-	if settings.useInterpolatedValues {
+	if settings.InterpolatedValues {
 		val = assignment.Interpolated
 	}
 

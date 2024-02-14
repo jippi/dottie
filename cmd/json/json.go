@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
-	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -16,10 +15,7 @@ var Command = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		filename := cmd.Flag("file").Value.String()
 
-		env, warn, err := pkg.Load(filename)
-		if warn != nil {
-			tui.Theme.Warning.StderrPrinter().Println(warn)
-		}
+		env, err := pkg.Load(filename)
 		if err != nil {
 			return err
 		}
