@@ -17,13 +17,6 @@ import (
 func RunFilebasedCommandTests(t *testing.T) {
 	t.Helper()
 
-	golden := goldie.New(
-		t,
-		goldie.WithFixtureDir("tests"),
-		goldie.WithNameSuffix(""),
-		goldie.WithDiffEngine(goldie.ColoredDiff),
-	)
-
 	files, err := os.ReadDir("tests")
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +25,6 @@ func RunFilebasedCommandTests(t *testing.T) {
 	// Build test data set
 	type testData struct {
 		name         string
-		directory    string
 		envFile      string
 		goldenStdout string
 		goldenStderr string
@@ -43,19 +35,25 @@ func RunFilebasedCommandTests(t *testing.T) {
 	tests := []testData{}
 
 	for _, file := range files {
-		if !file.IsDir() {
-			require.FailNowf(t, "Unexpected file [%s]. Please make a sub-directory for you test", file.Name())
+		if file.IsDir() {
+			continue
 		}
 
-		content, err := os.ReadFile("tests/" + file.Name() + "/input.command.txt")
-		require.NoErrorf(t, err, "failed to read file: %s", "tests/"+file.Name()+"/command.txt")
+		if !strings.HasSuffix(file.Name(), ".command.txt") {
+			continue
+		}
+
+		base := strings.TrimSuffix(file.Name(), ".command.txt")
+
+		content, err := os.ReadFile("tests/" + file.Name())
+		require.NoErrorf(t, err, "failed to read file: %s", "tests/"+file.Name())
 
 		test := testData{
-			name:         file.Name(),
-			directory:    "tests/" + file.Name(),
-			goldenStdout: file.Name() + "/golden.stdout",
-			goldenStderr: file.Name() + "/golden.stderr",
-			goldenEnv:    file.Name() + "/golden.env",
+			name:         base,
+			goldenStdout: "stdout",
+			goldenStderr: "stderr",
+			goldenEnv:    "env",
+			envFile:      file.Name(),
 			command:      strings.Split(strings.TrimSpace(string(content)), "\n"),
 		}
 
@@ -73,8 +71,8 @@ func RunFilebasedCommandTests(t *testing.T) {
 			tmpDir := t.TempDir()
 
 			// Copy the input.env to temporary place
-			err := Copy(tt.directory+"/input.env", tmpDir+"/tmp.env")
-			require.NoError(t, err, "failed to copy [input.env] to TempDir")
+			err := Copy("tests/"+tt.envFile, tmpDir+"/tmp.env")
+			require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
 
 			// Point args to the copied temp env file
 			args := []string{"-f", tmpDir + "/tmp.env"}
@@ -102,7 +100,16 @@ func RunFilebasedCommandTests(t *testing.T) {
 
 			// Read the modified .env file back
 			modifiedEnv, err := os.ReadFile(tmpDir + "/tmp.env")
-			require.NoErrorf(t, err, "failed to read file: %s", tt.directory+"/tmp.env")
+			require.NoErrorf(t, err, "failed to read file: %s/tmp.env", tmpDir)
+
+			golden := goldie.New(
+				t,
+				goldie.WithFixtureDir("tests/"),
+				// goldie.WithTestNameForDir(false),
+				goldie.WithSubTestNameForDir(true),
+				goldie.WithNameSuffix(".golden"),
+				goldie.WithDiffEngine(goldie.ColoredDiff),
+			)
 
 			// Assert stdout + stderr + modified env file is as expected
 			golden.Assert(t, tt.goldenStdout, stdout.Bytes())
