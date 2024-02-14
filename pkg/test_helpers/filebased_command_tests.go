@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"unicode"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +30,7 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 		goldenStdout string
 		goldenStderr string
 		goldenEnv    string
-		command      []string
+		commandArgs  []string
 	}
 
 	tests := []testData{}
@@ -49,9 +49,12 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 		content, err := os.ReadFile("tests/" + file.Name())
 		require.NoErrorf(t, err, "failed to read file: %s", "tests/"+file.Name())
 
-		commandArgs := strings.Split(strings.TrimSpace(string(content)), "\n")
-		spew.Dump(commandArgs)
-		require.Nil(t, commandArgs)
+		var commandArgs []string
+
+		str := string(bytes.TrimFunc(content, unicode.IsSpace))
+		if len(str) > 0 {
+			commandArgs = strings.Split(str, "\n")
+		}
 
 		test := testData{
 			name:         base,
@@ -59,7 +62,7 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 			goldenStderr: "stderr",
 			goldenEnv:    "env",
 			envFile:      base + ".env",
-			command:      commandArgs,
+			commandArgs:  commandArgs,
 		}
 
 		tests = append(tests, test)
@@ -90,9 +93,10 @@ func RunFilebasedCommandTests(t *testing.T, globalArgs ...string) {
 			// Point args to the copied temp env file
 			args := []string{"-f", tmpDir + "/tmp.env"}
 			args = append(args, globalArgs...)
-			args = append(args, tt.command...)
 
-			spew.Dump(args)
+			if len(tt.commandArgs) > 0 {
+				args = append(args, tt.commandArgs...)
+			}
 
 			// Prepare output buffers
 			stdout := bytes.Buffer{}
