@@ -58,17 +58,17 @@ func main() {
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
-	root.AddCommand(set.Command())
-	root.AddCommand(fmt.Command)
-	root.AddCommand(enable.Command)
-	root.AddCommand(disable.Command)
-	root.AddCommand(update.Command())
+	root.AddCommand(set.NewCommand())
+	root.AddCommand(fmt.NewCommand())
+	root.AddCommand(enable.NewCommand())
+	root.AddCommand(disable.NewCommand())
+	root.AddCommand(update.NewCommand())
 
-	root.AddCommand(print_cmd.Command())
-	root.AddCommand(value.Command)
-	root.AddCommand(validate.Command())
-	root.AddCommand(groups.Command)
-	root.AddCommand(json.Command)
+	root.AddCommand(print_cmd.NewCommand())
+	root.AddCommand(value.NewCommand())
+	root.AddCommand(validate.NewCommand())
+	root.AddCommand(groups.NewCommand())
+	root.AddCommand(json.NewCommand())
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 

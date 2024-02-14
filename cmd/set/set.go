@@ -18,7 +18,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-func Command() *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "set KEY=VALUE [KEY=VALUE ...]",
 		Short:   "Set/update one or multiple key=value pairs",
