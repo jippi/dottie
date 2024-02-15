@@ -27,7 +27,7 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 	var buf bytes.Buffer
 
 	if !assignment.Enabled {
-		tui.Theme.Danger.BuffPrinter(&buf).Print("#")
+		tui.Theme.Danger.Printer(tui.RendererWithTTY(&buf)).Print("#")
 	}
 
 	val := assignment.Literal
@@ -36,11 +36,11 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 		val = assignment.Interpolated
 	}
 
-	tui.Theme.Primary.BuffPrinter(&buf).Print(assignment.Name)
-	tui.Theme.Dark.BuffPrinter(&buf).Print("=")
-	tui.Theme.Success.BuffPrinter(&buf).Print(assignment.Quote)
-	tui.Theme.Warning.BuffPrinter(&buf).Print(val)
-	tui.Theme.Success.BuffPrinter(&buf).Print(assignment.Quote)
+	tui.Theme.Primary.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Name)
+	tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf)).Print("=")
+	tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Quote)
+	tui.Theme.Warning.Printer(tui.RendererWithTTY(&buf)).Print(val)
+	tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Quote)
 
 	return NewLinesCollection().Add(buf.String())
 }
@@ -48,7 +48,7 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.Theme.Success.BuffPrinter(&buf)
+	out := tui.Theme.Success.Printer(tui.RendererWithTTY(&buf))
 
 	if comment.Annotation == nil {
 		out.Print(comment.Value)

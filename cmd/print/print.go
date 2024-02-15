@@ -21,13 +21,13 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, warnings, err := setup(cmd.Flags())
 			if warnings != nil {
-				tui.Theme.Warning.StderrPrinter().Printfln("%+v", warnings)
+				tui.Theme.Warning.BuffPrinter(cmd.ErrOrStderr()).Printfln("%+v", warnings)
 			}
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(render.NewRenderer(*settings).Statement(env).String())
+			fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
 
 			return nil
 		},
