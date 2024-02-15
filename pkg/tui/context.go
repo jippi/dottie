@@ -30,8 +30,8 @@ func CreateContext(ctx context.Context, stdout, stderr io.Writer) context.Contex
 
 	ctx = context.WithValue(ctx, themeContextValue, theme)
 	ctx = context.WithValue(ctx, colorProfileContextValue, stdoutOutput.ColorProfile())
-	ctx = context.WithValue(ctx, Stdout, theme.Printer(stdoutOutput))
-	ctx = context.WithValue(ctx, Stderr, theme.Printer(stderrOutput))
+	ctx = context.WithValue(ctx, Stdout, theme.NewWriter(stdoutOutput))
+	ctx = context.WithValue(ctx, Stderr, theme.NewWriter(stderrOutput))
 
 	return ctx
 }
@@ -49,7 +49,7 @@ func WriterFromContext(ctx context.Context, key printerContextKey) ThemeWriter {
 }
 
 func ColorPrinterFromContext(ctx context.Context, key printerContextKey, color colorType) Printer {
-	return ctx.Value(key).(ThemeWriter).Color(color) //nolint:forcetypeassert
+	return ctx.Value(key).(*ThemeWriter).Color(color) //nolint:forcetypeassert
 }
 
 func PrintersFromContext(ctx context.Context) (ThemeWriter, ThemeWriter) {

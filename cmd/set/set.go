@@ -117,12 +117,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
 		if warnings != nil {
-			stderr.Color(tui.Warning).Println("WARNING:", warnings)
+			stderr.Warning().Println("WARNING:", warnings)
 		}
 
 		if err != nil {
 			z := validation.NewError(assignment, err)
-			stderr.Color(tui.NoColor).Println(validation.Explain(cmd.Context(), document, z, z, false, true))
+			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
@@ -131,7 +131,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		stdout.Color(tui.Success).Printfln("Key [%s] was successfully upserted", key)
+		stdout.Success().Printfln("Key [%s] was successfully upserted", key)
 	}
 
 	if allErrors != nil {
@@ -146,7 +146,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 
-	stdout.Color(tui.Success).Println("File was successfully saved")
+	stdout.Success().Println("File was successfully saved")
 
 	return nil
 }

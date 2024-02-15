@@ -15,7 +15,7 @@ type ColorizedOutput struct{}
 func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.ThemeFromContext(ctx).WriterPrinter(ctx, &buf).Color(tui.Success)
+	out := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf).Success()
 
 	out.Println("################################################################################")
 	out.ApplyStyle(tui.Bold).Println(group.Name)
@@ -27,10 +27,10 @@ func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settin
 func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	printer := tui.ThemeFromContext(ctx).WriterPrinter(ctx, &buf)
+	printer := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf)
 
 	if !assignment.Enabled {
-		printer.Color(tui.Danger).Print("#")
+		printer.Danger().Print("#")
 	}
 
 	val := assignment.Literal
@@ -39,11 +39,11 @@ func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignmen
 		val = assignment.Interpolated
 	}
 
-	printer.Color(tui.Primary).Print(assignment.Name)
-	printer.Color(tui.Dark).Print("=")
-	printer.Color(tui.Success).Print(assignment.Quote)
-	printer.Color(tui.Warning).Print(val)
-	printer.Color(tui.Success).Print(assignment.Quote)
+	printer.Primary().Print(assignment.Name)
+	printer.Dark().Print("=")
+	printer.Success().Print(assignment.Quote)
+	printer.Warning().Print(val)
+	printer.Success().Print(assignment.Quote)
 
 	return NewLinesCollection().Add(buf.String())
 }
@@ -51,7 +51,7 @@ func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignmen
 func (ColorizedOutput) Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.ThemeFromContext(ctx).WriterPrinter(ctx, &buf).Color(tui.Success)
+	out := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf).Success()
 
 	if comment.Annotation == nil {
 		out.Print(comment.Value)

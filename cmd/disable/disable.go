@@ -39,7 +39,7 @@ func NewCommand() *cobra.Command {
 			stdout, stderr := tui.PrintersFromContext(cmd.Context())
 
 			if !existing.Enabled {
-				stderr.Color(tui.Warning).Printfln("WARNING: The key [%s] is already disabled", key)
+				stderr.Warning().Printfln("WARNING: The key [%s] is already disabled", key)
 
 				return nil
 			}
@@ -50,7 +50,7 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("could not save file: %w", err)
 			}
 
-			stdout.Color(tui.Success).Printfln("Key [%s] was successfully disabled", key)
+			stdout.Success().Printfln("Key [%s] was successfully disabled", key)
 
 			return nil
 		},

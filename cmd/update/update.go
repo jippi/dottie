@@ -42,13 +42,13 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	stdout, stderr := tui.PrintersFromContext(cmd.Context())
 
-	dark := stdout.Color(tui.Dark)
-	info := stdout.Color(tui.Info)
-	danger := stdout.Color(tui.Danger)
-	dangerEmphasis := stdout.Color(tui.Danger).Copy(tui.WithEmphasis(true))
-	success := stdout.Color(tui.Success)
-	primary := stdout.Color(tui.Primary)
-	warningStderr := stderr.Color(tui.Warning)
+	dark := stdout.Dark()
+	info := stdout.Info()
+	danger := stdout.Danger()
+	dangerEmphasis := stdout.Danger().Copy(tui.WithEmphasis(true))
+	success := stdout.Success()
+	primary := stdout.Primary()
+	warningStderr := stderr.Warning()
 
 	info.Box("Starting update of " + filename + " from upstream")
 	info.Println()

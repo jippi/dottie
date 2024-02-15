@@ -22,12 +22,12 @@ type multiError interface {
 func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
-	printer := tui.ThemeFromContext(ctx).WriterPrinter(ctx, &buff)
-	dark := printer.Color(tui.Dark)
-	bold := printer.Color(tui.Warning).Copy(tui.WithEmphasis(true))
-	danger := printer.Color(tui.Danger)
-	light := printer.Color(tui.Light)
-	primary := printer.Color(tui.Primary)
+	printer := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buff)
+	dark := printer.Dark()
+	bold := printer.Warning().Copy(tui.WithEmphasis(true))
+	danger := printer.Danger()
+	light := printer.Light()
+	primary := printer.Primary()
 
 	stderr := tui.WriterFromContext(ctx, tui.Stderr)
 
@@ -135,7 +135,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr Vali
 			}
 
 			if askToFix {
-				stderr.Color(tui.NoColor).Println(buff.String())
+				stderr.NoColor().Println(buff.String())
 				buff.Reset()
 
 				AskToSetValue(ctx, doc, keyErr.Assignment)
@@ -162,24 +162,24 @@ func AskToCreateDirectory(ctx context.Context, path string) {
 		Value(&confirm).
 		Run()
 	if err != nil {
-		stderr.Color(tui.Warning).Println("    Prompt cancelled: " + err.Error())
+		stderr.Warning().Println("    Prompt cancelled: " + err.Error())
 
 		return
 	}
 
 	if !confirm {
-		stderr.Color(tui.Warning).Println("    Prompt cancelled")
+		stderr.Warning().Println("    Prompt cancelled")
 
 		return
 	}
 
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		stderr.Color(tui.Danger).Println("    Could not create directory: " + err.Error())
+		stderr.Danger().Println("    Could not create directory: " + err.Error())
 
 		return
 	}
 
-	stderr.Color(tui.Success).Println("    Directory was successfully created")
+	stderr.Success().Println("    Directory was successfully created")
 }
 
 func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assignment) {
@@ -207,17 +207,17 @@ func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assig
 		Value(&value).
 		Run()
 	if err != nil {
-		stderr.Color(tui.Warning).Println("    Prompt cancelled: " + err.Error())
+		stderr.Warning().Println("    Prompt cancelled: " + err.Error())
 
 		return
 	}
 
 	assignment.Literal = value
 	if err := pkg.Save(ctx, assignment.Position.File, doc); err != nil {
-		stderr.Color(tui.Danger).Println("    Could not update key with value [" + value + "]: " + err.Error())
+		stderr.Danger().Println("    Could not update key with value [" + value + "]: " + err.Error())
 
 		return
 	}
 
-	stderr.Color(tui.Success).Println("    Successfully updated key with value [" + value + "]")
+	stderr.Success().Println("    Successfully updated key with value [" + value + "]")
 }

@@ -7,7 +7,7 @@ import (
 type colorType int
 
 const (
-	Danger colorType = iota
+	Danger colorType = 1 << iota
 	Dark
 	Info
 	Light
@@ -24,8 +24,44 @@ type ThemeWriter struct {
 	writer *lipgloss.Renderer
 }
 
-func (tp ThemeWriter) Color(colorType colorType) Printer {
-	if printer, ok := tp.cache[colorType]; ok {
+func (tw ThemeWriter) Danger() Printer {
+	return tw.Color(Danger)
+}
+
+func (tw ThemeWriter) Dark() Printer {
+	return tw.Color(Dark)
+}
+
+func (tw ThemeWriter) Info() Printer {
+	return tw.Color(Info)
+}
+
+func (tw ThemeWriter) Light() Printer {
+	return tw.Color(Light)
+}
+
+func (tw ThemeWriter) NoColor() Printer {
+	return tw.Color(NoColor)
+}
+
+func (tw ThemeWriter) Primary() Printer {
+	return tw.Color(Primary)
+}
+
+func (tw ThemeWriter) Secondary() Printer {
+	return tw.Color(Secondary)
+}
+
+func (tw ThemeWriter) Success() Printer {
+	return tw.Color(Success)
+}
+
+func (tw ThemeWriter) Warning() Printer {
+	return tw.Color(Warning)
+}
+
+func (tw ThemeWriter) Color(colorType colorType) Printer {
+	if printer, ok := tw.cache[colorType]; ok {
 		return printer
 	}
 
@@ -33,34 +69,34 @@ func (tp ThemeWriter) Color(colorType colorType) Printer {
 
 	switch colorType {
 	case Danger:
-		style = tp.theme.Danger
+		style = tw.theme.Danger
 
 	case Dark:
-		style = tp.theme.Dark
+		style = tw.theme.Dark
 
 	case Info:
-		style = tp.theme.Info
+		style = tw.theme.Info
 
 	case Light:
-		style = tp.theme.Light
+		style = tw.theme.Light
 
 	case Primary:
-		style = tp.theme.Primary
+		style = tw.theme.Primary
 
 	case Secondary:
-		style = tp.theme.Secondary
+		style = tw.theme.Secondary
 
 	case Success:
-		style = tp.theme.Success
+		style = tw.theme.Success
 
 	case Warning:
-		style = tp.theme.Warning
+		style = tw.theme.Warning
 
 	case NoColor:
-		style = tp.theme.NoColor
+		style = tw.theme.NoColor
 	}
 
-	tp.cache[colorType] = style.NewPrinter(tp.writer)
+	tw.cache[colorType] = style.NewPrinter(tw.writer)
 
-	return tp.cache[colorType]
+	return tw.cache[colorType]
 }

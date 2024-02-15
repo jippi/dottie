@@ -32,10 +32,10 @@ func NewCommand() *cobra.Command {
 			width := longesGroupName(groups)
 
 			stdout := tui.WriterFromContext(cmd.Context(), tui.Stdout)
-			secondary := stdout.Color(tui.Secondary)
-			primary := stdout.Color(tui.Primary)
+			secondary := stdout.Secondary()
+			primary := stdout.Primary()
 
-			stdout.Color(tui.Info).Box("Groups in " + filename)
+			stdout.Info().Box("Groups in " + filename)
 
 			for _, group := range groups {
 				primary.Printf("%-"+strconv.Itoa(width)+"s", slug.Make(group.String()))

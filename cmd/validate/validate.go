@@ -61,7 +61,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	warn, err := env.InterpolateAll()
 
 	if warn != nil {
-		stderr.Color(tui.Warning).Printfln("%+v", warn)
+		stderr.Warning().Printfln("%+v", warn)
 	}
 
 	if err != nil {
@@ -74,12 +74,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	res := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
 	if len(res) == 0 {
-		stderr.Color(tui.Success).Box("No validation errors found")
+		stderr.Success().Box("No validation errors found")
 
 		return nil
 	}
 
-	danger := stderr.Color(tui.Danger)
+	danger := stderr.Danger()
 	danger.Box(fmt.Sprintf("%d validation errors found", len(res)))
 	danger.Println()
 
@@ -98,17 +98,17 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	newRes := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
 	if len(newRes) == 0 {
-		stderr.Color(tui.Success).Println("All validation errors fixed")
+		stderr.Success().Println("All validation errors fixed")
 
 		return nil
 	}
 
 	diff := len(res) - len(newRes)
 	if diff > 0 {
-		stderr.Color(tui.Warning).
+		stderr.Warning().
 			Box(
 				fmt.Sprintf("%d validation errors left", len(newRes)),
-				stderr.Color(tui.Success).Sprintf("%d validation errors was fixed", diff),
+				stderr.Success().Sprintf("%d validation errors was fixed", diff),
 			)
 	}
 

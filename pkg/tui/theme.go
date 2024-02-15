@@ -20,24 +20,6 @@ type Theme struct {
 	Warning   Style
 }
 
-func (theme Theme) Printer(writer *lipgloss.Renderer) ThemeWriter {
-	return ThemeWriter{
-		writer: writer,
-		theme:  theme,
-		cache:  make(map[colorType]Printer),
-	}
-}
-
-func (theme Theme) WriterPrinter(ctx context.Context, writer io.Writer) ThemeWriter {
-	options := []termenv.OutputOption{}
-
-	if ColorProfile(ctx) != termenv.Ascii {
-		options = append(options, termenv.WithTTY(true))
-	}
-
-	return theme.Printer(lipgloss.NewRenderer(writer, options...))
-}
-
 func NewTheme() Theme {
 	theme := Theme{}
 
@@ -56,4 +38,27 @@ func NewTheme() Theme {
 	theme.Dark.borderColor.Dark = ColorToHex(Gray800)
 
 	return theme
+}
+
+func (theme Theme) NewWriter(writer *lipgloss.Renderer) ThemeWriter {
+	return ThemeWriter{
+		writer: writer,
+		theme:  theme,
+		cache:  make(map[colorType]Printer),
+	}
+}
+
+func (theme Theme) NewWriterWriter(ctx context.Context, writer io.Writer) ThemeWriter {
+	var options []termenv.OutputOption
+
+	// If the primary color profile is in color mode, enforce TTY to keep coloring on
+	if profile := ColorProfile(ctx); profile != termenv.Ascii {
+		options = append(
+			options,
+			termenv.WithTTY(true),
+			termenv.WithProfile(profile),
+		)
+	}
+
+	return theme.NewWriter(lipgloss.NewRenderer(writer, options...))
 }

@@ -11,8 +11,6 @@ type Style struct {
 	textEmphasisStyle lipgloss.Style
 	backgroundColor   lipgloss.AdaptiveColor
 	borderColor       lipgloss.AdaptiveColor
-
-	noColor bool
 }
 
 func NewStyle(baseColor lipgloss.Color) Style {
@@ -52,11 +50,8 @@ func NewStyle(baseColor lipgloss.Color) Style {
 }
 
 func NewStyleWithoutColor() Style {
-	return Style{
-		noColor:           true,
-		textStyle:         lipgloss.NewStyle(),
-		textEmphasisStyle: lipgloss.NewStyle(),
-	}
+	// Since all lipgloss.Styles are non-pointers, they are by default an empty / unstyled version of themselves
+	return Style{}
 }
 
 func (style Style) NewPrinter(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
