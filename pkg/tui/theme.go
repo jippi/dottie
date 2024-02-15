@@ -18,7 +18,7 @@ const (
 	Warning
 )
 
-type ThemeConfig struct {
+type Theme struct {
 	DefaultWidth int
 
 	Danger    Color
@@ -32,55 +32,16 @@ type ThemeConfig struct {
 	Warning   Color
 }
 
-func (tc ThemeConfig) Printer(w io.Writer) ThemePrinter {
+func (theme Theme) Printer(w io.Writer) ThemePrinter {
 	return ThemePrinter{
 		w:     w,
-		theme: tc,
+		theme: theme,
 		cache: make(map[colorType]Printer),
 	}
 }
 
-type ThemePrinter struct {
-	theme ThemeConfig
-	w     io.Writer
-	cache map[colorType]Printer
-}
-
-func (tp ThemePrinter) Color(colorType colorType) Printer {
-	if printer, ok := tp.cache[colorType]; ok {
-		return printer
-	}
-
-	var color Color
-
-	switch colorType {
-	case Danger:
-		color = tp.theme.Danger
-	case Dark:
-		color = tp.theme.Danger
-	case Info:
-		color = tp.theme.Info
-	case Light:
-		color = tp.theme.Light
-	case Primary:
-		color = tp.theme.Primary
-	case Secondary:
-		color = tp.theme.Secondary
-	case Success:
-		color = tp.theme.Success
-	case Warning:
-		color = tp.theme.Warning
-	case NoColor:
-		color = tp.theme.NoColor
-	}
-
-	tp.cache[colorType] = color.BufferPrinter(tp.w)
-
-	return tp.cache[colorType]
-}
-
-func NewTheme() ThemeConfig {
-	theme := ThemeConfig{}
+func NewTheme() Theme {
+	theme := Theme{}
 	theme.DefaultWidth = 80
 
 	theme.Danger = NewColor(NewColorComponentConfig(Red))

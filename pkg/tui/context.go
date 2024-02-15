@@ -15,21 +15,21 @@ const (
 type themeContextKey int
 
 const (
-	Theme themeContextKey = iota
+	themeContextValue themeContextKey = iota
 )
 
 func CreateContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 	theme := NewTheme()
 
-	ctx = context.WithValue(ctx, Theme, theme)
+	ctx = context.WithValue(ctx, themeContextValue, theme)
 	ctx = context.WithValue(ctx, Stdout, theme.Printer(stdout))
 	ctx = context.WithValue(ctx, Stderr, theme.Printer(stderr))
 
 	return ctx
 }
 
-func ThemeFromContext(ctx context.Context) ThemeConfig {
-	return ctx.Value(Theme).(ThemeConfig) //nolint:forcetypeassert
+func ThemeFromContext(ctx context.Context) Theme {
+	return ctx.Value(themeContextValue).(Theme) //nolint:forcetypeassert
 }
 
 func PrinterFromContext(ctx context.Context, key printerContextKey) ThemePrinter {
