@@ -3,7 +3,6 @@ package set
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -87,7 +86,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Loop arguments and place them
 	//
 
-	var allErrors error
+	var (
+		allErrors      error
+		stdout, stderr = tui.PrintersFromContext(cmd.Context())
+	)
 
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
@@ -106,7 +108,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			Interpolated: value,
 			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
-			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comments")),
+			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
 		}
 
 		//
@@ -115,12 +117,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		assignment, warnings, err := upserter.Upsert(assignment)
 		if warnings != nil {
-			tui.Theme.Warning.StderrPrinter().Println("WARNING:", warnings)
+			stderr.Color(tui.Warning).Println("WARNING:", warnings)
 		}
 
 		if err != nil {
 			z := validation.NewError(assignment, err)
-			fmt.Fprintln(os.Stderr, validation.Explain(document, z, z, false, true))
+			stderr.Color(tui.Neutral).Println(validation.Explain(document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
@@ -129,7 +131,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)
+		stdout.Color(tui.Success).Printfln("Key [%s] was successfully upserted", key)
 	}
 
 	if allErrors != nil {
@@ -144,7 +146,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 
-	tui.Theme.Success.StderrPrinter().Println("File was successfully saved")
+	stdout.Color(tui.Success).Println("File was successfully saved")
 
 	return nil
 }

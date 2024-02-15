@@ -145,9 +145,6 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 				// Assert we got a Cobra command back
 				require.NotNil(t, out, "expected a return value")
-
-				stdout.WriteString(fmt.Sprintf("---- done command line %d: %+v\n", idx, args))
-				stderr.WriteString(fmt.Sprintf("---- done command line %d: %+v\n", idx, args))
 			}
 
 			// Assert stdout + stderr + modified env file is as expected

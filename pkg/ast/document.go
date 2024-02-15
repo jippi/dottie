@@ -295,3 +295,40 @@ func (document *Document) Initialize() {
 		}
 	}
 }
+
+func (document *Document) Replace(assignment *Assignment) error {
+	existing := document.Get(assignment.Name)
+	if existing == nil {
+		return fmt.Errorf("No KEY named [%s] exists in the document", assignment.Name)
+	}
+
+	if existing.Group != nil {
+		for idx, stmt := range existing.Group.Statements {
+			val, ok := stmt.(*Assignment)
+			if !ok {
+				continue
+			}
+
+			if val.Name == assignment.Name {
+				existing.Group.Statements[idx] = assignment
+
+				return nil
+			}
+		}
+	}
+
+	for idx, stmt := range document.Statements {
+		val, ok := stmt.(*Assignment)
+		if !ok {
+			continue
+		}
+
+		if val.Name == assignment.Name {
+			document.Statements[idx] = assignment
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
+}

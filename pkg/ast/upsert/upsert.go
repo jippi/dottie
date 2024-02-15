@@ -5,6 +5,9 @@ import (
 	"slices"
 
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/parser"
+	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/scanner"
 	"github.com/jippi/dottie/pkg/validation"
 	"go.uber.org/multierr"
 )
@@ -79,9 +82,6 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		// Recalculate the index order of all Statements (for interpolation)
-		u.document.ReindexStatements()
 	}
 
 	// Replace comments on the assignment if the Setting is on
@@ -93,15 +93,32 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	assignment.Literal = input.Literal
 	assignment.Quote = input.Quote
 	assignment.Interpolated = input.Literal
+
+	var (
+		tempDoc       *ast.Document
+		err, warnings error
+	)
+
+	// Render and parse back the Statement to ensure annotations and such are properly handled
+	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(assignment).String()), "-").Parse()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
+	}
+
+	assignment = tempDoc.Get(assignment.Name)
 	assignment.Initialize()
 
 	if _, ok := assignment.Dependencies[assignment.Name]; ok {
 		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", assignment.Name)
 	}
 
-	u.document.Initialize()
+	// Replace the Assignment in the document
+	//
+	// This is necessary since its a different pointer address after we rendered+parsed earlier
+	u.document.Replace(assignment)
 
-	var err, warnings error
+	// Reinitialize the document so all indices and such are correct
+	u.document.Initialize()
 
 	// Interpolate the Assignment if it is enabled
 	if assignment.Enabled {
@@ -128,17 +145,24 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 }
 
 func (u *Upserter) createAndInsert(input *ast.Assignment) (*ast.Assignment, error) {
-	// Ensure the group exists (may return 'nil' if no group is required)
-	group := u.document.EnsureGroup(u.group)
-
 	// Create the new newAssignment
 	newAssignment := &ast.Assignment{
 		Comments: input.Comments,
 		Enabled:  input.Enabled,
-		Group:    group,
 		Literal:  input.Literal,
 		Name:     input.Name,
 	}
+
+	doc, err := parser.New(scanner.New(render.NewFormatter().Statement(newAssignment).String()), "-").Parse()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse assignment: %w", err)
+	}
+
+	// Ensure the group exists (may return 'nil' if no group is required)
+	group := u.document.EnsureGroup(u.group)
+
+	newAssignment = doc.Get(newAssignment.Name)
+	newAssignment.Group = group
 
 	// Find the statement slice to operate on
 	statements := u.document.Statements

@@ -1,0 +1,25 @@
+---- exec command line 0: [set SOME_KEY=SOME_VALUE]
+Key [SOME_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 1: [set ANOTHER_KEY=ANOTHER_VALUE --quote-style single]
+Key [ANOTHER_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 2: [set SECOND_KEY=should be before ANOTHER_KEY --before ANOTHER_KEY]
+Key [SECOND_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 3: [set TRUE_SECOND_KEY=HA, I'm after SOME_KEY, so I'm before ANOTHER_KEY now --after SOME_KEY]
+Key [TRUE_SECOND_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 4: [set SECOND_KEY=damn, I'm the third key now]
+Key [SECOND_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 5: [set SOME_KEY=ANOTHER_VALUE --comment I'm a comment --comment I'm another comment]
+Key [SOME_KEY] was successfully upserted
+File was successfully saved
+---- exec command line 6: [set A_NUMBER=1 --comment @dottie/validate number]
+Key [A_NUMBER] was successfully upserted
+File was successfully saved
+---- exec command line 7: [set NOT_A_NUMBER=abc --comment @dottie/validate number]
+---- exec command line 8: [set A_NUMBER=2]
+Key [A_NUMBER] was successfully upserted
+File was successfully saved
