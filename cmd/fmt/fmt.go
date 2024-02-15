@@ -15,18 +15,18 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			document, err := pkg.Load(filename)
 			if err != nil {
 				return err
 			}
 
-			if err := pkg.Save(cmd.Context(), filename, env); err != nil {
+			if err := pkg.Save(cmd.Context(), filename, document); err != nil {
 				return err
 			}
 
 			tui.StdoutFromContext(cmd.Context()).
 				Success().
-				Printfln("File [%s] was successfully formatted", filename)
+				Printfln("File [ %s ] was successfully formatted", filename)
 
 			return nil
 		},

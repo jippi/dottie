@@ -29,11 +29,11 @@ func NewCommand() *cobra.Command {
 
 			assignment := document.Get(key)
 			if assignment == nil {
-				return fmt.Errorf("Key [%s] does not exists", key)
+				return fmt.Errorf("Key [ %s ] does not exists", key)
 			}
 
 			if !assignment.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
-				return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
+				return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--include-commented] to include it", key)
 			}
 
 			warnings, err := document.InterpolateStatement(assignment)

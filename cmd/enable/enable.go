@@ -20,14 +20,14 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			document, err := pkg.Load(filename)
 			if err != nil {
 				return err
 			}
 
 			key := cmd.Flags().Arg(0)
 
-			assignment := env.Get(key)
+			assignment := document.Get(key)
 			if assignment == nil {
 				return fmt.Errorf("Could not find KEY [ %s ]", key)
 			}
@@ -38,7 +38,7 @@ func NewCommand() *cobra.Command {
 
 			assignment.Enable()
 
-			if err := pkg.Save(cmd.Context(), filename, env); err != nil {
+			if err := pkg.Save(cmd.Context(), filename, document); err != nil {
 				return fmt.Errorf("could not save file: %w", err)
 			}
 

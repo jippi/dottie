@@ -20,12 +20,12 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			document, err := pkg.Load(filename)
 			if err != nil {
 				return err
 			}
 
-			groups := env.Groups
+			groups := document.Groups
 			if len(groups) == 0 {
 				return errors.New("No groups found")
 			}
@@ -33,8 +33,8 @@ func NewCommand() *cobra.Command {
 			maxWidth := longesGroupName(groups)
 
 			stdout := tui.StdoutFromContext(cmd.Context())
-			secondary := stdout.Secondary()
 			primary := stdout.Primary()
+			secondary := stdout.Secondary()
 
 			stdout.Info().Box("Groups in " + filename)
 

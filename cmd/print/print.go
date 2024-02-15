@@ -35,7 +35,7 @@ func NewCommand() *cobra.Command {
 }
 
 func runE(cmd *cobra.Command, args []string) error {
-	env, settings, err := setup(cmd)
+	document, settings, err := setup(cmd)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		NoColor().
 		Println(
 			render.NewRenderer(*settings).
-				Statement(cmd.Context(), env).
+				Statement(cmd.Context(), document).
 				String(),
 		)
 

@@ -33,7 +33,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, err := pkg.Load(filename)
+	document, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -42,14 +42,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Build filters
 	//
 
-	fix := shared.BoolWithInverseValue(cmd.Flags(), "fix")
-	ignoreRules, _ := cmd.Flags().GetStringSlice("ignore-rule")
-
 	handlers := []render.Handler{}
 	handlers = append(handlers, render.ExcludeDisabledAssignments)
 
-	slice, _ := cmd.Flags().GetStringSlice("exclude-prefix")
-	for _, filter := range slice {
+	excludedPrefixes := shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
+	for _, filter := range excludedPrefixes {
 		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
 	}
 
@@ -59,7 +56,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Interpolate
 	//
 
-	warn, err := env.InterpolateAll()
+	warn, err := document.InterpolateAll()
 
 	if warn != nil {
 		stderr.Warning().Printfln("%+v", warn)
@@ -73,38 +70,42 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Validate
 	//
 
-	res := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
-	if len(res) == 0 {
+	ignoreRules := shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
+
+	validationErrors := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
+	if len(validationErrors) == 0 {
 		stderr.Success().Box("No validation errors found")
 
 		return nil
 	}
 
+	attemptFixOfValidationError := shared.BoolWithInverseValue(cmd.Flags(), "fix")
+
 	danger := stderr.Danger()
-	danger.Box(fmt.Sprintf("%d validation errors found", len(res)))
+	danger.Box(fmt.Sprintf("%d validation errors found", len(validationErrors)))
 	danger.Println()
 
-	for _, errIsh := range res {
-		fmt.Fprintln(os.Stderr, validation.Explain(cmd.Context(), env, errIsh, errIsh, fix, true))
+	for _, errIsh := range validationErrors {
+		fmt.Fprintln(os.Stderr, validation.Explain(cmd.Context(), document, errIsh, errIsh, attemptFixOfValidationError, true))
 	}
 
 	//
 	// Validate file again, in case some of the fixers from before fixed them
 	//
 
-	env, err = pkg.Load(cmd.Flag("file").Value.String())
+	document, err = pkg.Load(cmd.Flag("file").Value.String())
 	if err != nil {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
+	newRes := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
 	if len(newRes) == 0 {
 		stderr.Success().Println("All validation errors fixed")
 
 		return nil
 	}
 
-	diff := len(res) - len(newRes)
+	diff := len(validationErrors) - len(newRes)
 	if diff > 0 {
 		stderr.Warning().
 			Box(
