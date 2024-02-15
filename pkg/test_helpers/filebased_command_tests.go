@@ -3,6 +3,7 @@ package test_helpers
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -21,7 +22,7 @@ import (
 type Setting int
 
 const (
-	SkipEnvCopy Setting = 1 << iota
+	ReadOnly Setting = 1 << iota
 )
 
 // Has checks if [check] exists in the [settings] bitmask or not.
@@ -118,18 +119,23 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 			dotEnvFile := "tests/" + tt.envFile
 
-			if !settings.Has(SkipEnvCopy) {
-				tmpDir := t.TempDir()
-				dotEnvFile = tmpDir + "/tmp.env"
+			if !settings.Has(ReadOnly) {
+				dotEnvFile = t.TempDir() + "/tmp.env"
 
-				// Copy the input.env to temporary place
-				err := copyFile(t, "tests/"+tt.envFile, tmpDir+"/tmp.env")
-				require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
+				if _, err := os.Stat("tests/" + tt.envFile); errors.Is(err, os.ErrNotExist) {
+					// Create a temporary empty .env file
+					_, err := os.Create(dotEnvFile)
+					require.NoErrorf(t, err, "failed to create empty .env file [ %s ] in TempDir", tt.envFile)
+				} else {
+					// Copy the input.env to temporary place
+					err := copyFile(t, "tests/"+tt.envFile, dotEnvFile)
+					require.NoErrorf(t, err, "failed to copy [ %s ] to TempDir", tt.envFile)
+				}
 			}
 
 			// Prepare output buffers
-			stdout := bytes.Buffer{}
-			stderr := bytes.Buffer{}
+			combinedStdout := bytes.Buffer{}
+			combinedStderr := bytes.Buffer{}
 
 			ctx := context.Background()
 
@@ -139,23 +145,36 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				args = append(args, globalArgs...)
 				args = append(args, command...)
 
-				stdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
-				stderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
+				combinedStdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
+				combinedStderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
 
 				commandArgs := append(args, "--file", dotEnvFile)
 
 				// Run command
+				stdout := bytes.Buffer{}
+				stderr := bytes.Buffer{}
 				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
+
+				if stdout.Len() == 0 {
+					stdout.WriteString("(no output to stdout)\n")
+				}
+
+				if stderr.Len() == 0 {
+					stderr.WriteString("(no output to stderr)\n")
+				}
+
+				stdout.WriteTo(&combinedStdout)
+				stderr.WriteTo(&combinedStderr)
 
 				// Assert we got a Cobra command back
 				require.NotNil(t, out, "expected a return value")
 			}
 
 			// Assert stdout + stderr + modified env file is as expected
-			golden.Assert(t, tt.goldenStdout, stdout.Bytes())
-			golden.Assert(t, tt.goldenStderr, stderr.Bytes())
+			golden.Assert(t, tt.goldenStdout, combinedStdout.Bytes())
+			golden.Assert(t, tt.goldenStderr, combinedStderr.Bytes())
 
-			if !settings.Has(SkipEnvCopy) {
+			if !settings.Has(ReadOnly) {
 				// Read the modified .env file back
 				modifiedEnv, err := os.ReadFile(dotEnvFile)
 

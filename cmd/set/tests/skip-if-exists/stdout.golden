@@ -1,0 +1,6 @@
+---- exec command line 0: [set --skip-if-exists SOME_KEY=SUCCESS]
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved
+---- exec command line 1: [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved

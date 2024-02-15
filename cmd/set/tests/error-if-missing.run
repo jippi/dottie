@@ -1,0 +1,2 @@
+--error-if-missing MISSING_KEY="THIS MUST FAIL"
+--error-if-missing SOME_KEY="SUCCESS"

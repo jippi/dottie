@@ -20,6 +20,7 @@ File was successfully saved
 Key [ A_NUMBER ] was successfully upserted
 File was successfully saved
 ---- exec command line 7: [set NOT_A_NUMBER=abc --comment @dottie/validate number]
+(no output to stdout)
 ---- exec command line 8: [set A_NUMBER=2]
 Key [ A_NUMBER ] was successfully upserted
 File was successfully saved

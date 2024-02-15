@@ -1,0 +1,2 @@
+--skip-if-exists SOME_KEY="SUCCESS"
+--skip-if-exists SOME_KEY="ERROR; THE VALUE MUST NOT CHANGE"

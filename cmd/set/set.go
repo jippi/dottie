@@ -1,7 +1,6 @@
 package set
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -34,6 +33,9 @@ func NewCommand() *cobra.Command {
 
 	cmd.Flags().Bool("disabled", false, "Set/change the flag to be disabled (commented out)")
 	cmd.Flags().Bool("error-if-missing", false, "Exit with an error if the KEY does not exists in the .env file already")
+	cmd.Flags().Bool("skip-if-exists", false, "If the already KEY exists, do not set or change any settings")
+	cmd.Flags().Bool("skip-if-same", false, "If the already KEY exists, and it the value is identical, do not set or change any settings")
+
 	cmd.Flags().String("group", "", "The (optional) group name to add the KEY=VALUE pair under")
 	cmd.Flags().String("before", "", "If the key doesn't exist, add it to the file *before* this KEY")
 	cmd.Flags().String("after", "", "If the key doesn't exist, add it to the file *after* this KEY")
@@ -61,6 +63,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		document,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
 		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+		upsert.WithSettingIf(upsert.SkipIfExists, shared.BoolFlag(cmd.Flags(), "skip-if-exists")),
+		upsert.WithSettingIf(upsert.SkipIfSame, shared.BoolFlag(cmd.Flags(), "skip-if-same")),
 		upsert.WithSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
 	)
 	if err != nil {
@@ -130,7 +134,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if allErrors != nil {
-		return errors.New("validation error")
+		return fmt.Errorf("validation error: %+w", allErrors)
 	}
 
 	//

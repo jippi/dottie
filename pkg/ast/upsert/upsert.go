@@ -53,29 +53,29 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
 func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error, error) {
 	assignment := u.document.Get(input.Name)
-	found := assignment != nil
+	exists := assignment != nil
 
 	// Short circuit with some quick settings checks
 
 	switch {
 	// The assignment exists, so return early
-	case found && u.settings.Has(SkipIfExists):
-		return nil, nil, nil
-
-	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
-	case found && u.settings.Has(SkipIfSet) && len(assignment.Literal) > 0 && !slices.Contains(u.valuesConsideredEmpty, assignment.Literal):
-		return nil, nil, nil
-
-	// The assignment exists, the literal values are the same, and they have same 'Enabled' level
-	case found && u.settings.Has(SkipIfSame) && assignment.Literal == input.Literal && assignment.Enabled == input.Enabled:
+	case exists && u.settings.Has(SkipIfExists):
 		return nil, nil, nil
 
 	// The assignment does *NOT* exists, and we require it to
-	case !found && u.settings.Has(ErrorIfMissing):
+	case !exists && u.settings.Has(ErrorIfMissing):
 		return nil, nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
 
+	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
+	case exists && u.settings.Has(SkipIfSet) && len(assignment.Literal) > 0 && !slices.Contains(u.valuesConsideredEmpty, assignment.Literal):
+		return nil, nil, nil
+
+	// The assignment exists, the literal values are the same, and they have same 'Enabled' level
+	case exists && u.settings.Has(SkipIfSame) && assignment.Literal == input.Literal && assignment.Enabled == input.Enabled:
+		return nil, nil, nil
+
 	// The KEY was *NOT* found, and all other preconditions are not triggering
-	case !found:
+	case !exists:
 		var err error
 
 		// Create and insert the (*ast.Assignment) into the Statement list

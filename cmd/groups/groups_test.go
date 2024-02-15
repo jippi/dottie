@@ -6,8 +6,8 @@ import (
 	"github.com/jippi/dottie/pkg/test_helpers"
 )
 
-func TestCommand(t *testing.T) {
+func TestGroupsCommand(t *testing.T) {
 	t.Parallel()
 
-	test_helpers.RunFileBasedCommandTests(t, test_helpers.SkipEnvCopy, "groups")
+	test_helpers.RunFileBasedCommandTests(t, test_helpers.ReadOnly, "groups")
 }
