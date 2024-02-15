@@ -40,7 +40,7 @@ tasks:
   cover:
     desc: Open the cover tool
     cmds:
-      - go tool cover -html=coverage.txt
+      - go tool cover -html=coverage.out
 
   fmt:
     desc: gofumpt all code
