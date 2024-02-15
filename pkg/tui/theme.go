@@ -44,16 +44,16 @@ func NewTheme() Theme {
 	theme.Danger = NewStyle(Red)
 	theme.Info = NewStyle(Cyan)
 	theme.Light = NewStyle(Gray300)
+	theme.NoColor = NewStyleWithoutColor()
 	theme.Primary = NewStyle(Blue)
 	theme.Secondary = NewStyle(Gray600)
 	theme.Success = NewStyle(Green)
 	theme.Warning = NewStyle(Yellow)
-	theme.NoColor = NewStyleWithoutColor()
 
 	theme.Dark = NewStyle(Gray700)
-	theme.Dark.TextEmphasis.Dark = ColorToHex(Gray300)
-	theme.Dark.Background.Dark = "#1a1d20"
-	theme.Dark.Border.Dark = ColorToHex(Gray800)
+	theme.Dark.textEmphasisColor.Dark = ColorToHex(Gray300)
+	theme.Dark.backgroundColor.Dark = "#1a1d20"
+	theme.Dark.borderColor.Dark = ColorToHex(Gray800)
 
 	return theme
 }

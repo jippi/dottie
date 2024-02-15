@@ -25,7 +25,7 @@ func ColorToHex(in lipgloss.Color) string {
 	return string(in)
 }
 
-func transformColor(base, filter string, percent float64) string {
+func TransformColor(base, filter string, percent float64) string {
 	switch filter {
 	case "shade":
 		return ColorToHex(ShadeColor(base, percent))

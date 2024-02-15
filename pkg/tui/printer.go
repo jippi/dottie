@@ -113,21 +113,20 @@ type Printer interface {
 }
 
 type Print struct {
-	boxWidth     int                // Max width for strings when using WrapMode
-	writer       io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
-	renderer     *lipgloss.Renderer // The renderer responsible for providing the output and color management
-	color        Style              // Color config
-	textStyle    lipgloss.Style
-	textEmphasis bool
-	boxStyles    Box
+	boxWidth       int                // Max width for strings when using WrapMode
+	writer         io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
+	renderer       *lipgloss.Renderer // The renderer responsible for providing the output and color management
+	style          Style              // Color config
+	textStyle      lipgloss.Style
+	boxHeaderStyle lipgloss.Style
+	boxBodyStyle   lipgloss.Style
 }
 
-func NewPrinter(color Style, renderer *lipgloss.Renderer, options ...PrinterOption) Print {
+func NewPrinter(style Style, renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	options = append([]PrinterOption{
 		WitBoxWidth(80),
-		WithColor(color),
+		WithStyle(style),
 		WithRenderer(renderer),
-		WithEmphasis(false),
 	}, options...)
 
 	printer := &Print{}
@@ -135,10 +134,8 @@ func NewPrinter(color Style, renderer *lipgloss.Renderer, options ...PrinterOpti
 		option(printer)
 	}
 
-	printer.boxStyles = printer.color.BoxStyles(
-		printer.renderer.NewStyle(),
-		printer.renderer.NewStyle(),
-	)
+	printer.boxHeaderStyle = printer.style.BoxHeader()
+	printer.boxBodyStyle = printer.style.BoxBody()
 
 	return *printer
 }
@@ -207,13 +204,13 @@ func (p Print) Box(header string, bodies ...string) {
 	body := strings.Join(bodies, " ")
 
 	// Copy the box styles to avoid leaking changes to the styles
-	styles := p.boxStyles.Copy()
+	headerStyle, bodyStyle := p.boxHeaderStyle.Copy(), p.boxBodyStyle.Copy()
 
 	// If there are no body, just render the header box directly
 	if len(body) == 0 {
 		fmt.Fprintln(
 			p.writer,
-			styles.Header.
+			headerStyle.
 				Width(p.boxWidth-borderWidth).
 				Border(headerOnlyBorder).
 				Render(header),
@@ -223,8 +220,8 @@ func (p Print) Box(header string, bodies ...string) {
 	}
 
 	// Render the header and body box
-	boxHeader := styles.Header.Width(p.boxWidth - borderWidth).Render(header)
-	boxBody := styles.Body.Width(p.boxWidth - borderWidth).Render(body)
+	boxHeader := headerStyle.Width(p.boxWidth - borderWidth).Render(header)
+	boxBody := bodyStyle.Width(p.boxWidth - borderWidth).Render(body)
 
 	// If a maxWidth is set, the boxes will be aligned automatically to the max
 	if p.boxWidth > 0 {
@@ -247,10 +244,10 @@ func (p Print) Box(header string, bodies ...string) {
 	// Find the shortest box and (re)render it to the length of the longest one
 	switch {
 	case headerWidth > bodyWidth:
-		boxBody = styles.Body.Width(headerWidth).Render(body)
+		boxBody = bodyStyle.Width(headerWidth).Render(body)
 
 	case headerWidth < bodyWidth:
-		boxHeader = styles.Header.Width(bodyWidth).Render(header)
+		boxHeader = headerStyle.Width(bodyWidth).Render(header)
 	}
 
 	fmt.Fprintln(
@@ -331,9 +328,10 @@ func (p Print) printHelper(a ...any) string {
 // Printer options
 // -----------------------------------------------------
 
-func WithColor(color Style) PrinterOption {
+func WithStyle(style Style) PrinterOption {
 	return func(p *Print) {
-		p.color = color
+		p.style = style
+		p.textStyle = p.renderer.NewStyle().Inherit(style.TextStyle())
 	}
 }
 
@@ -350,23 +348,15 @@ func WithTextStyle(style lipgloss.Style) PrinterOption {
 	}
 }
 
-func WithBoxStyle(style Box) PrinterOption {
-	return func(p *Print) {
-		p.boxStyles = style
-	}
-}
-
 func WithEmphasis(b bool) PrinterOption {
 	return func(printer *Print) {
-		printer.textEmphasis = b
-
 		if b {
-			printer.textStyle = printer.renderer.NewStyle().Inherit(printer.color.TextEmphasisStyle())
+			printer.textStyle = printer.renderer.NewStyle().Inherit(printer.style.TextEmphasisStyle())
 
 			return
 		}
 
-		printer.textStyle = printer.renderer.NewStyle().Inherit(printer.color.TextStyle())
+		printer.textStyle = printer.renderer.NewStyle().Inherit(printer.style.TextStyle())
 	}
 }
 
