@@ -3,7 +3,6 @@ package validate
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -39,28 +38,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	//
-	// Build filters
-	//
-
-	handlers := []render.Handler{}
-	handlers = append(handlers, render.ExcludeDisabledAssignments)
-
-	excludedPrefixes := shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
-	for _, filter := range excludedPrefixes {
-		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
-	}
-
-	stderr := tui.WriterFromContext(cmd.Context(), tui.Stderr)
-
-	//
 	// Interpolate
 	//
 
-	warn, err := document.InterpolateAll()
-
-	if warn != nil {
-		stderr.Warning().Printfln("%+v", warn)
-	}
+	warnings, err := document.InterpolateAll()
+	tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 	if err != nil {
 		return err
@@ -70,7 +52,18 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Validate
 	//
 
-	ignoreRules := shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
+	var (
+		excludedPrefixes = shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
+		ignoreRules      = shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
+		stderr           = tui.StderrFromContext(cmd.Context())
+		handlers         = []render.Handler{
+			render.ExcludeDisabledAssignments,
+		}
+	)
+
+	for _, filter := range excludedPrefixes {
+		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
+	}
 
 	validationErrors := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
 	if len(validationErrors) == 0 {
@@ -86,14 +79,22 @@ func runE(cmd *cobra.Command, args []string) error {
 	danger.Println()
 
 	for _, errIsh := range validationErrors {
-		fmt.Fprintln(os.Stderr, validation.Explain(cmd.Context(), document, errIsh, errIsh, attemptFixOfValidationError, true))
+		stderr.NoColor().Println(
+			validation.Explain(
+				cmd.Context(),
+				document,
+				errIsh,
+				errIsh,
+				attemptFixOfValidationError,
+				true,
+			))
 	}
 
 	//
 	// Validate file again, in case some of the fixers from before fixed them
 	//
 
-	document, err = pkg.Load(cmd.Flag("file").Value.String())
+	document, err = pkg.Load(filename)
 	if err != nil {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
