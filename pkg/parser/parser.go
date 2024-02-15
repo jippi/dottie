@@ -162,6 +162,10 @@ func (p *Parser) Parse() (*ast.Document, error) {
 		}
 	}
 
+	// Make sure to initialize the document so dependencies and such are
+	// computed immediately
+	document.Initialize()
+
 	return document, nil
 }
 

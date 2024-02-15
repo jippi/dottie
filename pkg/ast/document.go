@@ -290,6 +290,10 @@ func (document *Document) Initialize() {
 		// Add current assignment as dependent on its own dependencies
 		for _, dependency := range assignment.Dependencies {
 			if x := document.Get(dependency.Name); x != nil {
+				if x.Dependents == nil {
+					x.Dependents = make(map[string]*Assignment)
+				}
+
 				x.Dependents[assignment.Name] = assignment
 			}
 		}

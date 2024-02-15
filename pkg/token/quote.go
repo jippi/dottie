@@ -1,5 +1,7 @@
 package token
 
+import "encoding/json"
+
 type Quote uint
 
 const (
@@ -45,6 +47,22 @@ func (qt Quote) String() string {
 	}
 
 	return str
+}
+
+func (qt Quote) MarshalJSON() ([]byte, error) {
+	switch qt {
+	case NoQuotes:
+		return json.Marshal(nil)
+
+	case SingleQuotes:
+		return json.Marshal("single")
+
+	case DoubleQuotes:
+		return json.Marshal("double")
+
+	default:
+		panic("unknown quote style")
+	}
 }
 
 func QuoteFromString(in string) Quote {
