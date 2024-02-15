@@ -1,6 +1,8 @@
 package render
 
 import (
+	"context"
+
 	"github.com/jippi/dottie/pkg/ast"
 )
 
@@ -20,7 +22,7 @@ func NewFormatter() *Renderer {
 
 // FormatterHandler is responsible for formatting an .env file according
 // to our opinionated style.
-func FormatterHandler(input *HandlerInput) HandlerSignal {
+func FormatterHandler(ctx context.Context, input *HandlerInput) HandlerSignal {
 	switch statement := input.CurrentStatement.(type) {
 	case *ast.Newline:
 		if !input.Settings.showBlankLines {
@@ -40,7 +42,7 @@ func FormatterHandler(input *HandlerInput) HandlerSignal {
 		return input.Stop()
 
 	case *ast.Group:
-		output := input.Renderer.group(statement)
+		output := input.Renderer.group(ctx, statement)
 		if output.IsEmpty() {
 			return input.Stop()
 		}
@@ -56,7 +58,7 @@ func FormatterHandler(input *HandlerInput) HandlerSignal {
 		return input.Return(buf)
 
 	case *ast.Assignment:
-		output := input.Renderer.assignment(statement)
+		output := input.Renderer.assignment(ctx, statement)
 		if output.IsEmpty() {
 			return input.Stop()
 		}

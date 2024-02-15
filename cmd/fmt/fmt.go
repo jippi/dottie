@@ -19,11 +19,11 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			if err := pkg.Save(filename, env); err != nil {
+			if err := pkg.Save(cmd.Context(), filename, env); err != nil {
 				return err
 			}
 
-			tui.Theme.Success.StdoutPrinter().Printfln("File [%s] was successfully formatted", filename)
+			tui.ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.Success).Printfln("File [%s] was successfully formatted", filename)
 
 			return nil
 		},

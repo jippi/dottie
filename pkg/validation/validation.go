@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
@@ -29,7 +30,7 @@ func NewError(assignment *ast.Assignment, err error) ValidationError {
 	}
 }
 
-func Validate(doc *ast.Document, handlers []render.Handler, ignoreErrors []string) []ValidationError {
+func Validate(ctx context.Context, doc *ast.Document, handlers []render.Handler, ignoreErrors []string) []ValidationError {
 	data := map[string]any{}
 	rules := map[string]any{}
 
@@ -49,7 +50,7 @@ NEXT:
 		}
 
 		for _, handler := range handlers {
-			status := handler(handlerInput)
+			status := handler(ctx, handlerInput)
 
 			switch status {
 			// Stop processing the statement and return nothing
@@ -105,10 +106,11 @@ NEXT_FIELD:
 	return result
 }
 
-func ValidateSingleAssignment(doc *ast.Document, assignment *ast.Assignment, handlers []render.Handler, ignoreErrors []string) []ValidationError {
+func ValidateSingleAssignment(ctx context.Context, doc *ast.Document, assignment *ast.Assignment, handlers []render.Handler, ignoreErrors []string) []ValidationError {
 	keys := AssignmentsToValidateRecursive(assignment)
 
 	return Validate(
+		ctx,
 		doc,
 		append(
 			[]render.Handler{

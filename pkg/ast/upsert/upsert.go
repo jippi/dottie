@@ -1,6 +1,7 @@
 package upsert
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
@@ -50,7 +51,7 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 }
 
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
-func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error) {
+func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error, error) {
 	assignment := u.document.Get(input.Name)
 	found := assignment != nil
 
@@ -78,7 +79,7 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 		var err error
 
 		// Create and insert the (*ast.Assignment) into the Statement list
-		assignment, err = u.createAndInsert(input)
+		assignment, err = u.createAndInsert(ctx, input)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -100,7 +101,7 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	)
 
 	// Render and parse back the Statement to ensure annotations and such are properly handled
-	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(assignment).String()), "-").Parse()
+	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, assignment).String()), "-").Parse()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
 	}
@@ -130,7 +131,7 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors := validation.ValidateSingleAssignment(u.document, assignment, nil, nil); len(validationErrors) > 0 {
+		if validationErrors := validation.ValidateSingleAssignment(ctx, u.document, assignment, nil, nil); len(validationErrors) > 0 {
 			var errorCollection error
 
 			for _, err := range validationErrors {
@@ -144,7 +145,7 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	return assignment, warnings, nil
 }
 
-func (u *Upserter) createAndInsert(input *ast.Assignment) (*ast.Assignment, error) {
+func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error) {
 	// Create the new newAssignment
 	newAssignment := &ast.Assignment{
 		Comments: input.Comments,
@@ -153,7 +154,7 @@ func (u *Upserter) createAndInsert(input *ast.Assignment) (*ast.Assignment, erro
 		Name:     input.Name,
 	}
 
-	doc, err := parser.New(scanner.New(render.NewFormatter().Statement(newAssignment).String()), "-").Parse()
+	doc, err := parser.New(scanner.New(render.NewFormatter().Statement(ctx, newAssignment).String()), "-").Parse()
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse assignment: %w", err)
 	}

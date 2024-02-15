@@ -42,13 +42,17 @@ func NewCommand() *cobra.Command {
 
 			warn, err := env.InterpolateStatement(existing)
 			if warn != nil {
-				tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
+				tui.
+					ColorPrinterFromContext(cmd.Context(), tui.Stderr, tui.Warning).
+					Printfln("%+v", warn)
 			}
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(existing.Interpolated)
+			tui.
+				ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.NoColor).
+				Println(existing.Interpolated)
 
 			return nil
 		},

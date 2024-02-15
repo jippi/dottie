@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -11,7 +12,7 @@ var _ Output = (*PlainOutput)(nil)
 
 type PlainOutput struct{}
 
-func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
+func (PlainOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
 	out := NewLinesCollection()
 
 	out.Add("################################################################################")
@@ -21,7 +22,7 @@ func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
 	return out
 }
 
-func (PlainOutput) Assignment(assignment *ast.Assignment, settings Settings) *Lines {
+func (PlainOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
 	if !assignment.Enabled {
@@ -39,11 +40,11 @@ func (PlainOutput) Assignment(assignment *ast.Assignment, settings Settings) *Li
 	return NewLinesCollection().Add(buf.String())
 }
 
-func (r PlainOutput) Comment(comment *ast.Comment, settings Settings) *Lines {
+func (r PlainOutput) Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines {
 	return NewLinesCollection().Add(comment.Value)
 }
 
-func (r PlainOutput) Newline(newline *ast.Newline, settings Settings) *Lines {
+func (r PlainOutput) Newline(ctx context.Context, newline *ast.Newline, settings Settings) *Lines {
 	if newline.Blank && !settings.ShowBlankLines() {
 		return nil
 	}

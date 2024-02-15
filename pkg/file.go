@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
@@ -21,14 +22,14 @@ func Load(filename string) (*ast.Document, error) {
 	return Parse(file, filename)
 }
 
-func Save(filename string, doc *ast.Document) error {
+func Save(ctx context.Context, filename string, doc *ast.Document) error {
 	file, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	res := render.NewFormatter().Statement(doc)
+	res := render.NewFormatter().Statement(ctx, doc)
 	if res.IsEmpty() {
 		return errors.New("The rendered .env file is unexpectedly 0 bytes long - please report this as a bug (unless your file is empty)")
 	}

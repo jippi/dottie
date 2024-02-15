@@ -1,6 +1,7 @@
 package render_test
 
 import (
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -66,7 +67,7 @@ func TestFormatter(t *testing.T) {
 			env, err := pkg.Load(tt.filename)
 			require.NoError(t, err)
 
-			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).String()))
+			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(context.TODO(), env).String()))
 		})
 	}
 }

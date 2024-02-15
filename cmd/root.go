@@ -77,7 +77,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 
 	command, err := root.ExecuteC()
 	if err != nil {
-		stderr := tui.FromContext(ctx, tui.Stderr)
+		stderr := tui.PrinterFromContext(ctx, tui.Stderr)
 		stderr.Color(tui.Danger).Copy(tui.WithEmphasis(true)).Printfln("%s %+v", command.ErrPrefix(), err)
 		stderr.Color(tui.Info).Printfln("Run '%v --help' for usage.", command.CommandPath())
 	}

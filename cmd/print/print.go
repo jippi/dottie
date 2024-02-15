@@ -19,15 +19,16 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, warnings, err := setup(cmd.Flags())
 			if warnings != nil {
-				tui.ColorFromContext(cmd.Context(), tui.Stderr, tui.Warning).Printfln("%+v", warnings)
+				tui.ColorPrinterFromContext(cmd.Context(), tui.Stderr, tui.Warning).Printfln("%+v", warnings)
 			}
 			if err != nil {
 				return err
 			}
 
+			// fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
 			tui.
-				ColorFromContext(cmd.Context(), tui.Stdout, tui.Neutral).
-				Println(render.NewRenderer(*settings).Statement(env).String())
+				ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.NoColor).
+				Println(render.NewRenderer(*settings).Statement(cmd.Context(), env).String())
 
 			return nil
 		},
@@ -94,6 +95,8 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
+
+	settings.Apply(render.WithColors(false))
 
 	return doc, settings, allWarnings, allErrors
 }

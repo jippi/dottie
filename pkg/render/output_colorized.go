@@ -2,6 +2,7 @@ package render
 
 import (
 	"bytes"
+	"context"
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/tui"
@@ -11,10 +12,10 @@ var _ Output = (*ColorizedOutput)(nil)
 
 type ColorizedOutput struct{}
 
-func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
+func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.Theme.Info.Printer(tui.RendererWithTTY(&buf))
+	out := tui.ThemeFromContext(ctx).Info.Printer(tui.RendererWithTTY(&buf))
 
 	out.Println("################################################################################")
 	out.ApplyStyle(tui.Bold).Println(group.Name)
@@ -23,11 +24,13 @@ func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
 	return NewLinesCollection().Add(buf.String())
 }
 
-func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings) *Lines {
+func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
+	printer := tui.ThemeFromContext(ctx).Printer(&buf)
+
 	if !assignment.Enabled {
-		tui.Theme.Danger.Printer(tui.RendererWithTTY(&buf)).Print("#")
+		printer.Color(tui.Danger).Print("#")
 	}
 
 	val := assignment.Literal
@@ -36,19 +39,19 @@ func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings)
 		val = assignment.Interpolated
 	}
 
-	tui.Theme.Primary.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Name)
-	tui.Theme.Dark.Printer(tui.RendererWithTTY(&buf)).Print("=")
-	tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Quote)
-	tui.Theme.Warning.Printer(tui.RendererWithTTY(&buf)).Print(val)
-	tui.Theme.Success.Printer(tui.RendererWithTTY(&buf)).Print(assignment.Quote)
+	printer.Color(tui.Primary).Print(assignment.Name)
+	printer.Color(tui.Dark).Print("=")
+	printer.Color(tui.Success).Print(assignment.Quote)
+	printer.Color(tui.Warning).Print(val)
+	printer.Color(tui.Success).Print(assignment.Quote)
 
 	return NewLinesCollection().Add(buf.String())
 }
 
-func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) *Lines {
+func (ColorizedOutput) Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.Theme.Success.Printer(tui.RendererWithTTY(&buf))
+	out := tui.ThemeFromContext(ctx).Printer(&buf).Color(tui.Success)
 
 	if comment.Annotation == nil {
 		out.Print(comment.Value)
@@ -66,7 +69,7 @@ func (ColorizedOutput) Comment(comment *ast.Comment, settings Settings) *Lines {
 	return NewLinesCollection().Add(buf.String())
 }
 
-func (ColorizedOutput) Newline(newline *ast.Newline, settings Settings) *Lines {
+func (ColorizedOutput) Newline(ctx context.Context, newline *ast.Newline, settings Settings) *Lines {
 	if newline.Blank && !settings.ShowBlankLines() {
 		return nil
 	}

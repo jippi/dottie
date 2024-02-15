@@ -40,12 +40,15 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	dark := tui.Theme.Dark.StdoutPrinter()
-	info := tui.Theme.Info.StdoutPrinter()
-	danger := tui.Theme.Danger.StdoutPrinter()
-	dangerEmphasis := tui.Theme.Danger.StdoutPrinter(tui.WithEmphasis(true))
-	success := tui.Theme.Success.StdoutPrinter()
-	primary := tui.Theme.Primary.StdoutPrinter()
+	stdout, stderr := tui.PrintersFromContext(cmd.Context())
+
+	dark := stdout.Color(tui.Dark)
+	info := stdout.Color(tui.Info)
+	danger := stdout.Color(tui.Danger)
+	dangerEmphasis := stdout.Color(tui.Danger).Copy(tui.WithEmphasis(true))
+	success := stdout.Color(tui.Success)
+	primary := stdout.Color(tui.Primary)
+	warningStderr := stderr.Color(tui.Warning)
 
 	info.Box("Starting update of " + filename + " from upstream")
 	info.Println()
@@ -175,9 +178,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		changed, warn, err := upserter.Upsert(originalStatement)
+		changed, warn, err := upserter.Upsert(cmd.Context(), originalStatement)
 		if warn != nil {
-			tui.Theme.Warning.StderrPrinter().Println(warn)
+			warningStderr.Println(warn)
 		}
 
 		if err != nil {
@@ -201,7 +204,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if errors := validation.ValidateSingleAssignment(originalEnv, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
+		if errors := validation.ValidateSingleAssignment(cmd.Context(), originalEnv, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
 			sawError = true
 			lastWasError = true
 
@@ -216,7 +219,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			dark.Println(" due to validation error:")
 
 			for _, errIsh := range errors {
-				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(originalEnv, errIsh, errIsh, false, false)))
+				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(cmd.Context(), originalEnv, errIsh, errIsh, false, false)))
 			}
 
 			counter++
@@ -262,7 +265,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Saving the new", primary.Sprint(filename))
 
-	if err := pkg.Save(filename, sourceDoc); err != nil {
+	if err := pkg.Save(cmd.Context(), filename, sourceDoc); err != nil {
 		danger.Println("  ERROR", err.Error())
 
 		return err

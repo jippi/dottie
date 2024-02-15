@@ -2,28 +2,17 @@ package tui
 
 import (
 	"io"
-	"os"
 
 	"github.com/charmbracelet/lipgloss"
 )
-
-type Box struct {
-	Header lipgloss.Style
-	Body   lipgloss.Style
-}
-
-func (b Box) Copy() Box {
-	return Box{
-		Header: b.Header.Copy(),
-		Body:   b.Body.Copy(),
-	}
-}
 
 type Color struct {
 	Text         lipgloss.AdaptiveColor
 	TextEmphasis lipgloss.AdaptiveColor
 	Background   lipgloss.AdaptiveColor
 	Border       lipgloss.AdaptiveColor
+
+	noColor bool
 }
 
 func NewColor(config ColorConfig) Color {
@@ -41,28 +30,34 @@ func NewColor(config ColorConfig) Color {
 	return color
 }
 
+func NewNoColor() Color {
+	return Color{
+		noColor: true,
+	}
+}
+
 func (c Color) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	return NewPrinter(c, renderer, options...)
 }
 
-func (c Color) BuffPrinter(w io.Writer, options ...PrinterOption) Print {
+func (c Color) BufferPrinter(w io.Writer, options ...PrinterOption) Print {
 	return c.Printer(Renderer(w), options...)
 }
 
-func (c Color) StderrPrinter(options ...PrinterOption) Print {
-	return NewPrinter(c, Renderer(os.Stderr), options...)
-}
-
-func (c Color) StdoutPrinter(options ...PrinterOption) Print {
-	return NewPrinter(c, Renderer(os.Stdout), options...)
-}
-
 func (c Color) TextStyle(style lipgloss.Style) lipgloss.Style {
+	if c.noColor {
+		return style
+	}
+
 	return style.
 		Foreground(c.Text)
 }
 
 func (c Color) TextEmphasisStyle(style lipgloss.Style) lipgloss.Style {
+	if c.noColor {
+		return style
+	}
+
 	return style.
 		Foreground(c.TextEmphasis).
 		Background(c.Background).

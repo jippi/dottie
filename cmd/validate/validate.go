@@ -52,6 +52,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
 	}
 
+	stderr := tui.PrinterFromContext(cmd.Context(), tui.Stderr)
+
 	//
 	// Interpolate
 	//
@@ -59,7 +61,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	warn, err := env.InterpolateAll()
 
 	if warn != nil {
-		tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
+		stderr.Color(tui.Warning).Printfln("%+v", warn)
 	}
 
 	if err != nil {
@@ -70,19 +72,19 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Validate
 	//
 
-	res := validation.Validate(env, handlers, ignoreRules)
+	res := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
 	if len(res) == 0 {
-		tui.Theme.Success.StderrPrinter().Box("No validation errors found")
+		stderr.Color(tui.Success).Box("No validation errors found")
 
 		return nil
 	}
 
-	stderr := tui.Theme.Danger.StderrPrinter()
-	stderr.Box(fmt.Sprintf("%d validation errors found", len(res)))
-	stderr.Println()
+	danger := stderr.Color(tui.Danger)
+	danger.Box(fmt.Sprintf("%d validation errors found", len(res)))
+	danger.Println()
 
 	for _, errIsh := range res {
-		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, errIsh, fix, true))
+		fmt.Fprintln(os.Stderr, validation.Explain(cmd.Context(), env, errIsh, errIsh, fix, true))
 	}
 
 	//
@@ -94,19 +96,20 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := validation.Validate(env, handlers, ignoreRules)
+	newRes := validation.Validate(cmd.Context(), env, handlers, ignoreRules)
 	if len(newRes) == 0 {
-		tui.Theme.Success.StderrPrinter().Println("All validation errors fixed")
+		stderr.Color(tui.Success).Println("All validation errors fixed")
 
 		return nil
 	}
 
 	diff := len(res) - len(newRes)
 	if diff > 0 {
-		tui.Theme.Warning.StderrPrinter().Box(
-			fmt.Sprintf("%d validation errors left", len(newRes)),
-			tui.Theme.Success.StderrPrinter().Sprintf("%d validation errors was fixed", diff),
-		)
+		stderr.Color(tui.Warning).
+			Box(
+				fmt.Sprintf("%d validation errors left", len(newRes)),
+				stderr.Color(tui.Success).Sprintf("%d validation errors was fixed", diff),
+			)
 	}
 
 	return errors.New("Validation failed")

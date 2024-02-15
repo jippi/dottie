@@ -1,8 +1,8 @@
 ---- exec command line 0: [print --no-color --pretty]
-KEY_A="I'm key A"  
-                   
+KEY_A="I'm key A"
+
 # Comment for KEY_B
-KEY_B="I'm key B"  
-                   
-KEY_C="I'm key C"  
-                   
+KEY_B="I'm key B"
+
+KEY_C="I'm key C"
+

@@ -115,14 +115,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Upsert the assignment
 		//
 
-		assignment, warnings, err := upserter.Upsert(assignment)
+		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
 		if warnings != nil {
 			stderr.Color(tui.Warning).Println("WARNING:", warnings)
 		}
 
 		if err != nil {
 			z := validation.NewError(assignment, err)
-			stderr.Color(tui.Neutral).Println(validation.Explain(document, z, z, false, true))
+			stderr.Color(tui.NoColor).Println(validation.Explain(cmd.Context(), document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
@@ -142,7 +142,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Save file
 	//
 
-	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
+	if err := pkg.Save(cmd.Context(), shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 

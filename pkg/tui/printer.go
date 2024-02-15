@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/erikgeiser/promptkit"
 )
 
 type StyleChanger func(*lipgloss.Style)
@@ -106,9 +105,6 @@ type Printer interface {
 	// ApplyTextStyle returns a new copy of [StylePrint] instance with the [Style] based on the callback changes
 	ApplyStyle(changer StyleChanger) Print
 
-	// WrapMode returns the configured [WrapMode]
-	WrapMode() promptkit.WrapMode
-
 	// Writer returns the configured [io.Writer]
 	Writer() io.Writer
 
@@ -117,12 +113,10 @@ type Printer interface {
 }
 
 type Print struct {
-	maxWidth int                // Max width for strings when using WrapMode
-	wrapMode promptkit.WrapMode // WrapMode controls if line-wrapping should be off [nil], soft [promptkit.WordWrap] or hard [promptkit.HardWrap]
+	boxWidth int                // Max width for strings when using WrapMode
 	writer   io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
 	renderer *lipgloss.Renderer // The renderer responsible for providing the output and color management
 	color    Color              // Color config
-	theme    ThemeConfig        // Theme config
 
 	textStyle    lipgloss.Style
 	textEmphasis bool
@@ -131,11 +125,10 @@ type Print struct {
 
 func NewPrinter(color Color, renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	options = append([]PrinterOption{
+		WitBoxWidth(100),
 		WithColor(color),
 		WithRenderer(renderer),
-		WithTheme(Theme),
 		WithEmphasis(false),
-		WithWrapMode(nil),
 	}, options...)
 
 	printer := &Print{}
@@ -143,7 +136,10 @@ func NewPrinter(color Color, renderer *lipgloss.Renderer, options ...PrinterOpti
 		option(printer)
 	}
 
-	printer.boxStyles = printer.color.BoxStyles(printer.renderer.NewStyle(), printer.renderer.NewStyle())
+	printer.boxStyles = printer.color.BoxStyles(
+		printer.renderer.NewStyle(),
+		printer.renderer.NewStyle(),
+	)
 
 	return *printer
 }
@@ -219,7 +215,7 @@ func (p Print) Box(header string, bodies ...string) {
 		fmt.Fprintln(
 			p.writer,
 			styles.Header.
-				Width(p.maxWidth-borderWidth).
+				Width(p.boxWidth-borderWidth).
 				Border(headerOnlyBorder).
 				Render(header),
 		)
@@ -228,11 +224,11 @@ func (p Print) Box(header string, bodies ...string) {
 	}
 
 	// Render the header and body box
-	boxHeader := styles.Header.Width(p.maxWidth - borderWidth).Render(header)
-	boxBody := styles.Body.Width(p.maxWidth - borderWidth).Render(body)
+	boxHeader := styles.Header.Width(p.boxWidth - borderWidth).Render(header)
+	boxBody := styles.Body.Width(p.boxWidth - borderWidth).Render(body)
 
 	// If a maxWidth is set, the boxes will be aligned automatically to the max
-	if p.maxWidth > 0 {
+	if p.boxWidth > 0 {
 		fmt.Fprintln(
 			p.writer,
 			lipgloss.JoinVertical(
@@ -276,12 +272,8 @@ func (p Print) Write(b []byte) (n int, err error) {
 // Helper methods
 // -----------------------------------------------------
 
-func (p Print) WrapMode() promptkit.WrapMode {
-	return p.wrapMode
-}
-
 func (p Print) MaxWidth() int {
-	return p.maxWidth
+	return p.boxWidth
 }
 
 func (p Print) Writer() io.Writer {
@@ -322,11 +314,7 @@ func (p Print) render(input string) string {
 }
 
 func (p Print) wrap(input string) string {
-	if p.wrapMode == nil {
-		return input
-	}
-
-	return p.wrapMode(input, p.maxWidth)
+	return input
 }
 
 func (p Print) printHelper(a ...any) string {
@@ -354,14 +342,6 @@ func WithRenderer(renderer *lipgloss.Renderer) PrinterOption {
 	return func(p *Print) {
 		p.renderer = renderer
 		p.writer = renderer.Output()
-	}
-}
-
-func WithTheme(theme ThemeConfig) PrinterOption {
-	return func(p *Print) {
-		p.theme = theme
-		p.maxWidth = theme.DefaultWidth
-		p.wrapMode = theme.WrapMode
 	}
 }
 
@@ -397,14 +377,8 @@ func WithWriter(w io.Writer) PrinterOption {
 	}
 }
 
-func WithMaxWidth(i int) PrinterOption {
+func WitBoxWidth(i int) PrinterOption {
 	return func(p *Print) {
-		p.maxWidth = i
-	}
-}
-
-func WithWrapMode(mode promptkit.WrapMode) PrinterOption {
-	return func(p *Print) {
-		p.wrapMode = mode
+		p.boxWidth = i
 	}
 }

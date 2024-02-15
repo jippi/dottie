@@ -2,8 +2,6 @@ package tui
 
 import (
 	"io"
-
-	"github.com/erikgeiser/promptkit"
 )
 
 type colorType int
@@ -13,7 +11,7 @@ const (
 	Dark
 	Info
 	Light
-	Neutral
+	NoColor
 	Primary
 	Secondary
 	Success
@@ -23,14 +21,11 @@ const (
 type ThemeConfig struct {
 	DefaultWidth int
 
-	// Line wrapping handling
-	WrapMode promptkit.WrapMode
-
 	Danger    Color
 	Dark      Color
 	Info      Color
 	Light     Color
-	Neutral   Color
+	NoColor   Color
 	Primary   Color
 	Secondary Color
 	Success   Color
@@ -40,11 +35,13 @@ type ThemeConfig struct {
 func (tc ThemeConfig) Printer(w io.Writer) ThemePrinter {
 	return ThemePrinter{
 		w:     w,
+		theme: tc,
 		cache: make(map[colorType]Printer),
 	}
 }
 
 type ThemePrinter struct {
+	theme ThemeConfig
 	w     io.Writer
 	cache map[colorType]Printer
 }
@@ -58,56 +55,58 @@ func (tp ThemePrinter) Color(colorType colorType) Printer {
 
 	switch colorType {
 	case Danger:
-		color = Theme.Danger
+		color = tp.theme.Danger
 	case Dark:
-		color = Theme.Danger
+		color = tp.theme.Danger
 	case Info:
-		color = Theme.Info
+		color = tp.theme.Info
 	case Light:
-		color = Theme.Light
+		color = tp.theme.Light
 	case Primary:
-		color = Theme.Primary
+		color = tp.theme.Primary
 	case Secondary:
-		color = Theme.Secondary
+		color = tp.theme.Secondary
 	case Success:
-		color = Theme.Success
+		color = tp.theme.Success
 	case Warning:
-		color = Theme.Warning
-	case Neutral:
-		color = Theme.Neutral
+		color = tp.theme.Warning
+	case NoColor:
+		color = tp.theme.NoColor
 	}
 
-	tp.cache[colorType] = color.BuffPrinter(tp.w)
+	tp.cache[colorType] = color.BufferPrinter(tp.w)
 
 	return tp.cache[colorType]
 }
 
-var Theme ThemeConfig
+func NewTheme() ThemeConfig {
+	theme := ThemeConfig{}
+	theme.DefaultWidth = 80
 
-func init() {
-	Theme = ThemeConfig{}
-	Theme.DefaultWidth = 100
-	Theme.WrapMode = nil // Disabled for now, left here for easy opt-in in the future
-
-	Theme.Danger = NewColor(NewColorComponentConfig(Red))
-	Theme.Info = NewColor(NewColorComponentConfig(Cyan))
-	Theme.Light = NewColor(NewColorComponentConfig(Gray300))
-	Theme.Primary = NewColor(NewColorComponentConfig(Blue))
-	Theme.Secondary = NewColor(NewColorComponentConfig(Gray600))
-	Theme.Success = NewColor(NewColorComponentConfig(Green))
-	Theme.Warning = NewColor(NewColorComponentConfig(Yellow))
-	Theme.Neutral = NewColor(NewNeutralColorComponentConfig())
+	theme.Danger = NewColor(NewColorComponentConfig(Red))
+	theme.Info = NewColor(NewColorComponentConfig(Cyan))
+	theme.Light = NewColor(NewColorComponentConfig(Gray300))
+	theme.Primary = NewColor(NewColorComponentConfig(Blue))
+	theme.Secondary = NewColor(NewColorComponentConfig(Gray600))
+	theme.Success = NewColor(NewColorComponentConfig(Green))
+	theme.Warning = NewColor(NewColorComponentConfig(Yellow))
+	theme.NoColor = NewNoColor()
 
 	dark := NewColorComponentConfig(Gray700)
+
 	dark.TextEmphasis.Dark = ComponentColorConfig{
 		Color: ColorToHex(Gray300),
 	}
+
 	dark.Background.Dark = ComponentColorConfig{
 		Color: "#1a1d20",
 	}
+
 	dark.Border.Dark = ComponentColorConfig{
 		Color: ColorToHex(Gray800),
 	}
 
-	Theme.Dark = NewColor(dark)
+	theme.Dark = NewColor(dark)
+
+	return theme
 }

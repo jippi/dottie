@@ -44,7 +44,7 @@ func NewCommand() *cobra.Command {
 
 			existing.Enable()
 
-			if err := pkg.Save(filename, env); err != nil {
+			if err := pkg.Save(cmd.Context(), filename, env); err != nil {
 				return fmt.Errorf("could not save file: %w", err)
 			}
 
