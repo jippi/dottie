@@ -40,15 +40,15 @@ func NewTheme() Theme {
 	return theme
 }
 
-func (theme Theme) NewWriter(writer *lipgloss.Renderer) ThemeWriter {
-	return ThemeWriter{
+func (theme Theme) NewWriter(writer *lipgloss.Renderer) Writer {
+	return Writer{
 		writer: writer,
 		theme:  theme,
 		cache:  make(map[colorType]Printer),
 	}
 }
 
-func NewWriter(ctx context.Context, writer io.Writer) ThemeWriter {
+func NewWriter(ctx context.Context, writer io.Writer) Writer {
 	var options []termenv.OutputOption
 
 	// If the primary color profile is in color mode, enforce TTY to keep coloring on

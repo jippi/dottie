@@ -44,14 +44,14 @@ func ColorProfile(ctx context.Context) termenv.Profile {
 	return ctx.Value(colorProfileContextValue).(termenv.Profile) //nolint:forcetypeassert
 }
 
-func WriterFromContext(ctx context.Context, key printerContextKey) ThemeWriter {
-	return ctx.Value(key).(ThemeWriter) //nolint:forcetypeassert
+func WriterFromContext(ctx context.Context, key printerContextKey) Writer {
+	return ctx.Value(key).(Writer) //nolint:forcetypeassert
 }
 
 func ColorPrinterFromContext(ctx context.Context, key printerContextKey, color colorType) Printer {
-	return ctx.Value(key).(*ThemeWriter).Color(color) //nolint:forcetypeassert
+	return ctx.Value(key).(*Writer).Color(color) //nolint:forcetypeassert
 }
 
-func PrintersFromContext(ctx context.Context) (ThemeWriter, ThemeWriter) {
-	return ctx.Value(Stdout).(ThemeWriter), ctx.Value(Stderr).(ThemeWriter) //nolint:forcetypeassert
+func PrintersFromContext(ctx context.Context) (Writer, Writer) {
+	return ctx.Value(Stdout).(Writer), ctx.Value(Stderr).(Writer) //nolint:forcetypeassert
 }

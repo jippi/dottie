@@ -54,7 +54,7 @@ func NewStyleWithoutColor() Style {
 	return Style{}
 }
 
-func (style Style) NewPrinter(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
+func (style Style) NewPrinter(renderer *lipgloss.Renderer, options ...PrinterOption) Printer {
 	return NewPrinter(style, renderer, options...)
 }
 
