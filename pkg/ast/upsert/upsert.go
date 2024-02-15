@@ -1,10 +1,14 @@
 package upsert
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/parser"
+	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/scanner"
 	"github.com/jippi/dottie/pkg/validation"
 	"go.uber.org/multierr"
 )
@@ -47,41 +51,38 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 }
 
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
-func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error) {
+func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error, error) {
 	assignment := u.document.Get(input.Name)
-	found := assignment != nil
+	exists := assignment != nil
 
 	// Short circuit with some quick settings checks
 
 	switch {
 	// The assignment exists, so return early
-	case found && u.settings.Has(SkipIfExists):
-		return nil, nil, nil
-
-	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
-	case found && u.settings.Has(SkipIfSet) && len(assignment.Literal) > 0 && !slices.Contains(u.valuesConsideredEmpty, assignment.Literal):
-		return nil, nil, nil
-
-	// The assignment exists, the literal values are the same, and they have same 'Enabled' level
-	case found && u.settings.Has(SkipIfSame) && assignment.Literal == input.Literal && assignment.Enabled == input.Enabled:
+	case exists && u.settings.Has(SkipIfExists):
 		return nil, nil, nil
 
 	// The assignment does *NOT* exists, and we require it to
-	case !found && u.settings.Has(ErrorIfMissing):
+	case !exists && u.settings.Has(ErrorIfMissing):
 		return nil, nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
 
+	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
+	case exists && u.settings.Has(SkipIfSet) && len(assignment.Literal) > 0 && !slices.Contains(u.valuesConsideredEmpty, assignment.Literal):
+		return nil, nil, nil
+
+	// The assignment exists, the literal values are the same, and they have same 'Enabled' level
+	case exists && u.settings.Has(SkipIfSame) && assignment.Literal == input.Literal && assignment.Enabled == input.Enabled:
+		return nil, nil, nil
+
 	// The KEY was *NOT* found, and all other preconditions are not triggering
-	case !found:
+	case !exists:
 		var err error
 
 		// Create and insert the (*ast.Assignment) into the Statement list
-		assignment, err = u.createAndInsert(input)
+		assignment, err = u.createAndInsert(ctx, input)
 		if err != nil {
 			return nil, nil, err
 		}
-
-		// Recalculate the index order of all Statements (for interpolation)
-		u.document.ReindexStatements()
 	}
 
 	// Replace comments on the assignment if the Setting is on
@@ -93,15 +94,32 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	assignment.Literal = input.Literal
 	assignment.Quote = input.Quote
 	assignment.Interpolated = input.Literal
+
+	var (
+		tempDoc       *ast.Document
+		err, warnings error
+	)
+
+	// Render and parse back the Statement to ensure annotations and such are properly handled
+	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, assignment).String()), "-").Parse()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
+	}
+
+	assignment = tempDoc.Get(assignment.Name)
 	assignment.Initialize()
 
 	if _, ok := assignment.Dependencies[assignment.Name]; ok {
 		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", assignment.Name)
 	}
 
-	u.document.Initialize()
+	// Replace the Assignment in the document
+	//
+	// This is necessary since its a different pointer address after we rendered+parsed earlier
+	u.document.Replace(assignment)
 
-	var err, warnings error
+	// Reinitialize the document so all indices and such are correct
+	u.document.Initialize()
 
 	// Interpolate the Assignment if it is enabled
 	if assignment.Enabled {
@@ -113,7 +131,7 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors := validation.ValidateSingleAssignment(u.document, assignment, nil, nil); len(validationErrors) > 0 {
+		if validationErrors := validation.ValidateSingleAssignment(ctx, u.document, assignment, nil, nil); len(validationErrors) > 0 {
 			var errorCollection error
 
 			for _, err := range validationErrors {
@@ -127,18 +145,25 @@ func (u *Upserter) Upsert(input *ast.Assignment) (*ast.Assignment, error, error)
 	return assignment, warnings, nil
 }
 
-func (u *Upserter) createAndInsert(input *ast.Assignment) (*ast.Assignment, error) {
-	// Ensure the group exists (may return 'nil' if no group is required)
-	group := u.document.EnsureGroup(u.group)
-
+func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error) {
 	// Create the new newAssignment
 	newAssignment := &ast.Assignment{
 		Comments: input.Comments,
 		Enabled:  input.Enabled,
-		Group:    group,
 		Literal:  input.Literal,
 		Name:     input.Name,
 	}
+
+	doc, err := parser.New(scanner.New(render.NewFormatter().Statement(ctx, newAssignment).String()), "-").Parse()
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse assignment: %w", err)
+	}
+
+	// Ensure the group exists (may return 'nil' if no group is required)
+	group := u.document.EnsureGroup(u.group)
+
+	newAssignment = doc.Get(newAssignment.Name)
+	newAssignment.Group = group
 
 	// Find the statement slice to operate on
 	statements := u.document.Statements

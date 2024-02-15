@@ -1,9 +1,7 @@
 package set
 
 import (
-	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -23,6 +21,7 @@ func NewCommand() *cobra.Command {
 		Use:     "set KEY=VALUE [KEY=VALUE ...]",
 		Short:   "Set/update one or multiple key=value pairs",
 		GroupID: "manipulate",
+		Args:    cobra.MinimumNArgs(1),
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
 			WithHandlers(render.ExcludeDisabledAssignments).
@@ -34,6 +33,9 @@ func NewCommand() *cobra.Command {
 
 	cmd.Flags().Bool("disabled", false, "Set/change the flag to be disabled (commented out)")
 	cmd.Flags().Bool("error-if-missing", false, "Exit with an error if the KEY does not exists in the .env file already")
+	cmd.Flags().Bool("skip-if-exists", false, "If the already KEY exists, do not set or change any settings")
+	cmd.Flags().Bool("skip-if-same", false, "If the already KEY exists, and it the value is identical, do not set or change any settings")
+
 	cmd.Flags().String("group", "", "The (optional) group name to add the KEY=VALUE pair under")
 	cmd.Flags().String("before", "", "If the key doesn't exist, add it to the file *before* this KEY")
 	cmd.Flags().String("after", "", "If the key doesn't exist, add it to the file *after* this KEY")
@@ -53,10 +55,6 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if len(args) == 0 {
-		return errors.New("Missing required argument: KEY=VALUE")
-	}
-
 	//
 	// Initialize Upserter
 	//
@@ -65,6 +63,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		document,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
 		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+		upsert.WithSettingIf(upsert.SkipIfExists, shared.BoolFlag(cmd.Flags(), "skip-if-exists")),
+		upsert.WithSettingIf(upsert.SkipIfSame, shared.BoolFlag(cmd.Flags(), "skip-if-same")),
 		upsert.WithSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
 	)
 	if err != nil {
@@ -87,12 +87,15 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Loop arguments and place them
 	//
 
-	var allErrors error
+	var (
+		allErrors      error
+		stdout, stderr = tui.WritersFromContext(cmd.Context())
+	)
 
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) != 2 {
-			allErrors = multierr.Append(allErrors, fmt.Errorf("Key: '%s' Error: expected KEY=VALUE pair, missing '='", stringPair))
+			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
 
 			continue
 		}
@@ -106,21 +109,19 @@ func runE(cmd *cobra.Command, args []string) error {
 			Interpolated: value,
 			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
-			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comments")),
+			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
 		}
 
 		//
 		// Upsert the assignment
 		//
 
-		assignment, warnings, err := upserter.Upsert(assignment)
-		if warnings != nil {
-			tui.Theme.Warning.StderrPrinter().Println("WARNING:", warnings)
-		}
+		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
+		tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 		if err != nil {
 			z := validation.NewError(assignment, err)
-			fmt.Fprintln(os.Stderr, validation.Explain(document, z, z, false, true))
+			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
@@ -129,22 +130,22 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)
+		stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 	}
 
 	if allErrors != nil {
-		return errors.New("validation error")
+		return fmt.Errorf("validation error: %+w", allErrors)
 	}
 
 	//
 	// Save file
 	//
 
-	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
+	if err := pkg.Save(cmd.Context(), shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 
-	tui.Theme.Success.StderrPrinter().Println("File was successfully saved")
+	stdout.Success().Println("File was successfully saved")
 
 	return nil
 }

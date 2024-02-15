@@ -1,50 +1,63 @@
 package tui
 
 import (
-	"github.com/erikgeiser/promptkit"
+	"context"
+	"io"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 )
 
-type ThemeConfig struct {
-	DefaultWidth int
-
-	// Line wrapping handling
-	WrapMode promptkit.WrapMode
-
-	Danger    Color
-	Dark      Color
-	Info      Color
-	Light     Color
-	Primary   Color
-	Secondary Color
-	Success   Color
-	Warning   Color
+type Theme struct {
+	styles map[styleIdentifier]Style
 }
 
-var Theme ThemeConfig
+func NewTheme() Theme {
+	theme := Theme{}
+	theme.styles = make(map[styleIdentifier]Style)
+	theme.styles[Danger] = NewStyle(Red)
+	theme.styles[Info] = NewStyle(Cyan)
+	theme.styles[Light] = NewStyle(Gray300)
+	theme.styles[NoColor] = NewStyleWithoutColor()
+	theme.styles[Primary] = NewStyle(Blue)
+	theme.styles[Secondary] = NewStyle(Gray600)
+	theme.styles[Success] = NewStyle(Green)
+	theme.styles[Warning] = NewStyle(Yellow)
 
-func init() {
-	Theme = ThemeConfig{}
-	Theme.DefaultWidth = 100
-	Theme.WrapMode = nil // Disabled for now, left here for easy opt-in in the future
+	dark := NewStyle(Gray700)
+	dark.textEmphasisColor.Dark = ColorToHex(Gray300)
+	dark.backgroundColor.Dark = "#1a1d20"
+	dark.borderColor.Dark = ColorToHex(Gray800)
 
-	Theme.Danger = NewColor(NewColorComponentConfig(Red))
-	Theme.Info = NewColor(NewColorComponentConfig(Cyan))
-	Theme.Light = NewColor(NewColorComponentConfig(Gray300))
-	Theme.Primary = NewColor(NewColorComponentConfig(Blue))
-	Theme.Secondary = NewColor(NewColorComponentConfig(Gray600))
-	Theme.Success = NewColor(NewColorComponentConfig(Green))
-	Theme.Warning = NewColor(NewColorComponentConfig(Yellow))
+	theme.styles[Dark] = dark
 
-	dark := NewColorComponentConfig(Gray700)
-	dark.TextEmphasis.Dark = ComponentColorConfig{
-		Color: ColorToHex(Gray300),
+	return theme
+}
+
+func (theme Theme) Style(id styleIdentifier) Style {
+	return theme.styles[id]
+}
+
+func (theme Theme) Writer(renderer *lipgloss.Renderer) Writer {
+	return Writer{
+		renderer: renderer,
+		theme:    theme,
+		cache:    make(map[styleIdentifier]Printer),
 	}
-	dark.Background.Dark = ComponentColorConfig{
-		Color: "#1a1d20",
-	}
-	dark.Border.Dark = ComponentColorConfig{
-		Color: ColorToHex(Gray800),
+}
+
+func NewWriter(ctx context.Context, writer io.Writer) Writer {
+	var options []termenv.OutputOption
+
+	// If the primary (stdout) color profile is in color mode (aka not ASCII),
+	// force  TTY and color profile for the new renderer and writer
+	if profile := ColorProfileFromContext(ctx); profile != termenv.Ascii {
+		options = append(
+			options,
+			termenv.WithTTY(true),
+			termenv.WithProfile(profile),
+		)
 	}
 
-	Theme.Dark = NewColor(dark)
+	return ThemeFromContext(ctx).Writer(lipgloss.NewRenderer(writer, options...))
 }

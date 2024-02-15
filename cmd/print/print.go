@@ -1,15 +1,12 @@
 package print_cmd
 
 import (
-	"fmt"
-
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"go.uber.org/multierr"
 )
 
@@ -17,20 +14,9 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "print",
 		Short:   "Print environment variables",
+		Args:    cobra.NoArgs,
 		GroupID: "output",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			env, settings, warnings, err := setup(cmd.Flags())
-			if warnings != nil {
-				tui.Theme.Warning.BuffPrinter(cmd.ErrOrStderr()).Printfln("%+v", warnings)
-			}
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
-
-			return nil
-		},
+		RunE:    runE,
 	}
 
 	cmd.Flags().Bool("pretty", false, "implies --color --comments --blank-lines --group-banners")
@@ -48,7 +34,26 @@ func NewCommand() *cobra.Command {
 	return cmd
 }
 
-func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error) {
+func runE(cmd *cobra.Command, args []string) error {
+	document, settings, err := setup(cmd)
+	if err != nil {
+		return err
+	}
+
+	tui.StdoutFromContext(cmd.Context()).
+		NoColor().
+		Println(
+			render.NewRenderer(*settings).
+				Statement(cmd.Context(), document).
+				String(),
+		)
+
+	return nil
+}
+
+func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
+	flags := cmd.Flags()
+
 	boolFlag := func(name string) bool {
 		return shared.BoolFlag(flags, name)
 	}
@@ -59,7 +64,7 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 
 	doc, err := pkg.Load(stringFlag("file"))
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	settings := render.NewSettings(
@@ -95,5 +100,7 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
-	return doc, settings, allWarnings, allErrors
+	tui.MaybePrintWarnings(cmd.Context(), allWarnings)
+
+	return doc, settings, allErrors
 }

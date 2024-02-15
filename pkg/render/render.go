@@ -1,6 +1,7 @@
 package render
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -43,11 +44,11 @@ func NewUnfilteredRenderer(settings *Settings, additionalHandlers ...Handler) *R
 //
 // It's responsible for delegating statements to handlers, calling the right
 // Output functions and track the ordering of Statements being rendered
-func (r *Renderer) Statement(currentStatement any) *Lines {
+func (r *Renderer) Statement(ctx context.Context, currentStatement any) *Lines {
 	handlerInput := r.newHandlerInput(currentStatement)
 
 	for _, handler := range r.handlers {
-		status := handler(handlerInput)
+		status := handler(ctx, handlerInput)
 
 		switch status {
 		// Stop processing the statement and return nothing
@@ -86,19 +87,19 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 
 	switch statement := currentStatement.(type) {
 	case *ast.Document:
-		return r.document(statement)
+		return r.document(ctx, statement)
 
 	case *ast.Group:
-		return r.group(statement)
+		return r.group(ctx, statement)
 
 	case *ast.Comment:
-		return r.comment(statement)
+		return r.comment(ctx, statement)
 
 	case *ast.Assignment:
-		return r.assignment(statement)
+		return r.assignment(ctx, statement)
 
 	case *ast.Newline:
-		return r.newline(statement)
+		return r.newline(ctx, statement)
 
 	//
 	// Lists of different statements will be iterated over
@@ -108,7 +109,7 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 		buf := NewLinesCollection()
 
 		for _, group := range statement {
-			buf.Append(r.Statement(group))
+			buf.Append(r.Statement(ctx, group))
 		}
 
 		return buf
@@ -117,7 +118,7 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 		buf := NewLinesCollection()
 
 		for _, stmt := range statement {
-			buf.Append(r.Statement(stmt))
+			buf.Append(r.Statement(ctx, stmt))
 		}
 
 		return buf
@@ -126,7 +127,7 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 		buf := NewLinesCollection()
 
 		for _, comment := range statement {
-			buf.Append(r.Statement(comment))
+			buf.Append(r.Statement(ctx, comment))
 		}
 
 		return buf
@@ -144,14 +145,14 @@ func (r *Renderer) Statement(currentStatement any) *Lines {
 //
 // Direct Document Statements are rendered first, followed by any
 // Group Statements in order they show up in the original source.
-func (r *Renderer) document(document *ast.Document) *Lines {
+func (r *Renderer) document(ctx context.Context, document *ast.Document) *Lines {
 	return NewLinesCollection().
-		Append(r.Statement(document.Statements)).
-		Append(r.Statement(document.Groups))
+		Append(r.Statement(ctx, document.Statements)).
+		Append(r.Statement(ctx, document.Groups))
 }
 
 // group renders "Group" Statements.
-func (r *Renderer) group(group *ast.Group) *Lines {
+func (r *Renderer) group(ctx context.Context, group *ast.Group) *Lines {
 	// Capture the *current* Previous Statement in case we need to restore it (see below)
 	prev := r.PreviousStatement
 
@@ -162,7 +163,7 @@ func (r *Renderer) group(group *ast.Group) *Lines {
 	// rather than whatever *actually* was the previous statement.
 	r.PreviousStatement = group
 
-	rendered := r.Statement(group.Statements)
+	rendered := r.Statement(ctx, group.Statements)
 
 	if rendered.IsEmpty() {
 		// If the Group Statements didn't yield any output, restore the old "PreviousStatement" before
@@ -176,7 +177,7 @@ func (r *Renderer) group(group *ast.Group) *Lines {
 
 	// Render the optional Group banner if necessary.
 	if r.Settings.ShowGroupBanners {
-		buf.Append(r.Output.GroupBanner(group, r.Settings))
+		buf.Append(r.Output.GroupBanner(ctx, group, r.Settings))
 
 		if r.Settings.showBlankLines {
 			buf.Newline("Group:ShowGroupBanners", r.PreviousStatement.Type(), "(type doesn't matter)")
@@ -187,29 +188,29 @@ func (r *Renderer) group(group *ast.Group) *Lines {
 }
 
 // assignment renders "Assignment" Statements.
-func (r *Renderer) assignment(assignment *ast.Assignment) *Lines {
+func (r *Renderer) assignment(ctx context.Context, assignment *ast.Assignment) *Lines {
 	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = assignment }()
 
 	return NewLinesCollection().
-		Append(r.Statement(assignment.Comments)).
-		Append(r.Output.Assignment(assignment, r.Settings))
+		Append(r.Statement(ctx, assignment.Comments)).
+		Append(r.Output.Assignment(ctx, assignment, r.Settings))
 }
 
 // comment renders "Comment" Statements.
-func (r *Renderer) comment(comment *ast.Comment) *Lines {
+func (r *Renderer) comment(ctx context.Context, comment *ast.Comment) *Lines {
 	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = comment }()
 
-	return r.Output.Comment(comment, r.Settings)
+	return r.Output.Comment(ctx, comment, r.Settings)
 }
 
 // newline renders "Newline" Statements.
-func (r *Renderer) newline(newline *ast.Newline) *Lines {
+func (r *Renderer) newline(ctx context.Context, newline *ast.Newline) *Lines {
 	// When done rendering this statement, mark it as the previous statement
 	defer func() { r.PreviousStatement = newline }()
 
-	return r.Output.Newline(newline, r.Settings)
+	return r.Output.Newline(ctx, newline, r.Settings)
 }
 
 func (r *Renderer) newHandlerInput(statement any) *HandlerInput {

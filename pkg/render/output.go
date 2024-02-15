@@ -1,10 +1,14 @@
 package render
 
-import "github.com/jippi/dottie/pkg/ast"
+import (
+	"context"
+
+	"github.com/jippi/dottie/pkg/ast"
+)
 
 type Output interface {
-	GroupBanner(group *ast.Group, settings Settings) *Lines
-	Assignment(assignment *ast.Assignment, settings Settings) *Lines
-	Comment(comment *ast.Comment, settings Settings) *Lines
-	Newline(newline *ast.Newline, settings Settings) *Lines
+	GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines
+	Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines
+	Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines
+	Newline(ctx context.Context, newline *ast.Newline, settings Settings) *Lines
 }

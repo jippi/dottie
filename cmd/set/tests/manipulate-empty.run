@@ -1,0 +1,9 @@
+SOME_KEY=SOME_VALUE
+ANOTHER_KEY=ANOTHER_VALUE --quote-style single
+SECOND_KEY="should be before ANOTHER_KEY" --before ANOTHER_KEY
+TRUE_SECOND_KEY="HA, I'm after SOME_KEY, so I'm before ANOTHER_KEY now" --after SOME_KEY
+SECOND_KEY="damn, I'm the third key now"
+SOME_KEY=ANOTHER_VALUE --comment "I'm a comment" --comment "I'm another comment"
+A_NUMBER=1 --comment "@dottie/validate number"
+NOT_A_NUMBER=abc --comment "@dottie/validate number"
+A_NUMBER=2

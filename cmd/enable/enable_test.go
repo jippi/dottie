@@ -6,8 +6,8 @@ import (
 	"github.com/jippi/dottie/pkg/test_helpers"
 )
 
-func TestCommand(t *testing.T) {
+func TestEnableCommand(t *testing.T) {
 	t.Parallel()
 
-	test_helpers.RunFilebasedCommandTests(t, 0, "enable")
+	test_helpers.RunFileBasedCommandTests(t, 0, "enable")
 }

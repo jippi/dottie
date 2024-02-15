@@ -2,6 +2,7 @@ package validation
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -18,23 +19,27 @@ type multiError interface {
 	Errors() []error
 }
 
-func Explain(doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
+func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
-	dark := tui.Theme.Dark.BuffPrinter(&buff)
-	bold := tui.Theme.Warning.BuffPrinter(&buff, tui.WithEmphasis(true))
-	danger := tui.Theme.Danger.BuffPrinter(&buff)
-	light := tui.Theme.Light.BuffPrinter(&buff)
-	primary := tui.Theme.Primary.BuffPrinter(&buff)
+	writer := tui.NewWriter(ctx, &buff)
+
+	dark := writer.Dark()
+	bold := writer.Warning().Copy(tui.WithEmphasis(true))
+	danger := writer.Danger()
+	light := writer.Light()
+	primary := writer.Primary()
+
+	stderr := tui.WriterFromContext(ctx, tui.Stderr)
 
 	switch err := inputError.(type) {
 	// Unwrap the ValidationError
 	case ValidationError:
-		return Explain(doc, err.WrappedError, err, applyFixer, showField)
+		return Explain(ctx, doc, err.WrappedError, err, applyFixer, showField)
 
 	case multiError:
 		for _, e := range err.Errors() {
-			buff.WriteString(Explain(doc, e, ValidationError{}, applyFixer, showField))
+			buff.WriteString(Explain(ctx, doc, e, ValidationError{}, applyFixer, showField))
 			buff.WriteString("\n")
 		}
 
@@ -67,7 +72,7 @@ func Explain(doc *ast.Document, inputError any, keyErr ValidationError, applyFix
 					fmt.Fprintln(os.Stderr, buff.String())
 					buff.Reset()
 
-					AskToCreateDirectory(keyErr.Assignment.Interpolated)
+					AskToCreateDirectory(ctx, keyErr.Assignment.Interpolated)
 
 					askToFix = false
 				}
@@ -131,10 +136,10 @@ func Explain(doc *ast.Document, inputError any, keyErr ValidationError, applyFix
 			}
 
 			if askToFix {
-				fmt.Fprintln(os.Stderr, buff.String())
+				stderr.NoColor().Println(buff.String())
 				buff.Reset()
 
-				AskToSetValue(doc, keyErr.Assignment)
+				AskToSetValue(ctx, doc, keyErr.Assignment)
 			}
 		}
 
@@ -145,8 +150,11 @@ func Explain(doc *ast.Document, inputError any, keyErr ValidationError, applyFix
 	return buff.String()
 }
 
-func AskToCreateDirectory(path string) {
-	confirm := true
+func AskToCreateDirectory(ctx context.Context, path string) {
+	var (
+		confirm = true
+		stderr  = tui.WriterFromContext(ctx, tui.Stderr)
+	)
 
 	err := huh.NewConfirm().
 		Title("\nDo you want this program to create the directory for you?").
@@ -155,28 +163,31 @@ func AskToCreateDirectory(path string) {
 		Value(&confirm).
 		Run()
 	if err != nil {
-		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled: " + err.Error())
+		stderr.Warning().Println("    Prompt cancelled: " + err.Error())
 
 		return
 	}
 
 	if !confirm {
-		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled")
+		stderr.Warning().Println("    Prompt cancelled")
 
 		return
 	}
 
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		tui.Theme.Danger.StderrPrinter().Println("    Could not create directory: " + err.Error())
+		stderr.Danger().Println("    Could not create directory: " + err.Error())
 
 		return
 	}
 
-	tui.Theme.Success.StderrPrinter().Println("    Directory was successfully created")
+	stderr.Success().Println("    Directory was successfully created")
 }
 
-func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
-	var value string
+func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assignment) {
+	var (
+		value  string
+		stderr = tui.WriterFromContext(ctx, tui.Stderr)
+	)
 
 	err := huh.NewInput().
 		Title("Please provide value for " + assignment.Name).
@@ -189,7 +200,7 @@ func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
 					Assignment:   assignment,
 				}
 
-				return errors.New(Explain(doc, z, z, false, false))
+				return errors.New(Explain(ctx, doc, z, z, false, false))
 			}
 
 			return nil
@@ -197,17 +208,17 @@ func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
 		Value(&value).
 		Run()
 	if err != nil {
-		tui.Theme.Warning.StderrPrinter().Println("    Prompt cancelled: " + err.Error())
+		stderr.Warning().Println("    Prompt cancelled: " + err.Error())
 
 		return
 	}
 
 	assignment.Literal = value
-	if err := pkg.Save(assignment.Position.File, doc); err != nil {
-		tui.Theme.Danger.StderrPrinter().Println("    Could not update key with value [" + value + "]: " + err.Error())
+	if err := pkg.Save(ctx, assignment.Position.File, doc); err != nil {
+		stderr.Danger().Println("    Could not update key with value [" + value + "]: " + err.Error())
 
 		return
 	}
 
-	tui.Theme.Success.StderrPrinter().Println("    Successfully updated key with value [" + value + "]")
+	stderr.Success().Println("    Successfully updated key with value [" + value + "]")
 }

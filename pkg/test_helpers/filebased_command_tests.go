@@ -2,6 +2,8 @@ package test_helpers
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +11,7 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/google/shlex"
 	"github.com/jippi/dottie/cmd"
 	"github.com/sebdah/goldie/v2"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +22,7 @@ import (
 type Setting int
 
 const (
-	SkipEnvCopy Setting = 1 << iota
+	ReadOnly Setting = 1 << iota
 )
 
 // Has checks if [check] exists in the [settings] bitmask or not.
@@ -34,7 +37,7 @@ func (bitmask Setting) Has(setting Setting) bool {
 	return bitmask&setting != 0
 }
 
-func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...string) {
+func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...string) {
 	t.Helper()
 
 	files, err := os.ReadDir("tests")
@@ -49,7 +52,7 @@ func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 		goldenStdout string
 		goldenStderr string
 		goldenEnv    string
-		commandArgs  []string
+		commands     [][]string
 	}
 
 	tests := []testData{}
@@ -59,20 +62,31 @@ func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 			continue
 		}
 
-		if !strings.HasSuffix(file.Name(), ".command.txt") {
+		if !strings.HasSuffix(file.Name(), ".run") {
 			continue
 		}
 
-		base := strings.TrimSuffix(file.Name(), ".command.txt")
+		base := strings.TrimSuffix(file.Name(), ".run")
 
 		content, err := os.ReadFile("tests/" + file.Name())
 		require.NoErrorf(t, err, "failed to read file: %s", "tests/"+file.Name())
 
-		var commandArgs []string
+		var commands [][]string
 
 		str := string(bytes.TrimFunc(content, unicode.IsSpace))
 		if len(str) > 0 {
-			commandArgs = strings.Split(str, "\n")
+			commandArgs := strings.Split(str, "\n")
+			for _, commandStr := range commandArgs {
+				command, err := shlex.Split(commandStr)
+
+				require.NoError(t, err)
+
+				commands = append(commands, command)
+			}
+		}
+
+		if len(commands) == 0 {
+			commands = append(commands, []string{})
 		}
 
 		test := testData{
@@ -81,7 +95,7 @@ func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 			goldenStderr: "stderr",
 			goldenEnv:    "env",
 			envFile:      base + ".env",
-			commandArgs:  commandArgs,
+			commands:     commands,
 		}
 
 		tests = append(tests, test)
@@ -105,54 +119,62 @@ func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 			dotEnvFile := "tests/" + tt.envFile
 
-			if !settings.Has(SkipEnvCopy) {
-				tmpDir := t.TempDir()
-				dotEnvFile = tmpDir + "/tmp.env"
+			if !settings.Has(ReadOnly) {
+				dotEnvFile = t.TempDir() + "/tmp.env"
 
-				// Copy the input.env to temporary place
-				err := copyFile(t, "tests/"+tt.envFile, tmpDir+"/tmp.env")
-				require.NoErrorf(t, err, "failed to copy [%s] to TempDir", tt.envFile)
+				if _, err := os.Stat("tests/" + tt.envFile); errors.Is(err, os.ErrNotExist) {
+					// Create a temporary empty .env file
+					_, err := os.Create(dotEnvFile)
+					require.NoErrorf(t, err, "failed to create empty .env file [ %s ] in TempDir", tt.envFile)
+				} else {
+					// Copy the input.env to temporary place
+					err := copyFile(t, "tests/"+tt.envFile, dotEnvFile)
+					require.NoErrorf(t, err, "failed to copy [ %s ] to TempDir", tt.envFile)
+				}
 			}
-
-			// Point args to the copied temp env file
-			args := []string{"--file", dotEnvFile}
-			args = append(args, globalArgs...)
-			args = append(args, tt.commandArgs...)
 
 			// Prepare output buffers
-			stdout := bytes.Buffer{}
-			stderr := bytes.Buffer{}
+			combinedStdout := bytes.Buffer{}
+			combinedStderr := bytes.Buffer{}
 
-			// Prepare command
-			root := cmd.NewCommand()
-			root.SetArgs(args)
-			root.SetOut(&stdout)
-			root.SetErr(&stderr)
+			ctx := context.Background()
 
-			// Run command
-			out, err := root.ExecuteC()
-			if err != nil {
-				// Append errors to stderr
-				stderr.WriteString(fmt.Sprintf("%+v", err))
+			for idx, command := range tt.commands {
+				// Point args to the copied temp env file
+				args := []string{}
+				args = append(args, globalArgs...)
+				args = append(args, command...)
+
+				combinedStdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
+				combinedStderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
+
+				commandArgs := append(args, "--file", dotEnvFile)
+
+				// Run command
+				stdout := bytes.Buffer{}
+				stderr := bytes.Buffer{}
+				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
+
+				if stdout.Len() == 0 {
+					stdout.WriteString("(no output to stdout)\n")
+				}
+
+				if stderr.Len() == 0 {
+					stderr.WriteString("(no output to stderr)\n")
+				}
+
+				stdout.WriteTo(&combinedStdout)
+				stderr.WriteTo(&combinedStderr)
+
+				// Assert we got a Cobra command back
+				require.NotNil(t, out, "expected a return value")
 			}
-
-			// Assert we got a Cobra command back
-			require.NotNil(t, out, "expected a return value")
 
 			// Assert stdout + stderr + modified env file is as expected
-			if stdout.Len() == 0 {
-				assert.NoFileExists(t, "tests/"+tt.name+"/stdout.golden")
-			} else {
-				golden.Assert(t, tt.goldenStdout, stdout.Bytes())
-			}
+			golden.Assert(t, tt.goldenStdout, combinedStdout.Bytes())
+			golden.Assert(t, tt.goldenStderr, combinedStderr.Bytes())
 
-			if stderr.Len() == 0 {
-				assert.NoFileExists(t, "tests/"+tt.name+"/stderr.golden")
-			} else {
-				golden.Assert(t, tt.goldenStderr, stderr.Bytes())
-			}
-
-			if !settings.Has(SkipEnvCopy) {
+			if !settings.Has(ReadOnly) {
 				// Read the modified .env file back
 				modifiedEnv, err := os.ReadFile(dotEnvFile)
 

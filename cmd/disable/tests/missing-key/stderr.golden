@@ -1,1 +1,3 @@
-Missing required argument: KEY
+---- exec command line 0: [disable]
+Error: accepts 1 arg(s), received 0
+Run 'dottie disable --help' for usage.

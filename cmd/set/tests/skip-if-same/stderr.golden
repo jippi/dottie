@@ -1,0 +1,4 @@
+---- exec command line 0: [set --skip-if-same SOME_KEY=ERROR THIS SHOULD BE CHANGED BY NEXT LINE]
+(no output to stderr)
+---- exec command line 1: [set --skip-if-same SOME_KEY=SUCCESS]
+(no output to stderr)

@@ -22,6 +22,7 @@ func NewCommand() *cobra.Command {
 		Use:     "update",
 		Short:   "Update the .env file from a source",
 		GroupID: "manipulate",
+		Args:    cobra.NoArgs,
 		RunE:    runE,
 	}
 
@@ -35,17 +36,20 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	originalEnv, err := pkg.Load(filename)
+	originalDocument, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
 
-	dark := tui.Theme.Dark.StdoutPrinter()
-	info := tui.Theme.Info.StdoutPrinter()
-	danger := tui.Theme.Danger.StdoutPrinter()
-	dangerEmphasis := tui.Theme.Danger.StdoutPrinter(tui.WithEmphasis(true))
-	success := tui.Theme.Success.StdoutPrinter()
-	primary := tui.Theme.Primary.StdoutPrinter()
+	stdout, stderr := tui.WritersFromContext(cmd.Context())
+
+	dark := stdout.Dark()
+	info := stdout.Info()
+	danger := stdout.Danger()
+	dangerEmphasis := stdout.Danger().Copy(tui.WithEmphasis(true))
+	success := stdout.Success()
+	primary := stdout.Primary()
+	warningStderr := stderr.Warning()
 
 	info.Box("Starting update of " + filename + " from upstream")
 	info.Println()
@@ -54,7 +58,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	source, _ := cmd.Flags().GetString("source")
 	if len(source) == 0 {
-		source, err = originalEnv.GetConfig("dottie/source")
+		source, err = originalDocument.GetConfig("dottie/source")
 		if err != nil {
 			return err
 		}
@@ -99,7 +103,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	sourceDoc, err := pkg.Load(tmp.Name())
+	sourceDocument, err := pkg.Load(tmp.Name())
 	if err != nil {
 		return err
 	}
@@ -115,13 +119,13 @@ func runE(cmd *cobra.Command, args []string) error {
 	lastWasError := false
 	counter := 0
 
-	for _, originalStatement := range originalEnv.AllAssignments() {
+	for _, originalStatement := range originalDocument.AllAssignments() {
 		if !originalStatement.Enabled {
 			continue
 		}
 
 		upserter, err := upsert.New(
-			sourceDoc,
+			sourceDocument,
 			upsert.WithSetting(upsert.SkipIfSame),
 			upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
 		)
@@ -130,9 +134,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 
 		// If the KEY does *NOT* exists in the SOURCE doc
-		if sourceDoc.Get(originalStatement.Name) == nil {
+		if sourceDocument.Get(originalStatement.Name) == nil {
 			// Try to find positioning in the statement list for the new KEY pair
-			var parent ast.StatementCollection = originalEnv
+			var parent ast.StatementCollection = originalDocument
 
 			if originalStatement.Group != nil {
 				parent = originalStatement.Group
@@ -147,7 +151,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddLast))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if originalStatement.Group != nil && sourceDoc.HasGroup(originalStatement.Group.String()) {
+				if originalStatement.Group != nil && sourceDocument.HasGroup(originalStatement.Group.String()) {
 					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
 				}
 
@@ -156,7 +160,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddFirst))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if originalStatement.Group != nil && sourceDoc.HasGroup(originalStatement.Group.String()) {
+				if originalStatement.Group != nil && sourceDocument.HasGroup(originalStatement.Group.String()) {
 					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
 				}
 
@@ -169,15 +173,15 @@ func runE(cmd *cobra.Command, args []string) error {
 					return err
 				}
 
-				if before.Group != nil && sourceDoc.HasGroup(before.Group.String()) {
+				if before.Group != nil && sourceDocument.HasGroup(before.Group.String()) {
 					upserter.ApplyOptions(upsert.WithGroup(before.Group.String()))
 				}
 			}
 		}
 
-		changed, warn, err := upserter.Upsert(originalStatement)
+		changed, warn, err := upserter.Upsert(cmd.Context(), originalStatement)
 		if warn != nil {
-			tui.Theme.Warning.StderrPrinter().Println(warn)
+			warningStderr.Println(warn)
 		}
 
 		if err != nil {
@@ -201,7 +205,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if errors := validation.ValidateSingleAssignment(originalEnv, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
+		if errors := validation.ValidateSingleAssignment(cmd.Context(), originalDocument, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
 			sawError = true
 			lastWasError = true
 
@@ -216,7 +220,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			dark.Println(" due to validation error:")
 
 			for _, errIsh := range errors {
-				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(originalEnv, errIsh, errIsh, false, false)))
+				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(cmd.Context(), originalDocument, errIsh, errIsh, false, false)))
 			}
 
 			counter++
@@ -262,7 +266,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Saving the new", primary.Sprint(filename))
 
-	if err := pkg.Save(filename, sourceDoc); err != nil {
+	if err := pkg.Save(cmd.Context(), filename, sourceDocument); err != nil {
 		danger.Println("  ERROR", err.Error())
 
 		return err

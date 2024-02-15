@@ -1,0 +1,2 @@
+--skip-if-same SOME_KEY="ERROR THIS SHOULD BE CHANGED BY NEXT LINE"
+--skip-if-same SOME_KEY="SUCCESS"

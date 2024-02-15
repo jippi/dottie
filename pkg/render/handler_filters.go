@@ -1,6 +1,8 @@
 package render
 
 import (
+	"context"
+
 	"github.com/jippi/dottie/pkg/ast"
 )
 
@@ -17,7 +19,7 @@ func RetainKeyPrefix(value string) Handler   { return newSelectorHandler(ast.Ret
 func RetainExactKey(value ...string) Handler { return newSelectorHandler(ast.RetainExactKey(value...)) }
 
 func newSelectorHandler(selector ast.Selector) Handler {
-	return func(input *HandlerInput) HandlerSignal {
+	return func(ctx context.Context, input *HandlerInput) HandlerSignal {
 		switch stmt := input.CurrentStatement.(type) {
 		case ast.Statement:
 			if selector(stmt) == ast.Exclude {

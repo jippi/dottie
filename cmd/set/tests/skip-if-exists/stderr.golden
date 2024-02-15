@@ -1,0 +1,4 @@
+---- exec command line 0: [set --skip-if-exists SOME_KEY=SUCCESS]
+(no output to stderr)
+---- exec command line 1: [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
+(no output to stderr)

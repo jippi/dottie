@@ -1,22 +1,11 @@
 package tui
 
 import (
-	"io"
+	"context"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 	"github.com/teacat/noire"
 )
-
-func Renderer(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
-	return lipgloss.NewRenderer(w, opts...)
-}
-
-func RendererWithTTY(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
-	opts = append(opts, termenv.WithTTY(true))
-
-	return lipgloss.NewRenderer(w, opts...)
-}
 
 func ShadeColor(in string, percent float64) lipgloss.Color {
 	if percent < 0 || percent > 1 {
@@ -34,14 +23,32 @@ func TintColor(in string, percent float64) lipgloss.Color {
 	return lipgloss.Color("#" + noire.NewHex(in).Tint(percent).Hex())
 }
 
-func MixColors(a, b string, weight float64) lipgloss.Color {
-	if weight < 0 || weight > 1 {
-		panic("MixColors [weight] must be between 0.0 and 1.0 (0.5 == 50%)")
-	}
-
-	return lipgloss.Color("#" + noire.NewHex(a).Mix(noire.NewHex(b), weight).Hex())
-}
-
 func ColorToHex(in lipgloss.Color) string {
 	return string(in)
+}
+
+func TransformColor(base, filter string, percent float64) string {
+	switch filter {
+	case "shade":
+		return ColorToHex(ShadeColor(base, percent))
+
+	case "tint":
+		return ColorToHex(TintColor(base, percent))
+
+	case "mix":
+		panic("unexpected mix filter")
+
+	default:
+		return base
+	}
+}
+
+func MaybePrintWarnings(ctx context.Context, warnings error) {
+	if warnings == nil {
+		return
+	}
+
+	StderrFromContext(ctx).
+		Warning().
+		Printfln("WARNING: %+v", warnings)
 }

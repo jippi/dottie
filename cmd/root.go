@@ -1,8 +1,9 @@
 package cmd
 
 import (
+	"context"
+	"io"
 	"strings"
-	"sync"
 
 	goversion "github.com/caarlos0/go-version"
 	"github.com/davecgh/go-spew/spew"
@@ -16,6 +17,7 @@ import (
 	"github.com/jippi/dottie/cmd/update"
 	"github.com/jippi/dottie/cmd/validate"
 	"github.com/jippi/dottie/cmd/value"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -34,11 +36,13 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 {{end}}
 `
 
-var mutex sync.Mutex
+func init() {
+	spew.Config.DisablePointerMethods = true
+	spew.Config.DisableMethods = true
+	cobra.EnableCommandSorting = false
+}
 
-func NewCommand() *cobra.Command {
-	__globalSetup()
-
+func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
 	root := &cobra.Command{
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
@@ -46,6 +50,13 @@ func NewCommand() *cobra.Command {
 		SilenceUsage:  true,
 		Version:       buildVersion().String(),
 	}
+
+	ctx = tui.NewContext(ctx, stdout, stderr)
+
+	root.SetArgs(args)
+	root.SetContext(ctx)
+	root.SetErr(stderr)
+	root.SetOut(stdout)
 
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
@@ -64,16 +75,14 @@ func NewCommand() *cobra.Command {
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
-	return root
-}
+	command, err := root.ExecuteC()
+	if err != nil {
+		stderr := tui.WriterFromContext(ctx, tui.Stderr)
+		stderr.Danger().Copy(tui.WithEmphasis(true)).Printfln("%s %+v", command.ErrPrefix(), err)
+		stderr.Info().Printfln("Run '%v --help' for usage.", command.CommandPath())
+	}
 
-func __globalSetup() {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	spew.Config.DisablePointerMethods = true
-	spew.Config.DisableMethods = true
-	cobra.EnableCommandSorting = false
+	return command, err
 }
 
 func indent(in string) string {

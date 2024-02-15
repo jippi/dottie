@@ -1,6 +1,7 @@
 package render_test
 
 import (
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -17,15 +18,10 @@ func TestFormatter(t *testing.T) {
 
 	golden := goldie.New(
 		t,
-		goldie.WithFixtureDir("test-fixtures/formatter"),
+		goldie.WithFixtureDir("test-fixtures/formatter/output"),
 		goldie.WithNameSuffix(".golden.env"),
 		goldie.WithDiffEngine(goldie.ColoredDiff),
 	)
-
-	files, err := os.ReadDir("test-fixtures/formatter")
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Build test data set
 	type testData struct {
@@ -35,10 +31,19 @@ func TestFormatter(t *testing.T) {
 
 	tests := []testData{}
 
+	files, err := os.ReadDir("test-fixtures/formatter")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
 		switch {
-		case strings.HasSuffix(file.Name(), ".input.env"):
-			testName := strings.TrimSuffix(file.Name(), ".input.env")
+		case strings.HasSuffix(file.Name(), ".env"):
+			testName := strings.TrimSuffix(file.Name(), ".env")
 
 			test := testData{
 				name:     testName,
@@ -46,9 +51,8 @@ func TestFormatter(t *testing.T) {
 			}
 			tests = append(tests, test)
 
-		case strings.HasSuffix(file.Name(), ".golden.env"):
 		default:
-			panic("unexpected file")
+			require.FailNow(t, "unexpected test file: ["+file.Name()+"]")
 		}
 	}
 
@@ -63,7 +67,7 @@ func TestFormatter(t *testing.T) {
 			env, err := pkg.Load(tt.filename)
 			require.NoError(t, err)
 
-			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(env).String()))
+			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(context.Background(), env).String()))
 		})
 	}
 }

@@ -64,7 +64,7 @@ func (c *Completer) Get() CobraCompleter {
 
 		lines := render.
 			NewUnfilteredRenderer(render.NewSettings(c.options...), c.handlers...).
-			Statement(doc).
+			Statement(cmd.Context(), doc).
 			Lines()
 
 		if c.suffixIsLiteral && strings.HasSuffix(toComplete, "=") {

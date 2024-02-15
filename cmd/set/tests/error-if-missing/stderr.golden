@@ -1,0 +1,7 @@
+---- exec command line 0: [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
+(error *errors.errorString) key [MISSING_KEY] does not exists in the document
+
+Error: validation error: key [MISSING_KEY] does not exists in the document
+Run 'dottie set --help' for usage.
+---- exec command line 1: [set --error-if-missing SOME_KEY=SUCCESS]
+(no output to stderr)

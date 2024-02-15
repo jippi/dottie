@@ -1,10 +1,12 @@
 package render
 
 import (
+	"context"
+
 	"github.com/jippi/dottie/pkg/ast"
 )
 
-type Handler func(hi *HandlerInput) HandlerSignal
+type Handler func(ctx context.Context, hi *HandlerInput) HandlerSignal
 
 type HandlerInput struct {
 	CurrentStatement  any

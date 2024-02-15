@@ -12,21 +12,22 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "json",
 		Short:   "Print as JSON",
+		Args:    cobra.NoArgs,
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			document, err := pkg.Load(filename)
 			if err != nil {
 				return err
 			}
 
-			b, err := json.MarshalIndent(env, "", "  ")
+			output, err := json.MarshalIndent(document, "", "  ")
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(string(b))
+			fmt.Println(string(output))
 
 			return nil
 		},

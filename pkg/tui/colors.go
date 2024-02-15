@@ -4,6 +4,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type ColorPair struct {
+	Name  string
+	Value lipgloss.Color
+}
+
 const (
 	White = lipgloss.Color("#fff")
 	Black = lipgloss.Color("#000")

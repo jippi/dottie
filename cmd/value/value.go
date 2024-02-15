@@ -1,7 +1,6 @@
 package value
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
@@ -16,39 +15,36 @@ func NewCommand() *cobra.Command {
 		Use:               "value KEY",
 		Short:             "Print value of a env key if it exists",
 		GroupID:           "output",
+		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeDisabledAssignments).Get(),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 0 {
-				return errors.New("Missing required argument: KEY")
-			}
-
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			document, err := pkg.Load(filename)
 			if err != nil {
 				return err
 			}
 
-			key := args[0]
+			key := cmd.Flags().Arg(0)
 
-			existing := env.Get(key)
-			if existing == nil {
-				return fmt.Errorf("Key [%s] does not exists", key)
+			assignment := document.Get(key)
+			if assignment == nil {
+				return fmt.Errorf("Key [ %s ] does not exists", key)
 			}
 
-			if !existing.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
-				return fmt.Errorf("Key [%s] exists, but is commented out - use [--include-commented] to include it", key)
+			if !assignment.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
+				return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--include-commented] to include it", key)
 			}
 
-			warn, err := env.InterpolateStatement(existing)
-			if warn != nil {
-				tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
-			}
+			warnings, err := document.InterpolateStatement(assignment)
+			tui.MaybePrintWarnings(cmd.Context(), warnings)
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(existing.Interpolated)
+			tui.StdoutFromContext(cmd.Context()).
+				NoColor().
+				Println(assignment.Interpolated)
 
 			return nil
 		},
