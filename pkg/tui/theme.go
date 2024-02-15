@@ -41,21 +41,19 @@ func (theme Theme) WriterPrinter(ctx context.Context, writer io.Writer) ThemeWri
 func NewTheme() Theme {
 	theme := Theme{}
 
-	theme.Danger = NewStyleFromColor(Red)
-	theme.Info = NewStyleFromColor(Cyan)
-	theme.Light = NewStyleFromColor(Gray300)
-	theme.Primary = NewStyleFromColor(Blue)
-	theme.Secondary = NewStyleFromColor(Gray600)
-	theme.Success = NewStyleFromColor(Green)
-	theme.Warning = NewStyleFromColor(Yellow)
+	theme.Danger = NewStyle(Red)
+	theme.Info = NewStyle(Cyan)
+	theme.Light = NewStyle(Gray300)
+	theme.Primary = NewStyle(Blue)
+	theme.Secondary = NewStyle(Gray600)
+	theme.Success = NewStyle(Green)
+	theme.Warning = NewStyle(Yellow)
 	theme.NoColor = NewStyleWithoutColor()
 
-	dark := NewStyleConfig(Gray700)
-	dark.TextEmphasis.Dark = ColorToHex(Gray300)
-	dark.Background.Dark = "#1a1d20"
-	dark.Border.Dark = ColorToHex(Gray800)
-
-	theme.Dark = NewStyle(dark)
+	theme.Dark = NewStyle(Gray700)
+	theme.Dark.TextEmphasis.Dark = ColorToHex(Gray300)
+	theme.Dark.Background.Dark = "#1a1d20"
+	theme.Dark.Border.Dark = ColorToHex(Gray800)
 
 	return theme
 }

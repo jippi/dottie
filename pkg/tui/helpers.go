@@ -24,3 +24,19 @@ func TintColor(in string, percent float64) lipgloss.Color {
 func ColorToHex(in lipgloss.Color) string {
 	return string(in)
 }
+
+func transformColor(base, filter string, percent float64) string {
+	switch filter {
+	case "shade":
+		return ColorToHex(ShadeColor(base, percent))
+
+	case "tint":
+		return ColorToHex(TintColor(base, percent))
+
+	case "mix":
+		panic("unexpected mix filter")
+
+	default:
+		return base
+	}
+}

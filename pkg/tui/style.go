@@ -13,29 +13,25 @@ type Style struct {
 	noColor bool
 }
 
-func NewStyle(config StyleConfig) Style {
-	style := Style{
-		Text:         config.Text,
-		TextEmphasis: config.TextEmphasis,
-		Background:   config.Background,
-		Border:       config.Border,
-	}
-
-	if len(style.Text.Dark) == 0 {
-		style.Text.Dark = style.TextEmphasis.Dark
-	}
-
-	return style
-}
-
-func NewStyleFromColor(color lipgloss.Color) Style {
-	config := NewStyleConfig(color)
+func NewStyle(baseColor lipgloss.Color) Style {
+	base := ColorToHex(baseColor)
 
 	style := Style{
-		Text:         config.Text,
-		TextEmphasis: config.TextEmphasis,
-		Background:   config.Background,
-		Border:       config.Border,
+		Text: lipgloss.AdaptiveColor{
+			Light: transformColor(base, "", 0),
+		},
+		TextEmphasis: lipgloss.AdaptiveColor{
+			Light: transformColor(base, "shade", 0.6),
+			Dark:  transformColor(base, "tint", 0.4),
+		},
+		Background: lipgloss.AdaptiveColor{
+			Light: transformColor(base, "tint", 0.8),
+			Dark:  transformColor(base, "shade", 0.8),
+		},
+		Border: lipgloss.AdaptiveColor{
+			Light: transformColor(base, "tint", 0.6),
+			Dark:  transformColor(base, "shade", 0.4),
+		},
 	}
 
 	if len(style.Text.Dark) == 0 {
