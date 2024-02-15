@@ -36,9 +36,13 @@ func TestFormatter(t *testing.T) {
 	}
 
 	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
 		switch {
-		case strings.HasSuffix(file.Name(), ".input.env"):
-			testName := strings.TrimSuffix(file.Name(), ".input.env")
+		case strings.HasSuffix(file.Name(), ".env"):
+			testName := strings.TrimSuffix(file.Name(), ".env")
 
 			test := testData{
 				name:     testName,
@@ -46,9 +50,8 @@ func TestFormatter(t *testing.T) {
 			}
 			tests = append(tests, test)
 
-		case strings.HasSuffix(file.Name(), ".golden.env"):
 		default:
-			panic("unexpected file")
+			require.FailNow(t, "unexpected test file: ["+file.Name()+"]")
 		}
 	}
 
