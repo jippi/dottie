@@ -17,15 +17,10 @@ func TestFormatter(t *testing.T) {
 
 	golden := goldie.New(
 		t,
-		goldie.WithFixtureDir("test-fixtures/formatter"),
+		goldie.WithFixtureDir("test-fixtures/formatter/output"),
 		goldie.WithNameSuffix(".golden.env"),
 		goldie.WithDiffEngine(goldie.ColoredDiff),
 	)
-
-	files, err := os.ReadDir("test-fixtures/formatter")
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	// Build test data set
 	type testData struct {
@@ -34,6 +29,11 @@ func TestFormatter(t *testing.T) {
 	}
 
 	tests := []testData{}
+
+	files, err := os.ReadDir("test-fixtures/formatter")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, file := range files {
 		switch {
