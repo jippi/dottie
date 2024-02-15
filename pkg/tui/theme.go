@@ -41,30 +41,21 @@ func (theme Theme) WriterPrinter(ctx context.Context, writer io.Writer) ThemeWri
 func NewTheme() Theme {
 	theme := Theme{}
 
-	theme.Danger = NewColor(NewColorComponentConfig(Red))
-	theme.Info = NewColor(NewColorComponentConfig(Cyan))
-	theme.Light = NewColor(NewColorComponentConfig(Gray300))
-	theme.Primary = NewColor(NewColorComponentConfig(Blue))
-	theme.Secondary = NewColor(NewColorComponentConfig(Gray600))
-	theme.Success = NewColor(NewColorComponentConfig(Green))
-	theme.Warning = NewColor(NewColorComponentConfig(Yellow))
-	theme.NoColor = NewStyle()
+	theme.Danger = NewStyleFromColor(Red)
+	theme.Info = NewStyleFromColor(Cyan)
+	theme.Light = NewStyleFromColor(Gray300)
+	theme.Primary = NewStyleFromColor(Blue)
+	theme.Secondary = NewStyleFromColor(Gray600)
+	theme.Success = NewStyleFromColor(Green)
+	theme.Warning = NewStyleFromColor(Yellow)
+	theme.NoColor = NewStyleWithoutColor()
 
-	dark := NewColorComponentConfig(Gray700)
+	dark := NewStyleConfig(Gray700)
+	dark.TextEmphasis.Dark = ColorToHex(Gray300)
+	dark.Background.Dark = "#1a1d20"
+	dark.Border.Dark = ColorToHex(Gray800)
 
-	dark.TextEmphasis.Dark = ComponentColorConfig{
-		Color: ColorToHex(Gray300),
-	}
-
-	dark.Background.Dark = ComponentColorConfig{
-		Color: "#1a1d20",
-	}
-
-	dark.Border.Dark = ComponentColorConfig{
-		Color: ColorToHex(Gray800),
-	}
-
-	theme.Dark = NewColor(dark)
+	theme.Dark = NewStyle(dark)
 
 	return theme
 }

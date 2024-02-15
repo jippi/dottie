@@ -4,11 +4,6 @@ import "github.com/charmbracelet/lipgloss"
 
 const borderWidth = 2
 
-type ColorPair struct {
-	Name  string
-	Value lipgloss.Color
-}
-
 var (
 	headerBorder = lipgloss.Border{
 		Top:         "─",

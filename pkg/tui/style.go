@@ -13,12 +13,12 @@ type Style struct {
 	noColor bool
 }
 
-func NewColor(config ColorConfig) Style {
+func NewStyle(config StyleConfig) Style {
 	style := Style{
-		Text:         config.Text.AdaptiveColor(),
-		TextEmphasis: config.TextEmphasis.AdaptiveColor(),
-		Background:   config.Background.AdaptiveColor(),
-		Border:       config.Border.AdaptiveColor(),
+		Text:         config.Text,
+		TextEmphasis: config.TextEmphasis,
+		Background:   config.Background,
+		Border:       config.Border,
 	}
 
 	if len(style.Text.Dark) == 0 {
@@ -28,7 +28,24 @@ func NewColor(config ColorConfig) Style {
 	return style
 }
 
-func NewStyle() Style {
+func NewStyleFromColor(color lipgloss.Color) Style {
+	config := NewStyleConfig(color)
+
+	style := Style{
+		Text:         config.Text,
+		TextEmphasis: config.TextEmphasis,
+		Background:   config.Background,
+		Border:       config.Border,
+	}
+
+	if len(style.Text.Dark) == 0 {
+		style.Text.Dark = style.TextEmphasis.Dark
+	}
+
+	return style
+}
+
+func NewStyleWithoutColor() Style {
 	return Style{
 		noColor: true,
 	}
