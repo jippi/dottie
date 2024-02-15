@@ -6,24 +6,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Command = &cobra.Command{
-	Use:     "fmt",
-	Short:   "Format a .env file",
-	GroupID: "manipulate",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		filename := cmd.Flag("file").Value.String()
+func NewCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:     "fmt",
+		Short:   "Format a .env file",
+		GroupID: "manipulate",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			filename := cmd.Flag("file").Value.String()
 
-		env, err := pkg.Load(filename)
-		if err != nil {
-			return err
-		}
+			env, err := pkg.Load(filename)
+			if err != nil {
+				return err
+			}
 
-		if err := pkg.Save(filename, env); err != nil {
-			return err
-		}
+			if err := pkg.Save(filename, env); err != nil {
+				return err
+			}
 
-		tui.Theme.Success.StdoutPrinter().Printfln("File [%s] was successfully formatted", filename)
+			tui.Theme.Success.StdoutPrinter().Printfln("File [%s] was successfully formatted", filename)
 
-		return nil
-	},
+			return nil
+		},
+	}
 }

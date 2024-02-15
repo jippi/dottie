@@ -19,6 +19,12 @@ func StringFlag(flags *pflag.FlagSet, name string) string {
 	return val
 }
 
+func StringSliceFlag(flags *pflag.FlagSet, name string) []string {
+	val, _ := flags.GetStringSlice(name)
+
+	return val
+}
+
 func BoolWithInverse(cmd *cobra.Command, name string, value bool, usage, negativeUsage string) {
 	cmd.Flags().Bool(name, value, usage)
 	cmd.Flags().Bool("no-"+name, !value, negativeUsage)

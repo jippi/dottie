@@ -11,10 +11,10 @@ import (
 	"github.com/jippi/dottie/pkg/scanner"
 )
 
-func Load(filename string) (doc *ast.Document, err error) {
+func Load(filename string) (*ast.Document, error) {
 	file, err := os.Open(filename)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer file.Close()
 

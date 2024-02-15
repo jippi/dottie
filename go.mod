@@ -8,7 +8,6 @@ require (
 	github.com/caarlos0/go-version v0.1.1
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
-	github.com/compose-spec/compose-go v1.20.2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/erikgeiser/promptkit v0.9.0
 	github.com/go-playground/validator/v10 v10.17.0
@@ -20,6 +19,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/teacat/noire v1.1.0
+	go.uber.org/multierr v1.11.0
 )
 
 require (
@@ -66,7 +66,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
-	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect

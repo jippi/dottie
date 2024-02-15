@@ -13,5 +13,10 @@
   ],
   "[go]": {
     "editor.formatOnSave": true,
-  }
+  },
+  "cSpell.words": [
+    "bitmask",
+    "Upsert",
+    "upserter"
+  ]
 }

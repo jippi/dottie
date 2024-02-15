@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "validate",
 		Short:   "Validate an .env file",
@@ -53,6 +53,20 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	//
+	// Interpolate
+	//
+
+	warn, err := env.InterpolateAll()
+
+	if warn != nil {
+		tui.Theme.Warning.StderrPrinter().Printfln("%+v", warn)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	//
 	// Validate
 	//
 
@@ -68,7 +82,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	stderr.Println()
 
 	for _, errIsh := range res {
-		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, fix, true))
+		fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, errIsh, fix, true))
 	}
 
 	//

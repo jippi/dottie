@@ -6,16 +6,28 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"slices"
+	"strings"
 
-	"github.com/compose-spec/compose-go/template"
+	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
+	"go.uber.org/multierr"
 )
 
 // Document node represents .env file statement, that contains assignments and comments.
 type Document struct {
-	Statements  []Statement `json:"statements"` // Statements belonging to the root of the document
-	Groups      []*Group    `json:"groups"`     // Groups within the document
-	Annotations []*Comment  `json:"-"`          // Global annotations for configuration of dottie
+	Statements          []Statement `json:"statements"` // Statements belonging to the root of the document
+	Groups              []*Group    `json:"groups"`     // Groups within the document
+	Annotations         []*Comment  `json:"-"`          // Global annotations for configuration of dottie
+	interpolationCache  []string    // Cache for interpolated values
+	interpolateWarnings error
+	interpolateErrors   error
+}
+
+func NewDocument() *Document {
+	return &Document{
+		interpolationCache: make([]string, 0),
+	}
 }
 
 func (d *Document) Is(other Statement) bool {
@@ -89,168 +101,120 @@ func (d *Document) Has(name string) bool {
 	return d.Get(name) != nil
 }
 
-func (doc *Document) Interpolate(target *Assignment) (string, error) {
+func (doc *Document) InterpolateAll() (error, error) {
+	var warnings, errors error
+
+	for _, assignment := range doc.AllAssignments() {
+		warn, err := doc.InterpolateStatement(assignment)
+
+		warnings = multierr.Append(warnings, warn)
+		errors = multierr.Append(errors, err)
+	}
+
+	return warnings, errors
+}
+
+func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
+	defer func() {
+		doc.interpolateWarnings = nil
+		doc.interpolateErrors = nil
+	}()
+
+	doc.doInterpolation(target)
+
+	return doc.interpolateWarnings, doc.interpolateErrors
+}
+
+func (doc *Document) doInterpolation(target *Assignment) {
 	if target == nil {
-		return "", errors.New("can't interpolate a nil assignment")
+		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
+
+		return
 	}
 
+	if !target.Enabled {
+		return
+	}
+
+	// Lookup the key in the cache and return it if it exists
+	if slices.Contains(doc.interpolationCache, target.Name) {
+		return
+	}
+
+	// If the assignment is wrapped in single quotes, no interpolation should happen
 	if target.Quote.Is(token.SingleQuotes.Rune()) {
-		return target.Literal, nil
+		target.Interpolated = target.Literal
+
+		return
 	}
 
-	lookup := func(input string) (string, bool) {
+	// If the assignment literal doesn't count any '$' it would never change from the
+	// interpolated value
+	if !strings.Contains(target.Literal, "$") {
+		target.Interpolated = target.Literal
+
+		return
+	}
+
+	value, warnings, err := template.Substitute(target.Literal, doc.interpolationMapper(target))
+
+	target.Interpolated = value
+	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
+	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
+
+	doc.interpolationCache = append(doc.interpolationCache, target.Name)
+}
+
+func (doc *Document) interpolationMapper(target *Assignment) func(input string) (string, bool) {
+	return func(input string) (string, bool) {
+		if slices.Contains(doc.interpolationCache, input) {
+			return doc.Get(input).Interpolated, true
+		}
+
 		// Lookup in process environment
 		if val, ok := os.LookupEnv(input); ok {
 			return val, ok
 		}
 
 		// Search the currently available assignments in the document
-		result := doc.Get(input)
-		if result == nil {
+		assignment := doc.Get(input)
+		if assignment == nil {
 			return "", false
 		}
 
-		if !result.Active {
-			return "", false
-		}
-
-		// If the assignment we found is on a line *after* the target
+		// If the assignment we found is on a index (sorted) *after* the target
 		// assignment, don't count it as found, since all normal shell interpolation
 		// are handled in order (e.g. line 5 can't use a variable from line 10)
-		if result.Position.Line >= target.Position.Line {
+		if assignment.Position.Index >= target.Position.Index {
 			return "", false
 		}
 
-		return result.Interpolated, true
-	}
-
-	return template.Substitute(target.Literal, lookup)
-}
-
-type UpsertPlacement uint
-
-const (
-	UpsertLast UpsertPlacement = iota
-	UpsertAfter
-	UpsertBefore
-	UpsertFirst
-)
-
-type UpsertOptions struct {
-	UpsertPlacementType  UpsertPlacement
-	UpsertPlacementValue string
-	Comments             []string
-	ErrorIfMissing       bool
-	Group                string
-	SkipIfSame           bool
-	SkipIfSet            bool
-	SkipValidation       bool
-}
-
-func (doc *Document) Upsert(input *Assignment, options UpsertOptions) (*Assignment, error) {
-	var group *Group
-
-	existing := doc.Get(input.Name)
-
-	if options.SkipIfSet && existing != nil && len(existing.Literal) > 0 && existing.Literal != "__CHANGE_ME__" && input.Literal != "__CHANGE_ME__" {
-		return nil, nil
-	}
-
-	if options.SkipIfSame && existing != nil && existing.Literal == input.Literal && existing.Active == input.Active {
-		return nil, nil
-	}
-
-	found := existing != nil
-
-	// The key does not exists!
-	if !found {
-		if options.ErrorIfMissing {
-			return nil, fmt.Errorf("Key [%s] does not exists", input.Name)
-		}
-
-		group = doc.EnsureGroup(options.Group)
-
-		existing = &Assignment{
-			Name:    input.Name,
-			Literal: input.Literal,
-			Active:  input.Active,
-			Group:   group,
-		}
-
-		existingStatements := doc.Statements
-		if existing.Group != nil {
-			existingStatements = group.Statements
-		}
-
-		var res []Statement
-
-		switch options.UpsertPlacementType {
-		case UpsertFirst:
-			res = append([]Statement{existing}, existingStatements...)
-
-		case UpsertLast:
-			res = append(existingStatements, existing)
-
-		case UpsertAfter, UpsertBefore:
-			for _, stmt := range existingStatements {
-				assignment, ok := stmt.(*Assignment)
-				if !ok {
-					res = append(res, stmt)
+		// Inspect the target literal and see if it has any variable references
+		// that we need to resolve first.
+		if len(target.Dependencies) > 0 {
+			for _, variable := range target.Dependencies {
+				// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
+				// which would trigger infinite recursive loop
+				if variable.Name == target.Name {
+					doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must not reference itself", target.Name)))
 
 					continue
 				}
 
-				switch {
-				case options.UpsertPlacementType == UpsertBefore && assignment.Name == options.UpsertPlacementValue:
-					res = append(res, existing, stmt)
+				// Lookup the assignment
+				prerequisite := doc.Get(variable.Name)
 
-				case options.UpsertPlacementType == UpsertAfter && assignment.Name == options.UpsertPlacementValue:
-					res = append(res, stmt, existing)
-
-				default:
-					res = append(res, stmt)
+				// If it does not exists or is not enabled, abort
+				if prerequisite == nil {
+					continue
 				}
+
+				doc.doInterpolation(prerequisite)
 			}
 		}
 
-		if group != nil {
-			group.Statements = res
-		} else {
-			doc.Statements = res
-		}
+		return assignment.Interpolated, true
 	}
-
-	if found {
-		interpolated, err := doc.Interpolate(existing)
-		if err != nil {
-			return nil, errors.New("could not interpolate variable")
-		}
-
-		existing.Interpolated = interpolated
-	}
-
-	existing.Active = input.Active
-	existing.Interpolated = input.Interpolated
-	existing.Literal = input.Literal
-	existing.Quote = input.Quote
-
-	if comments := options.Comments; len(comments) > 0 {
-		existing.Comments = nil
-
-		for _, comment := range comments {
-			if len(comment) == 0 && len(comments) == 1 {
-				continue
-			}
-
-			existing.Comments = append(existing.Comments, NewComment(comment))
-		}
-	}
-
-	if options.SkipValidation {
-		return existing, nil
-	}
-
-	return existing, nil
 }
 
 func (doc *Document) EnsureGroup(name string) *Group {
@@ -299,6 +263,12 @@ func (d *Document) Assignments() []*Assignment {
 	return assignments
 }
 
+func (d *Document) ReindexStatements() {
+	for i, stmt := range d.AllAssignments() {
+		stmt.Position.Index = i
+	}
+}
+
 func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 	for i, assign := range d.Assignments() {
 		if assign.Name == name {
@@ -307,4 +277,21 @@ func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 	}
 
 	return -1, nil
+}
+
+func (d *Document) Cache() []string {
+	return d.interpolationCache
+}
+
+func (document *Document) Initialize() {
+	for _, assignment := range document.AllAssignments() {
+		assignment.Initialize()
+
+		// Add current assignment as dependent on its own dependencies
+		for _, dependency := range assignment.Dependencies {
+			if x := document.Get(dependency.Name); x != nil {
+				x.Dependents[assignment.Name] = assignment
+			}
+		}
+	}
 }

@@ -1,7 +1,6 @@
 .env
 .env.*
 !.env.example
-env.*
 
 dist/
 bin/

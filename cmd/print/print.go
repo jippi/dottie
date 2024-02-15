@@ -7,17 +7,22 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"go.uber.org/multierr"
 )
 
-func Command() *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "print",
 		Short:   "Print environment variables",
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			env, settings, err := setup(cmd.Flags())
+			env, settings, warnings, err := setup(cmd.Flags())
+			if warnings != nil {
+				tui.Theme.Warning.StderrPrinter().Printfln("%+v", warnings)
+			}
 			if err != nil {
 				return err
 			}
@@ -43,7 +48,7 @@ func Command() *cobra.Command {
 	return cmd
 }
 
-func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
+func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error) {
 	boolFlag := func(name string) bool {
 		return shared.BoolFlag(flags, name)
 	}
@@ -52,9 +57,9 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
 		return shared.StringFlag(flags, name)
 	}
 
-	env, err := pkg.Load(stringFlag("file"))
+	doc, err := pkg.Load(stringFlag("file"))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	settings := render.NewSettings(
@@ -69,9 +74,26 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error) {
 		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
 	)
 
+	var allErrors, allWarnings error
+
+	if settings.InterpolatedValues {
+		var warn, err error
+
+		for _, assignment := range doc.AllAssignments() {
+			if !assignment.Enabled {
+				continue
+			}
+
+			warn, err = doc.InterpolateStatement(assignment)
+
+			allWarnings = multierr.Append(allWarnings, warn)
+			allErrors = multierr.Append(allErrors, err)
+		}
+	}
+
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
-	return env, settings, nil
+	return doc, settings, allWarnings, allErrors
 }

@@ -22,7 +22,7 @@ func ExcludeHiddenViaAnnotation(input Statement) SelectorResult {
 func ExcludeDisabledAssignments(input Statement) SelectorResult {
 	switch statement := input.(type) {
 	case *Assignment:
-		if !statement.Active {
+		if !statement.Enabled {
 			return Exclude
 		}
 	}
@@ -34,7 +34,7 @@ func ExcludeDisabledAssignments(input Statement) SelectorResult {
 func ExcludeActiveAssignments(input Statement) SelectorResult {
 	switch statement := input.(type) {
 	case *Assignment:
-		if statement.Active {
+		if statement.Enabled {
 			return Exclude
 		}
 	}

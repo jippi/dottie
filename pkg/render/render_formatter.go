@@ -6,13 +6,13 @@ import (
 
 func NewFormatter() *Renderer {
 	settings := Settings{
-		includeDisabled:       true,
-		useInterpolatedValues: false,
-		showBlankLines:        true,
-		showColors:            false,
-		showComments:          true,
-		ShowGroupBanners:      true,
-		outputter:             PlainOutput{},
+		includeDisabled:    true,
+		InterpolatedValues: false,
+		showBlankLines:     true,
+		showColors:         false,
+		showComments:       true,
+		ShowGroupBanners:   true,
+		outputter:          PlainOutput{},
 	}
 
 	return NewRenderer(settings, FormatterHandler)

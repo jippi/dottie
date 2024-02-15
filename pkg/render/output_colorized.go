@@ -26,13 +26,13 @@ func (ColorizedOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
 func (ColorizedOutput) Assignment(assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	if !assignment.Active {
+	if !assignment.Enabled {
 		tui.Theme.Danger.BuffPrinter(&buf).Print("#")
 	}
 
 	val := assignment.Literal
 
-	if settings.useInterpolatedValues {
+	if settings.InterpolatedValues {
 		val = assignment.Interpolated
 	}
 

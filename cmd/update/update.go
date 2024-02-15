@@ -10,13 +10,14 @@ import (
 	"github.com/hashicorp/go-getter"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
 )
 
-func Command() *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update",
 		Short:   "Update the .env file from a source",
@@ -34,7 +35,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, err := pkg.Load(filename)
+	originalEnv, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -53,7 +54,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	source, _ := cmd.Flags().GetString("source")
 	if len(source) == 0 {
-		source, err = env.GetConfig("dottie/source")
+		source, err = originalEnv.GetConfig("dottie/source")
 		if err != nil {
 			return err
 		}
@@ -114,47 +115,49 @@ func runE(cmd *cobra.Command, args []string) error {
 	lastWasError := false
 	counter := 0
 
-	for _, stmt := range env.AllAssignments() {
-		if !stmt.Active {
+	for _, originalStatement := range originalEnv.AllAssignments() {
+		if !originalStatement.Enabled {
 			continue
 		}
 
-		options := ast.UpsertOptions{
-			SkipIfSame:     true,
-			ErrorIfMissing: shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key"),
+		upserter, err := upsert.New(
+			sourceDoc,
+			upsert.WithSetting(upsert.SkipIfSame),
+			upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
+		)
+		if err != nil {
+			return err
 		}
 
-		// If the KEY does not exists in the SOURCE doc
-		if sourceDoc.Get(stmt.Name) == nil {
-			// Copy comments if the KEY doesn't exist in the SOURCE document
-			options.Comments = stmt.CommentsSlice()
-
+		// If the KEY does *NOT* exists in the SOURCE doc
+		if sourceDoc.Get(originalStatement.Name) == nil {
 			// Try to find positioning in the statement list for the new KEY pair
-			var parent ast.StatementCollection = env
-			if stmt.Group != nil {
-				parent = stmt.Group
+			var parent ast.StatementCollection = originalEnv
+
+			if originalStatement.Group != nil {
+				parent = originalStatement.Group
 			}
 
-			idx, _ := parent.GetAssignmentIndex(stmt.Name)
+			idx, _ := parent.GetAssignmentIndex(originalStatement.Name)
 
 			// Try to keep the position of the KEY around where it was before
 			switch {
 			// If we can't find any placement, put us last in the list
 			case idx == -1:
-				options.UpsertPlacementType = ast.UpsertLast
+				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddLast))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
-					options.Group = stmt.Group.String()
+				if originalStatement.Group != nil && sourceDoc.HasGroup(originalStatement.Group.String()) {
+					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
 				}
 
 			// If we were first in the FILE doc, make sure we're first again
 			case idx == 0:
-				options.UpsertPlacementType = ast.UpsertFirst
+				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddFirst))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if stmt.Group != nil && sourceDoc.HasGroup(stmt.Group.String()) {
-					options.Group = stmt.Group.String()
+				if originalStatement.Group != nil && sourceDoc.HasGroup(originalStatement.Group.String()) {
+					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
 				}
 
 			// If we were not first, then put us behind the key that was
@@ -162,16 +165,21 @@ func runE(cmd *cobra.Command, args []string) error {
 			case idx > 0:
 				before := parent.Assignments()[idx-1]
 
-				options.UpsertPlacementType = ast.UpsertAfter
-				options.UpsertPlacementValue = before.Name
+				if err := upserter.ApplyOptions(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
+					return err
+				}
 
 				if before.Group != nil && sourceDoc.HasGroup(before.Group.String()) {
-					options.Group = before.Group.String()
+					upserter.ApplyOptions(upsert.WithGroup(before.Group.String()))
 				}
 			}
 		}
 
-		changed, err := sourceDoc.Upsert(stmt, options)
+		changed, warn, err := upserter.Upsert(originalStatement)
+		if warn != nil {
+			tui.Theme.Warning.StderrPrinter().Println(warn)
+		}
+
 		if err != nil {
 			sawError = true
 			lastWasError = true
@@ -181,19 +189,19 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 
 			dark.Print("  ")
-			dangerEmphasis.Print(stmt.Name)
+			dangerEmphasis.Print(originalStatement.Name)
 			dark.Print(" could not be set to ")
-			primary.Print(stmt.Literal)
+			primary.Print(originalStatement.Literal)
 			dark.Println(" due to error:")
 
-			danger.Println(" ", strings.Repeat(" ", len(stmt.Name)), err.Error())
+			danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), err.Error())
 
 			counter++
 
 			continue
 		}
 
-		if errors := validation.ValidateSingleAssignment(env, stmt.Name, nil, []string{"file", "dir"}); len(errors) > 0 {
+		if errors := validation.ValidateSingleAssignment(originalEnv, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
 			sawError = true
 			lastWasError = true
 
@@ -202,13 +210,13 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 
 			dark.Print("  ")
-			dangerEmphasis.Print(stmt.Name)
+			dangerEmphasis.Print(originalStatement.Name)
 			dark.Print(" could not be set to ")
-			primary.Print(stmt.Literal)
+			primary.Print(originalStatement.Literal)
 			dark.Println(" due to validation error:")
 
 			for _, errIsh := range errors {
-				danger.Println(" ", strings.Repeat(" ", len(stmt.Name)), strings.TrimSpace(validation.Explain(env, errIsh, false, false)))
+				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(originalEnv, errIsh, errIsh, false, false)))
 			}
 
 			counter++
@@ -225,9 +233,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 			lastWasError = false
 
-			success.Print("  ", stmt.Name)
+			success.Print("  ", originalStatement.Name)
 			dark.Print(" was successfully set to ")
-			primary.Println(stmt.Literal)
+			primary.Println(originalStatement.Literal)
 		}
 	}
 

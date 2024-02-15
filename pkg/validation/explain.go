@@ -14,7 +14,11 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 )
 
-func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bool) string {
+type multiError interface {
+	Errors() []error
+}
+
+func Explain(doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
 	dark := tui.Theme.Dark.BuffPrinter(&buff)
@@ -23,7 +27,17 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 	light := tui.Theme.Light.BuffPrinter(&buff)
 	primary := tui.Theme.Primary.BuffPrinter(&buff)
 
-	switch err := keyErr.Error.(type) {
+	switch err := inputError.(type) {
+	// Unwrap the ValidationError
+	case ValidationError:
+		return Explain(doc, err.WrappedError, err, applyFixer, showField)
+
+	case multiError:
+		for _, e := range err.Errors() {
+			buff.WriteString(Explain(doc, e, ValidationError{}, applyFixer, showField))
+			buff.WriteString("\n")
+		}
+
 	// user configuration error
 	case validator.InvalidValidationError:
 		danger.Println("invalid validation rules: " + err.Error())
@@ -86,7 +100,7 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 			case "fqdn":
 				light.Print("(fqdn) The value [")
 				bold.Print(keyErr.Assignment.Interpolated)
-				light.Println("]is not a valid Fully Qualified Domain Name (FQDN).")
+				light.Println("] is not a valid Fully Qualified Domain Name (FQDN).")
 
 			case "hostname":
 				light.Print("(hostname) The value [")
@@ -124,11 +138,8 @@ func Explain(doc *ast.Document, keyErr ValidationError, applyFixer, showField bo
 			}
 		}
 
-	case error:
-		danger.Printfln("(error) %s", err)
-
 	default:
-		panic(danger.Sprintf("unknown error type for field type: %T", err))
+		danger.Printfln("(error %T) %+s", err, err)
 	}
 
 	return buff.String()
@@ -173,7 +184,12 @@ func AskToSetValue(doc *ast.Document, assignment *ast.Assignment) {
 		Validate(func(s string) error {
 			err := validator.New().Var(s, assignment.ValidationRules())
 			if err != nil {
-				return errors.New(Explain(doc, ValidationError{Error: err, Assignment: assignment}, false, false))
+				z := ValidationError{
+					WrappedError: err,
+					Assignment:   assignment,
+				}
+
+				return errors.New(Explain(doc, z, z, false, false))
 			}
 
 			return nil

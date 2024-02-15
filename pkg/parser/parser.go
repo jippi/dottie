@@ -34,8 +34,9 @@ func (p *Parser) Parse() (*ast.Document, error) {
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group
-		doc               = &ast.Document{}
+		document          = ast.NewDocument()
 		previousStatement ast.Statement
+		statementIndex    int
 	)
 
 	for p.token.Type != token.EOF {
@@ -57,28 +58,15 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			currentGroup = val
 
 			// Append the group
-			doc.Groups = append(doc.Groups, currentGroup)
+			document.Groups = append(document.Groups, currentGroup)
 
 			previousStatement = val
 
 		case *ast.Assignment:
 			val.Position.File = p.filename
+			val.Position.Index = statementIndex
 
-			if val.Active {
-				switch {
-				// In "single”-quote mode we skip interpolation
-				// and use the string as-is
-				case val.Quote.Is(token.SingleQuotes.Rune()):
-					val.Interpolated = val.Literal
-
-				// In "double" and "no"-quote mode, we interpolate
-				default:
-					val.Interpolated, err = doc.Interpolate(val)
-					if err != nil {
-						return nil, err
-					}
-				}
-			}
+			statementIndex++
 
 			// Assign accumulated comments to this assignment
 			val.Comments = comments
@@ -96,7 +84,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 				val.Group = currentGroup
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				doc.Statements = append(doc.Statements, stmt)
+				document.Statements = append(document.Statements, stmt)
 			}
 
 			// Reset comment block
@@ -107,7 +95,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			val.Position.File = p.filename
 
 			if val.Annotation != nil {
-				doc.Annotations = append(doc.Annotations, val)
+				document.Annotations = append(document.Annotations, val)
 			}
 
 			comments = append(comments, val)
@@ -137,7 +125,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 
 					currentGroup.Statements = append(currentGroup.Statements, comment)
 				} else {
-					doc.Statements = append(doc.Statements, comment)
+					document.Statements = append(document.Statements, comment)
 				}
 			}
 
@@ -149,7 +137,7 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			if currentGroup != nil {
 				currentGroup.Statements = append(currentGroup.Statements, val)
 			} else {
-				doc.Statements = append(doc.Statements, val)
+				document.Statements = append(document.Statements, val)
 			}
 
 			// Reset the accumulated comments slice
@@ -169,12 +157,12 @@ func (p *Parser) Parse() (*ast.Document, error) {
 			}
 		} else {
 			for _, c := range comments {
-				doc.Statements = append(doc.Statements, c)
+				document.Statements = append(document.Statements, c)
 			}
 		}
 	}
 
-	return doc, nil
+	return document, nil
 }
 
 func (p *Parser) parseStatement() (ast.Statement, error) {
@@ -299,7 +287,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	}
 
 	if stmt != nil {
-		stmt.Active = active
+		stmt.Enabled = active
 
 		return stmt, err
 	}
@@ -311,9 +299,9 @@ func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
 	defer p.nextToken()
 
 	return &ast.Assignment{
-		Name:   name,
-		Active: p.token.Commented,
-		Quote:  token.NoQuotes,
+		Name:    name,
+		Enabled: p.token.Commented,
+		Quote:   token.NoQuotes,
 		Position: ast.Position{
 			FirstLine: p.token.LineNumber,
 			Line:      p.token.LineNumber,
@@ -336,7 +324,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 			Name:     name,
 			Literal:  value,
 			Complete: true,
-			Active:   p.token.Commented,
+			Enabled:  p.token.Commented,
 			Quote:    quoted,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,

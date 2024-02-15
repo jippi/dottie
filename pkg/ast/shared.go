@@ -17,6 +17,7 @@ type StatementCollection interface {
 }
 
 type Position struct {
+	Index     int    `json:"index"`
 	File      string `json:"file"`
 	Line      uint   `json:"line"`
 	FirstLine uint   `json:"first_line"`

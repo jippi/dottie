@@ -20,7 +20,7 @@ func TestParser_Parse(t *testing.T) {
 		tests := []struct {
 			name     string
 			input    string
-			expected ast.Statement
+			expected *ast.Document
 		}{
 			{
 				name:  "unquoted value",
@@ -38,7 +38,7 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  1,
 							},
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 							Quote:    token.NoQuotes,
 						},
 					},
@@ -60,7 +60,7 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  1,
 							},
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 							Quote:    token.DoubleQuotes,
 						},
 					},
@@ -83,7 +83,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.SingleQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -97,7 +97,7 @@ func TestParser_Parse(t *testing.T) {
 							Name:         "name",
 							Literal:      "",
 							Interpolated: "",
-							Active:       true,
+							Enabled:      true,
 							Position: ast.Position{
 								File:      "-",
 								Line:      1,
@@ -124,8 +124,8 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:  token.NoQuotes,
-							Active: true,
+							Quote:   token.NoQuotes,
+							Enabled: true,
 						},
 					},
 				},
@@ -156,7 +156,7 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  5,
 							},
 							Complete: false,
-							Active:   true,
+							Enabled:  true,
 							Quote:    token.NoQuotes,
 						},
 						&ast.Newline{
@@ -182,13 +182,14 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      ":9090",
 							Interpolated: ":9090",
 							Complete:     true,
-							Active:       true,
+							Enabled:      true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								File:      "-",
 								Line:      1,
 								FirstLine: 1,
 								LastLine:  1,
+								Index:     0,
 							},
 						},
 						&ast.Assignment{
@@ -196,13 +197,14 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "0s",
 							Interpolated: "0s",
 							Complete:     true,
-							Active:       true,
+							Enabled:      true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								File:      "-",
 								Line:      2,
 								FirstLine: 2,
 								LastLine:  2,
+								Index:     1,
 							},
 						},
 						&ast.Assignment{
@@ -210,13 +212,14 @@ func TestParser_Parse(t *testing.T) {
 							Literal:      "jaeger-otlp-agent:6831",
 							Interpolated: "jaeger-otlp-agent:6831",
 							Complete:     true,
-							Active:       true,
+							Enabled:      true,
 							Quote:        token.NoQuotes,
 							Position: ast.Position{
 								File:      "-",
 								Line:      3,
 								FirstLine: 3,
 								LastLine:  3,
+								Index:     2,
 							},
 						},
 					},
@@ -239,7 +242,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.NoQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 							Comments: []*ast.Comment{
 								{
 									Value: "# comment 1",
@@ -280,7 +283,7 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  1,
 							},
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 							Quote:    token.DoubleQuotes,
 						},
 					},
@@ -303,7 +306,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.NoQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -325,7 +328,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.DoubleQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -347,7 +350,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.NoQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -368,7 +371,7 @@ func TestParser_Parse(t *testing.T) {
 								LastLine:  1,
 							},
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 							Quote:    token.NoQuotes,
 						},
 					},
@@ -391,7 +394,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.DoubleQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -413,7 +416,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Quote:    token.SingleQuotes,
 							Complete: true,
-							Active:   true,
+							Enabled:  true,
 						},
 					},
 				},
@@ -426,12 +429,16 @@ func TestParser_Parse(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				s := scanner.New(tt.input)
-				p := parser.New(s, "-")
+				expected := tt.expected
+				expected.Initialize()
+				expected.InterpolateAll()
 
-				stmts, err := p.Parse()
+				actual, err := parser.New(scanner.New(tt.input), "-").Parse()
+				actual.Initialize()
+				actual.InterpolateAll()
+
 				require.NoError(t, err)
-				require.EqualValues(t, tt.expected, stmts)
+				require.EqualExportedValues(t, *expected, *actual)
 			})
 		}
 	})
@@ -469,12 +476,9 @@ func TestParser_Parse(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				s := scanner.New(tt.input)
-				p := parser.New(s, "-")
-
-				stmts, err := p.Parse()
+				document, err := parser.New(scanner.New(tt.input), "-").Parse()
 				require.Error(t, err, "expected an error")
-				require.Nil(t, stmts, "did not expect a statement")
+				require.Nil(t, document, "did not expect a document when erroring")
 			})
 		}
 	})

@@ -8,15 +8,17 @@ import (
 
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
+	"go.uber.org/multierr"
 )
 
-func Command() *cobra.Command {
+func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "set KEY=VALUE [KEY=VALUE ...]",
 		Short:   "Set/update one or multiple key=value pairs",
@@ -46,7 +48,7 @@ func Command() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	env, err := pkg.Load(filename)
+	document, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
@@ -55,51 +57,44 @@ func runE(cmd *cobra.Command, args []string) error {
 		return errors.New("Missing required argument: KEY=VALUE")
 	}
 
-	comments, _ := cmd.Flags().GetStringArray("comment")
+	//
+	// Initialize Upserter
+	//
 
-	options := ast.UpsertOptions{
-		UpsertPlacementType: ast.UpsertLast,
-		Comments:            comments,
-		ErrorIfMissing:      shared.BoolFlag(cmd.Flags(), "error-if-missing"),
-		Group:               shared.StringFlag(cmd.Flags(), "group"),
-		SkipValidation:      !shared.BoolWithInverseValue(cmd.Flags(), "validate"),
+	upserter, err := upsert.New(
+		document,
+		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
+		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+		upsert.WithSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
+	)
+	if err != nil {
+		return fmt.Errorf("error setting up upserter: %w", err)
 	}
 
-	// If we want placement *BEFORE* another statement
-	if before, _ := cmd.Flags().GetString("before"); len(before) > 0 {
-		other := env.Get(before)
-		if other == nil {
-			return fmt.Errorf("The key [%s] does not exists in [%s]. Can't be used in [--before]", before, filename)
-		}
-
-		options.UpsertPlacementType = ast.UpsertBefore
-		options.UpsertPlacementValue = before
-
-		if other.Group != nil {
-			options.Group = other.Group.String()
-		}
+	if err := upserter.ApplyOptions(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddBeforeKey, shared.StringFlag(cmd.Flags(), "before"))); err != nil {
+		return fmt.Errorf("error in processing [--before] flag: %w", err)
 	}
 
-	// If we want placement *AFTER* another statement
-	if after, _ := cmd.Flags().GetString("after"); len(after) > 0 {
-		other := env.Get(after)
-		if other == nil {
-			return fmt.Errorf("The key [%s] does not exists in [%s]. Can't be used in [--after]", after, filename)
-		}
-
-		options.UpsertPlacementType = ast.UpsertAfter
-		options.UpsertPlacementValue = after
-
-		if other.Group != nil {
-			options.Group = other.Group.String()
-		}
+	if err := upserter.ApplyOptions(upsert.WithPlacementInGroupIgnoringEmpty(upsert.AddAfterKey, shared.StringFlag(cmd.Flags(), "after"))); err != nil {
+		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
+	if err := upserter.ApplyOptions(upsert.WithSettingIf(upsert.Validate, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
+		return fmt.Errorf("error configuring [--validate] flag: %w", err)
+	}
+
+	//
 	// Loop arguments and place them
+	//
+
+	var allErrors error
+
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) != 2 {
-			return errors.New("expected KEY=VALUE pair, missing '='")
+			allErrors = multierr.Append(allErrors, fmt.Errorf("Key: '%s' Error: expected KEY=VALUE pair, missing '='", stringPair))
+
+			continue
 		}
 
 		key := pairSlice[0]
@@ -109,37 +104,43 @@ func runE(cmd *cobra.Command, args []string) error {
 			Name:         key,
 			Literal:      value,
 			Interpolated: value,
-			Active:       !shared.BoolFlag(cmd.Flags(), "disabled"),
+			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
+			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comments")),
 		}
 
 		//
-		// Upsert key
+		// Upsert the assignment
 		//
 
-		assignment, err := env.Upsert(assignment, options)
+		assignment, warnings, err := upserter.Upsert(assignment)
+		if warnings != nil {
+			tui.Theme.Warning.StderrPrinter().Println("WARNING:", warnings)
+		}
+
 		if err != nil {
-			fmt.Fprintln(os.Stderr, validation.Explain(env, validation.NewError(assignment, err), false, true))
+			z := validation.NewError(assignment, err)
+			fmt.Fprintln(os.Stderr, validation.Explain(document, z, z, false, true))
 
-			return fmt.Errorf("failed to upsert the key/value pair [%s]", key)
-		}
+			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
+				allErrors = multierr.Append(allErrors, err)
 
-		if validationErrors := validation.ValidateSingleAssignment(env, assignment.Name, nil, nil); len(validationErrors) > 0 {
-			for _, errIsh := range validationErrors {
-				fmt.Fprintln(os.Stderr, validation.Explain(env, errIsh, false, false))
+				continue
 			}
-
-			return errors.New("validation failed")
 		}
 
 		tui.Theme.Success.StderrPrinter().Printfln("Key [%s] was successfully upserted", key)
+	}
+
+	if allErrors != nil {
+		return errors.New("validation error")
 	}
 
 	//
 	// Save file
 	//
 
-	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), env); err != nil {
+	if err := pkg.Save(shared.StringFlag(cmd.Flags(), "file"), document); err != nil {
 		return fmt.Errorf("failed to save file: %w", err)
 	}
 

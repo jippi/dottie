@@ -1,8 +1,8 @@
-package main
+package cmd
 
 import (
-	"os"
 	"strings"
+	"sync"
 
 	goversion "github.com/caarlos0/go-version"
 	"github.com/davecgh/go-spew/spew"
@@ -16,9 +16,6 @@ import (
 	"github.com/jippi/dottie/cmd/update"
 	"github.com/jippi/dottie/cmd/validate"
 	"github.com/jippi/dottie/cmd/value"
-	"github.com/jippi/dottie/pkg/ast"
-	"github.com/jippi/dottie/pkg/render"
-	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -37,15 +34,10 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 {{end}}
 `
 
-var (
-	env      *ast.Document
-	settings *render.Settings
-)
+var mutex sync.Mutex
 
-func main() {
-	__configureSpew()
-
-	cobra.EnableCommandSorting = false
+func NewCommand() *cobra.Command {
+	__globalSetup()
 
 	root := &cobra.Command{
 		Use:           "dottie",
@@ -58,31 +50,30 @@ func main() {
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
-	root.AddCommand(set.Command())
-	root.AddCommand(fmt.Command)
-	root.AddCommand(enable.Command)
-	root.AddCommand(disable.Command)
-	root.AddCommand(update.Command())
+	root.AddCommand(set.NewCommand())
+	root.AddCommand(fmt.NewCommand())
+	root.AddCommand(enable.NewCommand())
+	root.AddCommand(disable.NewCommand())
+	root.AddCommand(update.NewCommand())
 
-	root.AddCommand(print_cmd.Command())
-	root.AddCommand(value.Command)
-	root.AddCommand(validate.Command())
-	root.AddCommand(groups.Command)
-	root.AddCommand(json.Command)
+	root.AddCommand(print_cmd.NewCommand())
+	root.AddCommand(value.NewCommand())
+	root.AddCommand(validate.NewCommand())
+	root.AddCommand(groups.NewCommand())
+	root.AddCommand(json.NewCommand())
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
-	if c, err := root.ExecuteC(); err != nil {
-		tui.Theme.Danger.StderrPrinter(tui.WithEmphasis(true)).Println(c.ErrPrefix(), err.Error())
-		tui.Theme.Info.StderrPrinter().Printfln("Run '%v --help' for usage.\n", c.CommandPath())
-
-		os.Exit(1)
-	}
+	return root
 }
 
-func __configureSpew() {
+func __globalSetup() {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	spew.Config.DisablePointerMethods = true
 	spew.Config.DisableMethods = true
+	cobra.EnableCommandSorting = false
 }
 
 func indent(in string) string {

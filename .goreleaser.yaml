@@ -27,7 +27,7 @@ metadata:
   mod_timestamp: "{{ .CommitTimestamp }}"
 
 builds:
-  - main: ./cmd/
+  - main: .
     env:
       - CGO_ENABLED=0
     goos:

@@ -24,13 +24,13 @@ func (PlainOutput) GroupBanner(group *ast.Group, settings Settings) *Lines {
 func (PlainOutput) Assignment(assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	if !assignment.Active {
+	if !assignment.Enabled {
 		buf.WriteString("#")
 	}
 
 	val := assignment.Literal
 
-	if settings.useInterpolatedValues {
+	if settings.InterpolatedValues {
 		val = assignment.Interpolated
 	}
 

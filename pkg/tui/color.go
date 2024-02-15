@@ -46,7 +46,7 @@ func (c Color) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Pr
 }
 
 func (c Color) BuffPrinter(w io.Writer, options ...PrinterOption) Print {
-	return c.Printer(RendererWithTTY(w), options...)
+	return c.Printer(Renderer(w), options...)
 }
 
 func (c Color) StderrPrinter(options ...PrinterOption) Print {

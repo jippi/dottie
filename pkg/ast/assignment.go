@@ -5,22 +5,30 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 )
 
 type Assignment struct {
-	Name         string      `json:"key"`       // Name of the key (left hand side of the "=" sign)
-	Literal      string      `json:"literal"`   // Value of the key (right hand side of the "=" sign)
-	Interpolated string      `json:"value"`     // Value of the key (after interpolation)
-	Complete     bool        `json:"complete"`  // The key/value had no value/content after the "=" sign
-	Active       bool        `json:"commented"` // The assignment was commented out (#KEY=VALUE)
-	Quote        token.Quote `json:"quote"`     // The style of quotes used for the assignment
-	Group        *Group      `json:"-"`         // The (optional) group this assignment belongs to
-	Comments     []*Comment  `json:"comments"`  // Comments attached to the assignment (e.g. doc block before it)
-	Position     Position    `json:"position"`  // Information about position of the assignment in the file
+	Comments     []*Comment                   `json:"comments"`     // Comments attached to the assignment (e.g. doc block before it)
+	Complete     bool                         `json:"complete"`     // The key/value had no value/content after the "=" sign
+	Enabled      bool                         `json:"enabled"`      // The assignment was enabled out (#KEY=VALUE)
+	Group        *Group                       `json:"-"`            // The (optional) group this assignment belongs to
+	Interpolated string                       `json:"value"`        // Value of the key (after interpolation)
+	Literal      string                       `json:"literal"`      // Value of the key (right hand side of the "=" sign)
+	Name         string                       `json:"key"`          // Name of the key (left hand side of the "=" sign)
+	Position     Position                     `json:"position"`     // Information about position of the assignment in the file
+	Quote        token.Quote                  `json:"quote"`        // The style of quotes used for the assignment
+	Dependencies map[string]template.Variable `json:"dependencies"` // Assignments that this assignment depends on
+	Dependents   map[string]*Assignment       `json:"dependents"`   // Assignments dependents on this assignment
 }
 
 func (a *Assignment) statementNode() {}
+
+func (a *Assignment) Initialize() {
+	a.Dependencies = template.ExtractVariables(a.Literal, nil)
+	a.Dependents = make(map[string]*Assignment)
+}
 
 func (a *Assignment) Is(other Statement) bool {
 	if a == nil || other == nil {
@@ -107,11 +115,11 @@ func (a *Assignment) IsHidden() bool {
 }
 
 func (a *Assignment) Disable() {
-	a.Active = false
+	a.Enabled = false
 }
 
 func (a *Assignment) Enable() {
-	a.Active = true
+	a.Enabled = true
 }
 
 func (a *Assignment) CommentsSlice() []string {
