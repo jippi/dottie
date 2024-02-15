@@ -51,7 +51,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 		Version:       buildVersion().String(),
 	}
 
-	ctx = tui.CreateContext(ctx, stdout, stderr)
+	ctx = tui.NewContext(ctx, stdout, stderr)
 
 	root.SetArgs(args)
 	root.SetContext(ctx)

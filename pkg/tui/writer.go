@@ -4,10 +4,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type colorType int
+type style int
 
 const (
-	Danger colorType = 1 << iota
+	Danger style = 1 << iota
 	Dark
 	Info
 	Light
@@ -19,48 +19,48 @@ const (
 )
 
 type Writer struct {
-	cache  map[colorType]Printer
+	cache  map[style]Printer
 	theme  Theme
 	writer *lipgloss.Renderer
 }
 
 func (w Writer) Danger() Printer {
-	return w.Color(Danger)
+	return w.Style(Danger)
 }
 
 func (w Writer) Dark() Printer {
-	return w.Color(Dark)
+	return w.Style(Dark)
 }
 
 func (w Writer) Info() Printer {
-	return w.Color(Info)
+	return w.Style(Info)
 }
 
 func (w Writer) Light() Printer {
-	return w.Color(Light)
+	return w.Style(Light)
 }
 
 func (w Writer) NoColor() Printer {
-	return w.Color(NoColor)
+	return w.Style(NoColor)
 }
 
 func (w Writer) Primary() Printer {
-	return w.Color(Primary)
+	return w.Style(Primary)
 }
 
 func (w Writer) Secondary() Printer {
-	return w.Color(Secondary)
+	return w.Style(Secondary)
 }
 
 func (w Writer) Success() Printer {
-	return w.Color(Success)
+	return w.Style(Success)
 }
 
 func (w Writer) Warning() Printer {
-	return w.Color(Warning)
+	return w.Style(Warning)
 }
 
-func (w Writer) Color(colorType colorType) Printer {
+func (w Writer) Style(colorType style) Printer {
 	if printer, ok := w.cache[colorType]; ok {
 		return printer
 	}

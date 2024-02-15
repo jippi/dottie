@@ -21,7 +21,7 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, warnings, err := setup(cmd.Flags())
 			if warnings != nil {
-				tui.ColorPrinterFromContext(cmd.Context(), tui.Stderr, tui.Warning).Printfln("%+v", warnings)
+				tui.WriterFromContext(cmd.Context(), tui.Stderr).Warning().Printfln("%+v", warnings)
 			}
 			if err != nil {
 				return err

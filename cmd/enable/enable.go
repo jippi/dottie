@@ -36,7 +36,7 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("Could not find KEY [%s]", key)
 			}
 
-			stdout, stderr := tui.PrintersFromContext(cmd.Context())
+			stdout, stderr := tui.WritersFromContext(cmd.Context())
 
 			if existing.Enabled {
 				stderr.Warning().Printfln("WARNING: The key [%s] is already enabled", key)

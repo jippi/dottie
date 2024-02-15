@@ -43,7 +43,8 @@ func NewCommand() *cobra.Command {
 			warn, err := env.InterpolateStatement(existing)
 			if warn != nil {
 				tui.
-					ColorPrinterFromContext(cmd.Context(), tui.Stderr, tui.Warning).
+					WriterFromContext(cmd.Context(), tui.Stderr).
+					Warning().
 					Printfln("%+v", warn)
 			}
 			if err != nil {
@@ -51,7 +52,8 @@ func NewCommand() *cobra.Command {
 			}
 
 			tui.
-				ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.NoColor).
+				WriterFromContext(cmd.Context(), tui.Stdout).
+				NoColor().
 				Println(existing.Interpolated)
 
 			return nil

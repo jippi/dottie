@@ -40,7 +40,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	stdout, stderr := tui.PrintersFromContext(cmd.Context())
+	stdout, stderr := tui.WritersFromContext(cmd.Context())
 
 	dark := stdout.Dark()
 	info := stdout.Info()

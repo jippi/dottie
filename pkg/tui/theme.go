@@ -44,7 +44,7 @@ func (theme Theme) NewWriter(writer *lipgloss.Renderer) Writer {
 	return Writer{
 		writer: writer,
 		theme:  theme,
-		cache:  make(map[colorType]Printer),
+		cache:  make(map[style]Printer),
 	}
 }
 
@@ -52,7 +52,7 @@ func NewWriter(ctx context.Context, writer io.Writer) Writer {
 	var options []termenv.OutputOption
 
 	// If the primary color profile is in color mode, enforce TTY to keep coloring on
-	if profile := ColorProfile(ctx); profile != termenv.Ascii {
+	if profile := ColorProfileFromContext(ctx); profile != termenv.Ascii {
 		options = append(
 			options,
 			termenv.WithTTY(true),

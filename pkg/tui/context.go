@@ -8,21 +8,21 @@ import (
 	"github.com/muesli/termenv"
 )
 
-type printerContextKey int
+type fileDescriptorKey int
 
 const (
-	Stdout printerContextKey = iota
+	Stdout fileDescriptorKey = iota
 	Stderr
 )
 
-type themeContextKey int
+type contextKey int
 
 const (
-	themeContextValue themeContextKey = iota
+	themeContextValue contextKey = iota
 	colorProfileContextValue
 )
 
-func CreateContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
+func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 	theme := NewTheme()
 
 	stdoutOutput := lipgloss.NewRenderer(stdout, termenv.WithColorCache(true))
@@ -40,18 +40,14 @@ func ThemeFromContext(ctx context.Context) Theme {
 	return ctx.Value(themeContextValue).(Theme) //nolint:forcetypeassert
 }
 
-func ColorProfile(ctx context.Context) termenv.Profile {
+func ColorProfileFromContext(ctx context.Context) termenv.Profile {
 	return ctx.Value(colorProfileContextValue).(termenv.Profile) //nolint:forcetypeassert
 }
 
-func WriterFromContext(ctx context.Context, key printerContextKey) Writer {
-	return ctx.Value(key).(Writer) //nolint:forcetypeassert
+func WriterFromContext(ctx context.Context, descriptor fileDescriptorKey) Writer {
+	return ctx.Value(descriptor).(Writer) //nolint:forcetypeassert
 }
 
-func ColorPrinterFromContext(ctx context.Context, key printerContextKey, color colorType) Printer {
-	return ctx.Value(key).(*Writer).Color(color) //nolint:forcetypeassert
-}
-
-func PrintersFromContext(ctx context.Context) (Writer, Writer) {
+func WritersFromContext(ctx context.Context) (Writer, Writer) {
 	return ctx.Value(Stdout).(Writer), ctx.Value(Stderr).(Writer) //nolint:forcetypeassert
 }

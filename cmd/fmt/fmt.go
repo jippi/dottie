@@ -23,7 +23,7 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			tui.ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.Success).Printfln("File [%s] was successfully formatted", filename)
+			tui.WriterFromContext(cmd.Context(), tui.Stdout).Success().Printfln("File [%s] was successfully formatted", filename)
 
 			return nil
 		},

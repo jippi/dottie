@@ -88,7 +88,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	var (
 		allErrors      error
-		stdout, stderr = tui.PrintersFromContext(cmd.Context())
+		stdout, stderr = tui.WritersFromContext(cmd.Context())
 	)
 
 	for _, stringPair := range args {
