@@ -36,7 +36,7 @@ func (bitmask Setting) Has(setting Setting) bool {
 	return bitmask&setting != 0
 }
 
-func RunFilebasedCommandTests(t *testing.T, settings Setting, globalArgs ...string) {
+func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...string) {
 	t.Helper()
 
 	files, err := os.ReadDir("tests")
