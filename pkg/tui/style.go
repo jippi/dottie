@@ -1,8 +1,6 @@
 package tui
 
 import (
-	"io"
-
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -38,10 +36,6 @@ func NewStyle() Style {
 
 func (style Style) NewPrinter(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	return NewPrinter(style, renderer, options...)
-}
-
-func (style Style) NewBufferPrinter(w io.Writer, options ...PrinterOption) Print {
-	return style.NewPrinter(Renderer(w), options...)
 }
 
 func (style Style) TextStyle() lipgloss.Style {

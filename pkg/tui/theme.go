@@ -1,7 +1,11 @@
 package tui
 
 import (
+	"context"
 	"io"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 )
 
 type Theme struct {
@@ -16,12 +20,22 @@ type Theme struct {
 	Warning   Style
 }
 
-func (theme Theme) Printer(w io.Writer) ThemeWriter {
+func (theme Theme) Printer(writer *lipgloss.Renderer) ThemeWriter {
 	return ThemeWriter{
-		w:     w,
-		theme: theme,
-		cache: make(map[colorType]Printer),
+		writer: writer,
+		theme:  theme,
+		cache:  make(map[colorType]Printer),
 	}
+}
+
+func (theme Theme) WriterPrinter(ctx context.Context, writer io.Writer) ThemeWriter {
+	options := []termenv.OutputOption{}
+
+	if ColorProfile(ctx) != termenv.Ascii {
+		options = append(options, termenv.WithTTY(true))
+	}
+
+	return theme.Printer(lipgloss.NewRenderer(writer, options...))
 }
 
 func NewTheme() Theme {

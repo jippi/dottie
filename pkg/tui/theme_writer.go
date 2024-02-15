@@ -1,6 +1,8 @@
 package tui
 
-import "io"
+import (
+	"github.com/charmbracelet/lipgloss"
+)
 
 type colorType int
 
@@ -17,9 +19,9 @@ const (
 )
 
 type ThemeWriter struct {
-	cache map[colorType]Printer
-	theme Theme
-	w     io.Writer
+	cache  map[colorType]Printer
+	theme  Theme
+	writer *lipgloss.Renderer
 }
 
 func (tp ThemeWriter) Color(colorType colorType) Printer {
@@ -27,38 +29,38 @@ func (tp ThemeWriter) Color(colorType colorType) Printer {
 		return printer
 	}
 
-	var color Style
+	var style Style
 
 	switch colorType {
 	case Danger:
-		color = tp.theme.Danger
+		style = tp.theme.Danger
 
 	case Dark:
-		color = tp.theme.Dark
+		style = tp.theme.Dark
 
 	case Info:
-		color = tp.theme.Info
+		style = tp.theme.Info
 
 	case Light:
-		color = tp.theme.Light
+		style = tp.theme.Light
 
 	case Primary:
-		color = tp.theme.Primary
+		style = tp.theme.Primary
 
 	case Secondary:
-		color = tp.theme.Secondary
+		style = tp.theme.Secondary
 
 	case Success:
-		color = tp.theme.Success
+		style = tp.theme.Success
 
 	case Warning:
-		color = tp.theme.Warning
+		style = tp.theme.Warning
 
 	case NoColor:
-		color = tp.theme.NoColor
+		style = tp.theme.NoColor
 	}
 
-	tp.cache[colorType] = color.NewBufferPrinter(tp.w)
+	tp.cache[colorType] = style.NewPrinter(tp.writer)
 
 	return tp.cache[colorType]
 }

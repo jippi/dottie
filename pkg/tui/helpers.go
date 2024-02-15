@@ -1,22 +1,9 @@
 package tui
 
 import (
-	"io"
-
 	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 	"github.com/teacat/noire"
 )
-
-func Renderer(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
-	return lipgloss.NewRenderer(w, opts...)
-}
-
-func RendererWithTTY(w io.Writer, opts ...termenv.OutputOption) *lipgloss.Renderer {
-	opts = append(opts, termenv.WithTTY(true))
-
-	return lipgloss.NewRenderer(w, opts...)
-}
 
 func ShadeColor(in string, percent float64) lipgloss.Color {
 	if percent < 0 || percent > 1 {

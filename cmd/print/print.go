@@ -1,6 +1,8 @@
 package print_cmd
 
 import (
+	"fmt"
+
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -25,10 +27,17 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			// fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
-			tui.
-				ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.NoColor).
-				Println(render.NewRenderer(*settings).Statement(cmd.Context(), env).String())
+			fmt.Fprintln(
+				cmd.OutOrStdout(),
+				render.
+					NewRenderer(*settings).
+					Statement(cmd.Context(), env).
+					String(),
+			)
+
+			// tui.
+			// 	ColorPrinterFromContext(cmd.Context(), tui.Stdout, tui.NoColor).
+			// 	Println(render.NewRenderer(*settings).Statement(cmd.Context(), env).String())
 
 			return nil
 		},
@@ -95,8 +104,6 @@ func setup(flags *pflag.FlagSet) (*ast.Document, *render.Settings, error, error)
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
-
-	settings.Apply(render.WithColors(false))
 
 	return doc, settings, allWarnings, allErrors
 }
