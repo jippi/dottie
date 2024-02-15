@@ -6,9 +6,9 @@
 ---- exec command line 5: [set SOME_KEY=ANOTHER_VALUE --comment I'm a comment --comment I'm another comment]
 ---- exec command line 6: [set A_NUMBER=1 --comment @dottie/validate number]
 ---- exec command line 7: [set NOT_A_NUMBER=abc --comment @dottie/validate number]
-NOT_A_NUMBER (-:2)                                 
+NOT_A_NUMBER (-:2)
   * (number) The value [abc] is not a valid number.
-                                                   
+
 Error: validation error
 Run 'dottie set --help' for usage.
 ---- exec command line 8: [set A_NUMBER=2]
