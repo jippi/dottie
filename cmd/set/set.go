@@ -22,6 +22,7 @@ func NewCommand() *cobra.Command {
 		Use:     "set KEY=VALUE [KEY=VALUE ...]",
 		Short:   "Set/update one or multiple key=value pairs",
 		GroupID: "manipulate",
+		Args:    cobra.MinimumNArgs(1),
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
 			WithHandlers(render.ExcludeDisabledAssignments).
@@ -50,10 +51,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	document, err := pkg.Load(filename)
 	if err != nil {
 		return err
-	}
-
-	if len(args) == 0 {
-		return errors.New("Missing required argument: KEY=VALUE")
 	}
 
 	//
@@ -116,9 +113,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		//
 
 		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
-		if warnings != nil {
-			stderr.Warning().Println("WARNING:", warnings)
-		}
+		tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 		if err != nil {
 			z := validation.NewError(assignment, err)

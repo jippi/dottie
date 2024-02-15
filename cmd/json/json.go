@@ -12,6 +12,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "json",
 		Short:   "Print as JSON",
+		Args:    cobra.NoArgs,
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()

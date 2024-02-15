@@ -15,6 +15,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "groups",
 		Short:   "Print groups found in the .env file",
+		Args:    cobra.NoArgs,
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
@@ -29,16 +30,16 @@ func NewCommand() *cobra.Command {
 				return errors.New("No groups found")
 			}
 
-			width := longesGroupName(groups)
+			maxWidth := longesGroupName(groups)
 
-			stdout := tui.WriterFromContext(cmd.Context(), tui.Stdout)
+			stdout := tui.StdoutFromContext(cmd.Context())
 			secondary := stdout.Secondary()
 			primary := stdout.Primary()
 
 			stdout.Info().Box("Groups in " + filename)
 
 			for _, group := range groups {
-				primary.Printf("%-"+strconv.Itoa(width)+"s", slug.Make(group.String()))
+				primary.Printf("%-"+strconv.Itoa(maxWidth)+"s", slug.Make(group.String()))
 				primary.Print(" ")
 				secondary.Printfln("(%s:%d)", filename, group.Position.FirstLine)
 			}

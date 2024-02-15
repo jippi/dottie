@@ -30,8 +30,8 @@ func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 
 	ctx = context.WithValue(ctx, themeContextValue, theme)
 	ctx = context.WithValue(ctx, colorProfileContextValue, stdoutOutput.ColorProfile())
-	ctx = context.WithValue(ctx, Stdout, theme.NewWriter(stdoutOutput))
-	ctx = context.WithValue(ctx, Stderr, theme.NewWriter(stderrOutput))
+	ctx = context.WithValue(ctx, Stdout, theme.Writer(stdoutOutput))
+	ctx = context.WithValue(ctx, Stderr, theme.Writer(stderrOutput))
 
 	return ctx
 }
@@ -48,6 +48,14 @@ func WriterFromContext(ctx context.Context, descriptor fileDescriptorKey) Writer
 	return ctx.Value(descriptor).(Writer) //nolint:forcetypeassert
 }
 
+func StdoutFromContext(ctx context.Context) Writer {
+	return WriterFromContext(ctx, Stdout)
+}
+
+func StderrFromContext(ctx context.Context) Writer {
+	return WriterFromContext(ctx, Stderr)
+}
+
 func WritersFromContext(ctx context.Context) (Writer, Writer) {
-	return ctx.Value(Stdout).(Writer), ctx.Value(Stderr).(Writer) //nolint:forcetypeassert
+	return StdoutFromContext(ctx), StderrFromContext(ctx)
 }

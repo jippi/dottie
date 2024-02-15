@@ -9,49 +9,48 @@ import (
 )
 
 type Theme struct {
-	Danger    Style
-	Dark      Style
-	Info      Style
-	Light     Style
-	NoColor   Style
-	Primary   Style
-	Secondary Style
-	Success   Style
-	Warning   Style
+	styles map[styleIdentifier]Style
 }
 
 func NewTheme() Theme {
 	theme := Theme{}
+	theme.styles = make(map[styleIdentifier]Style)
+	theme.styles[Danger] = NewStyle(Red)
+	theme.styles[Info] = NewStyle(Cyan)
+	theme.styles[Light] = NewStyle(Gray300)
+	theme.styles[NoColor] = NewStyleWithoutColor()
+	theme.styles[Primary] = NewStyle(Blue)
+	theme.styles[Secondary] = NewStyle(Gray600)
+	theme.styles[Success] = NewStyle(Green)
+	theme.styles[Warning] = NewStyle(Yellow)
 
-	theme.Danger = NewStyle(Red)
-	theme.Info = NewStyle(Cyan)
-	theme.Light = NewStyle(Gray300)
-	theme.NoColor = NewStyleWithoutColor()
-	theme.Primary = NewStyle(Blue)
-	theme.Secondary = NewStyle(Gray600)
-	theme.Success = NewStyle(Green)
-	theme.Warning = NewStyle(Yellow)
+	dark := NewStyle(Gray700)
+	dark.textEmphasisColor.Dark = ColorToHex(Gray300)
+	dark.backgroundColor.Dark = "#1a1d20"
+	dark.borderColor.Dark = ColorToHex(Gray800)
 
-	theme.Dark = NewStyle(Gray700)
-	theme.Dark.textEmphasisColor.Dark = ColorToHex(Gray300)
-	theme.Dark.backgroundColor.Dark = "#1a1d20"
-	theme.Dark.borderColor.Dark = ColorToHex(Gray800)
+	theme.styles[Dark] = dark
 
 	return theme
 }
 
-func (theme Theme) NewWriter(writer *lipgloss.Renderer) Writer {
+func (theme Theme) Style(id styleIdentifier) Style {
+	return theme.styles[id]
+}
+
+func (theme Theme) Writer(renderer *lipgloss.Renderer) Writer {
 	return Writer{
-		writer: writer,
-		theme:  theme,
-		cache:  make(map[style]Printer),
+		renderer: renderer,
+		theme:    theme,
+		cache:    make(map[styleIdentifier]Printer),
 	}
 }
 
 func NewWriter(ctx context.Context, writer io.Writer) Writer {
 	var options []termenv.OutputOption
 
-	// If the primary color profile is in color mode, enforce TTY to keep coloring on
+	// If the primary (stdout) color profile is in color mode (aka not ASCII),
+	// force  TTY and color profile for the new renderer and writer
 	if profile := ColorProfileFromContext(ctx); profile != termenv.Ascii {
 		options = append(
 			options,
@@ -60,5 +59,5 @@ func NewWriter(ctx context.Context, writer io.Writer) Writer {
 		)
 	}
 
-	return ThemeFromContext(ctx).NewWriter(lipgloss.NewRenderer(writer, options...))
+	return ThemeFromContext(ctx).Writer(lipgloss.NewRenderer(writer, options...))
 }

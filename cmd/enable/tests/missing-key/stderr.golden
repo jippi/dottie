@@ -1,3 +1,3 @@
 ---- exec command line 0: [enable]
-Error: Missing required argument: KEY
+Error: accepts 1 arg(s), received 0
 Run 'dottie enable --help' for usage.

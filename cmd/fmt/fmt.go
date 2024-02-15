@@ -10,6 +10,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "fmt",
 		Short:   "Format a .env file",
+		Args:    cobra.NoArgs,
 		GroupID: "manipulate",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
@@ -23,7 +24,9 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			tui.WriterFromContext(cmd.Context(), tui.Stdout).Success().Printfln("File [%s] was successfully formatted", filename)
+			tui.StdoutFromContext(cmd.Context()).
+				Success().
+				Printfln("File [%s] was successfully formatted", filename)
 
 			return nil
 		},

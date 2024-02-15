@@ -18,6 +18,7 @@ func NewCommand() *cobra.Command {
 		Use:     "validate",
 		Short:   "Validate an .env file",
 		GroupID: "output",
+		Args:    cobra.NoArgs,
 		RunE:    runE,
 	}
 

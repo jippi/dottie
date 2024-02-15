@@ -22,6 +22,7 @@ func NewCommand() *cobra.Command {
 		Use:     "update",
 		Short:   "Update the .env file from a source",
 		GroupID: "manipulate",
+		Args:    cobra.NoArgs,
 		RunE:    runE,
 	}
 

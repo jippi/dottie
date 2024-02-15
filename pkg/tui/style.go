@@ -4,6 +4,20 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type styleIdentifier int
+
+const (
+	Danger styleIdentifier = 1 << iota
+	Dark
+	Info
+	Light
+	NoColor
+	Primary
+	Secondary
+	Success
+	Warning
+)
+
 type Style struct {
 	textColor         lipgloss.AdaptiveColor
 	textStyle         lipgloss.Style

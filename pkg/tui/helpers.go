@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"context"
+
 	"github.com/charmbracelet/lipgloss"
 	"github.com/teacat/noire"
 )
@@ -39,4 +41,14 @@ func TransformColor(base, filter string, percent float64) string {
 	default:
 		return base
 	}
+}
+
+func MaybePrintWarnings(ctx context.Context, warnings error) {
+	if warnings == nil {
+		return
+	}
+
+	StderrFromContext(ctx).
+		Warning().
+		Printfln("%+v", warnings)
 }
