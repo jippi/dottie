@@ -48,7 +48,7 @@ func (theme Theme) NewWriter(writer *lipgloss.Renderer) ThemeWriter {
 	}
 }
 
-func (theme Theme) NewWriterWriter(ctx context.Context, writer io.Writer) ThemeWriter {
+func NewWriter(ctx context.Context, writer io.Writer) ThemeWriter {
 	var options []termenv.OutputOption
 
 	// If the primary color profile is in color mode, enforce TTY to keep coloring on
@@ -60,5 +60,5 @@ func (theme Theme) NewWriterWriter(ctx context.Context, writer io.Writer) ThemeW
 		)
 	}
 
-	return theme.NewWriter(lipgloss.NewRenderer(writer, options...))
+	return ThemeFromContext(ctx).NewWriter(lipgloss.NewRenderer(writer, options...))
 }

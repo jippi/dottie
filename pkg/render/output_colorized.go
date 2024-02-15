@@ -15,7 +15,7 @@ type ColorizedOutput struct{}
 func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf).Success()
+	out := tui.NewWriter(ctx, &buf).Success()
 
 	out.Println("################################################################################")
 	out.ApplyStyle(tui.Bold).Println(group.Name)
@@ -27,7 +27,7 @@ func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settin
 func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	printer := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf)
+	printer := tui.NewWriter(ctx, &buf)
 
 	if !assignment.Enabled {
 		printer.Danger().Print("#")
@@ -51,7 +51,7 @@ func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignmen
 func (ColorizedOutput) Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buf).Success()
+	out := tui.NewWriter(ctx, &buf).Success()
 
 	if comment.Annotation == nil {
 		out.Print(comment.Value)

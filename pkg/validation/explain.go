@@ -22,7 +22,7 @@ type multiError interface {
 func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
-	printer := tui.ThemeFromContext(ctx).NewWriterWriter(ctx, &buff)
+	printer := tui.NewWriter(ctx, &buff)
 	dark := printer.Dark()
 	bold := printer.Warning().Copy(tui.WithEmphasis(true))
 	danger := printer.Danger()
