@@ -27,7 +27,7 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println(render.NewRenderer(*settings).Statement(env).String())
+			fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
 
 			return nil
 		},
