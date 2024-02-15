@@ -24,7 +24,7 @@ tasks:
     generates:
       - ./dottie
     cmds:
-      - go build -o dottie cmd/
+      - go build -o dottie ./cmd/
 
   test:
     desc: Run tests
