@@ -58,7 +58,7 @@ func (tp ThemeWriter) Color(colorType colorType) Printer {
 		color = tp.theme.NoColor
 	}
 
-	tp.cache[colorType] = color.BufferPrinter(tp.w)
+	tp.cache[colorType] = color.NewBufferPrinter(tp.w)
 
 	return tp.cache[colorType]
 }

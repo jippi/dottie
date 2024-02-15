@@ -15,7 +15,7 @@ type ColorizedOutput struct{}
 func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
 	var buf bytes.Buffer
 
-	out := tui.ThemeFromContext(ctx).Info.Printer(tui.RendererWithTTY(&buf))
+	out := tui.ThemeFromContext(ctx).Info.NewPrinter(tui.RendererWithTTY(&buf))
 
 	out.Println("################################################################################")
 	out.ApplyStyle(tui.Bold).Println(group.Name)
