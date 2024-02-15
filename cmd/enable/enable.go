@@ -29,13 +29,11 @@ func NewCommand() *cobra.Command {
 
 			assignment := env.Get(key)
 			if assignment == nil {
-				return fmt.Errorf("Could not find KEY [%s]", key)
+				return fmt.Errorf("Could not find KEY [ %s ]", key)
 			}
 
 			if assignment.Enabled {
-				tui.StderrFromContext(cmd.Context()).
-					Warning().
-					Printfln("WARNING: The key [%s] is already enabled", key)
+				tui.MaybePrintWarnings(cmd.Context(), fmt.Errorf("The key [ %s ] is already enabled", key))
 			}
 
 			assignment.Enable()
@@ -46,7 +44,7 @@ func NewCommand() *cobra.Command {
 
 			tui.StdoutFromContext(cmd.Context()).
 				Success().
-				Printfln("Key [%s] was successfully enabled", key)
+				Printfln("Key [ %s ] was successfully enabled", key)
 
 			return nil
 		},

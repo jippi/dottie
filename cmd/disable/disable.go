@@ -29,13 +29,11 @@ func NewCommand() *cobra.Command {
 
 			assignment := env.Get(key)
 			if assignment == nil {
-				return fmt.Errorf("Could not find KEY [%s]", key)
+				return fmt.Errorf("Could not find KEY [ %s ]", key)
 			}
 
-			stdout, stderr := tui.WritersFromContext(cmd.Context())
-
 			if !assignment.Enabled {
-				stderr.Warning().Printfln("WARNING: The key [%s] is already disabled", key)
+				tui.MaybePrintWarnings(cmd.Context(), fmt.Errorf("The key [ %s ] is already disabled", key))
 
 				return nil
 			}
@@ -46,7 +44,9 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("could not save file: %w", err)
 			}
 
-			stdout.Success().Printfln("Key [%s] was successfully disabled", key)
+			tui.StdoutFromContext(cmd.Context()).
+				Success().
+				Printfln("Key [%s] was successfully disabled", key)
 
 			return nil
 		},

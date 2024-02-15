@@ -91,7 +91,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	for _, stringPair := range args {
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) != 2 {
-			allErrors = multierr.Append(allErrors, fmt.Errorf("Key: '%s' Error: expected KEY=VALUE pair, missing '='", stringPair))
+			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
 
 			continue
 		}
@@ -126,7 +126,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		stdout.Success().Printfln("Key [%s] was successfully upserted", key)
+		stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 	}
 
 	if allErrors != nil {

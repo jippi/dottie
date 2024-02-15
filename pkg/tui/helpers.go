@@ -50,5 +50,5 @@ func MaybePrintWarnings(ctx context.Context, warnings error) {
 
 	StderrFromContext(ctx).
 		Warning().
-		Printfln("%+v", warnings)
+		Printfln("WARNING: %+v", warnings)
 }

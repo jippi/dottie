@@ -43,8 +43,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	tui.StdoutFromContext(cmd.Context()).
 		NoColor().
 		Println(
-			render.
-				NewRenderer(*settings).
+			render.NewRenderer(*settings).
 				Statement(cmd.Context(), env).
 				String(),
 		)
