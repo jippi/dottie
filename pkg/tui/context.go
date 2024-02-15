@@ -20,13 +20,13 @@ func CreateContext(ctx context.Context, stdout, stderr io.Writer) context.Contex
 }
 
 func FromContext(ctx context.Context, key printerContextKey) ThemePrinter {
-	return ctx.Value(key).(ThemePrinter)
+	return ctx.Value(key).(ThemePrinter) //nolint:forcetypeassert
 }
 
 func ColorFromContext(ctx context.Context, key printerContextKey, color colorType) Printer {
-	return ctx.Value(key).(ThemePrinter).Color(color)
+	return ctx.Value(key).(ThemePrinter).Color(color) //nolint:forcetypeassert
 }
 
 func PrintersFromContext(ctx context.Context) (ThemePrinter, ThemePrinter) {
-	return ctx.Value(Stdout).(ThemePrinter), ctx.Value(Stderr).(ThemePrinter)
+	return ctx.Value(Stdout).(ThemePrinter), ctx.Value(Stderr).(ThemePrinter) //nolint:forcetypeassert
 }
