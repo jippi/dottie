@@ -14,7 +14,7 @@ func NewCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "print",
 		Short:   "Print environment variables",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		GroupID: "output",
 		RunE:    runE,
 	}

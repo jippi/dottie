@@ -15,7 +15,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "groups",
 		Short:   "Print groups found in the .env file",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		GroupID: "output",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()

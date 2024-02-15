@@ -10,7 +10,7 @@ func NewCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "fmt",
 		Short:   "Format a .env file",
-		Args:    cobra.NoArgs,
+		Args:    cobra.ExactArgs(0),
 		GroupID: "manipulate",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
