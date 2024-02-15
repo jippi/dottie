@@ -7,6 +7,7 @@ import (
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/render"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -35,9 +36,23 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("Could not find KEY [%s]", key)
 			}
 
+			stdout, stderr := tui.PrintersFromContext(cmd.Context())
+
+			if !existing.Enabled {
+				stderr.Color(tui.Warning).Printfln("WARNING: The key [%s] is already disabled", key)
+
+				return nil
+			}
+
 			existing.Disable()
 
-			return pkg.Save(filename, env)
+			if err := pkg.Save(filename, env); err != nil {
+				return fmt.Errorf("could not save file: %w", err)
+			}
+
+			stdout.Color(tui.Success).Printfln("Key [%s] was successfully disabled", key)
+
+			return nil
 		},
 	}
 }

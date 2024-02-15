@@ -11,6 +11,17 @@ type ColorConfig struct {
 	Border       ComponentColor
 }
 
+func NewNeutralColorComponentConfig() ColorConfig {
+	config := ColorConfig{
+		Text:         ComponentColor{},
+		TextEmphasis: ComponentColor{},
+		Background:   ComponentColor{},
+		Border:       ComponentColor{},
+	}
+
+	return config
+}
+
 func NewColorComponentConfig(baseColor lipgloss.Color) ColorConfig {
 	base := ColorToHex(baseColor)
 

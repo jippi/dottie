@@ -1,31 +1,33 @@
+---- exec command line 0: [print --pretty --no-color]
 ################################################################################
-# My first group
+# My first group                                                                
 ################################################################################
-
-KEY_A="I'm key A"
-
-# Comment for KEY_B
-KEY_B="I'm key B"
-
-KEY_C="I'm key C"
-
+                                                                                
+KEY_A="I'm key A"                                                               
+                                                                                
+# Comment for KEY_B                                                             
+KEY_B="I'm key B"                                                               
+                                                                                
+KEY_C="I'm key C"                                                               
+                                                                                
 ################################################################################
-# My Second group
+# My Second group                                                               
 ################################################################################
-
-GROUP_TWO_A="hello"
-
-# This is nice, format me
-GROUP_TWO_A="WORLD"
-
+                                                                                
+GROUP_TWO_A="hello"                                                             
+                                                                                
+# This is nice, format me                                                       
+GROUP_TWO_A="WORLD"                                                             
+                                                                                
 ################################################################################
-# My Third group
+# My Third group                                                                
 ################################################################################
-
-# A Comment
-
-# Another comment
-# with two lines
-
-SECRET=KEY
-
+                                                                                
+# A Comment                                                                     
+                                                                                
+# Another comment                                                               
+# with two lines                                                                
+                                                                                
+SECRET=KEY                                                                      
+                                                                                
+---- done command line 0: [print --pretty --no-color]

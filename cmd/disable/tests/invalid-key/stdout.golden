@@ -1,4 +1,2 @@
 ---- exec command line 0: [disable NONEXISTING_KEY]
-Error: Could not find KEY [NONEXISTING_KEY]
-Run 'dottie disable --help' for usage.
 ---- done command line 0: [disable NONEXISTING_KEY]

@@ -31,15 +31,16 @@ func NewCommand() *cobra.Command {
 
 			width := longesGroupName(groups)
 
-			light := tui.Theme.Secondary.BuffPrinter(cmd.OutOrStdout())
-			key := tui.Theme.Primary.BuffPrinter(cmd.OutOrStdout())
-			info := tui.Theme.Info.BuffPrinter(cmd.OutOrStdout())
-			info.Box("Groups in " + filename)
+			stdout := tui.FromContext(cmd.Context(), tui.Stdout)
+			secondary := stdout.Color(tui.Secondary)
+			primary := stdout.Color(tui.Primary)
+
+			stdout.Color(tui.Info).Box("Groups in " + filename)
 
 			for _, group := range groups {
-				key.Printf("%-"+strconv.Itoa(width)+"s", slug.Make(group.String()))
-				key.Print(" ")
-				light.Printfln("(%s:%d)", filename, group.Position.FirstLine)
+				primary.Printf("%-"+strconv.Itoa(width)+"s", slug.Make(group.String()))
+				primary.Print(" ")
+				secondary.Printfln("(%s:%d)", filename, group.Position.FirstLine)
 			}
 
 			return nil

@@ -1,8 +1,6 @@
 package print_cmd
 
 import (
-	"fmt"
-
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -21,13 +19,15 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			env, settings, warnings, err := setup(cmd.Flags())
 			if warnings != nil {
-				tui.Theme.Warning.BuffPrinter(cmd.ErrOrStderr()).Printfln("%+v", warnings)
+				tui.ColorFromContext(cmd.Context(), tui.Stderr, tui.Warning).Printfln("%+v", warnings)
 			}
 			if err != nil {
 				return err
 			}
 
-			fmt.Fprintln(cmd.OutOrStdout(), render.NewRenderer(*settings).Statement(env).String())
+			tui.
+				ColorFromContext(cmd.Context(), tui.Stdout, tui.Neutral).
+				Println(render.NewRenderer(*settings).Statement(env).String())
 
 			return nil
 		},
