@@ -1,0 +1,3 @@
+---- exec command line 0: [disable]
+Error: Missing required argument: KEY
+Run 'dottie disable --help' for usage.

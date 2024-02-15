@@ -1,0 +1,3 @@
+---- exec command line 0: [enable]
+Error: Missing required argument: KEY
+Run 'dottie enable --help' for usage.

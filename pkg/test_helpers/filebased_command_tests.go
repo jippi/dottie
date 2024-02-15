@@ -84,6 +84,10 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 			}
 		}
 
+		if len(commands) == 0 {
+			commands = append(commands, []string{})
+		}
+
 		test := testData{
 			name:         base,
 			goldenStdout: "stdout",
