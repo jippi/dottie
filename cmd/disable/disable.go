@@ -46,7 +46,7 @@ func NewCommand() *cobra.Command {
 
 			tui.StdoutFromContext(cmd.Context()).
 				Success().
-				Printfln("Key [%s] was successfully disabled", key)
+				Printfln("Key [ %s ] was successfully disabled", key)
 
 			return nil
 		},
