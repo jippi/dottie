@@ -32,14 +32,14 @@ func ThemeFromContext(ctx context.Context) Theme {
 	return ctx.Value(themeContextValue).(Theme) //nolint:forcetypeassert
 }
 
-func PrinterFromContext(ctx context.Context, key printerContextKey) ThemePrinter {
-	return ctx.Value(key).(ThemePrinter) //nolint:forcetypeassert
+func PrinterFromContext(ctx context.Context, key printerContextKey) ThemeWriter {
+	return ctx.Value(key).(ThemeWriter) //nolint:forcetypeassert
 }
 
 func ColorPrinterFromContext(ctx context.Context, key printerContextKey, color colorType) Printer {
-	return ctx.Value(key).(ThemePrinter).Color(color) //nolint:forcetypeassert
+	return ctx.Value(key).(ThemeWriter).Color(color) //nolint:forcetypeassert
 }
 
-func PrintersFromContext(ctx context.Context) (ThemePrinter, ThemePrinter) {
-	return ctx.Value(Stdout).(ThemePrinter), ctx.Value(Stderr).(ThemePrinter) //nolint:forcetypeassert
+func PrintersFromContext(ctx context.Context) (ThemeWriter, ThemeWriter) {
+	return ctx.Value(Stdout).(ThemeWriter), ctx.Value(Stderr).(ThemeWriter) //nolint:forcetypeassert
 }

@@ -32,8 +32,8 @@ type Theme struct {
 	Warning   Color
 }
 
-func (theme Theme) Printer(w io.Writer) ThemePrinter {
-	return ThemePrinter{
+func (theme Theme) Printer(w io.Writer) ThemeWriter {
+	return ThemeWriter{
 		w:     w,
 		theme: theme,
 		cache: make(map[colorType]Printer),

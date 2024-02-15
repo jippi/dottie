@@ -2,13 +2,13 @@ package tui
 
 import "io"
 
-type ThemePrinter struct {
+type ThemeWriter struct {
+	cache map[colorType]Printer
 	theme Theme
 	w     io.Writer
-	cache map[colorType]Printer
 }
 
-func (tp ThemePrinter) Color(colorType colorType) Printer {
+func (tp ThemeWriter) Color(colorType colorType) Printer {
 	if printer, ok := tp.cache[colorType]; ok {
 		return printer
 	}
