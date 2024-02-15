@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-type Color struct {
+type Style struct {
 	Text         lipgloss.AdaptiveColor
 	TextEmphasis lipgloss.AdaptiveColor
 	Background   lipgloss.AdaptiveColor
@@ -15,57 +15,58 @@ type Color struct {
 	noColor bool
 }
 
-func NewColor(config ColorConfig) Color {
-	color := Color{
+func NewColor(config ColorConfig) Style {
+	style := Style{
 		Text:         config.Text.AdaptiveColor(),
 		TextEmphasis: config.TextEmphasis.AdaptiveColor(),
 		Background:   config.Background.AdaptiveColor(),
 		Border:       config.Border.AdaptiveColor(),
 	}
 
-	if len(color.Text.Dark) == 0 {
-		color.Text.Dark = color.TextEmphasis.Dark
+	if len(style.Text.Dark) == 0 {
+		style.Text.Dark = style.TextEmphasis.Dark
 	}
 
-	return color
+	return style
 }
 
-func NewNoColor() Color {
-	return Color{
+func NewStyle() Style {
+	return Style{
 		noColor: true,
 	}
 }
 
-func (c Color) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
-	return NewPrinter(c, renderer, options...)
+func (style Style) Printer(renderer *lipgloss.Renderer, options ...PrinterOption) Print {
+	return NewPrinter(style, renderer, options...)
 }
 
-func (c Color) BufferPrinter(w io.Writer, options ...PrinterOption) Print {
-	return c.Printer(Renderer(w), options...)
+func (style Style) BufferPrinter(w io.Writer, options ...PrinterOption) Print {
+	return style.Printer(Renderer(w), options...)
 }
 
-func (c Color) TextStyle(style lipgloss.Style) lipgloss.Style {
-	if c.noColor {
-		return style
+func (style Style) TextStyle() lipgloss.Style {
+	if style.noColor {
+		return lipgloss.NewStyle()
 	}
 
-	return style.
-		Foreground(c.Text)
+	return lipgloss.
+		NewStyle().
+		Foreground(style.Text)
 }
 
-func (c Color) TextEmphasisStyle(style lipgloss.Style) lipgloss.Style {
+func (c Style) TextEmphasisStyle() lipgloss.Style {
 	if c.noColor {
-		return style
+		return lipgloss.NewStyle()
 	}
 
-	return style.
+	return lipgloss.NewStyle().
 		Foreground(c.TextEmphasis).
 		Background(c.Background).
 		Bold(true).
 		BorderForeground(c.Border)
 }
 
-func (c Color) BoxStyles(header, body lipgloss.Style) Box {
+func (c Style) BoxStyles(header, body lipgloss.Style) Box {
 	return Box{
 		Header: header.
 			Align(lipgloss.Center, lipgloss.Center).
@@ -73,7 +74,7 @@ func (c Color) BoxStyles(header, body lipgloss.Style) Box {
 			BorderForeground(c.Border).
 			PaddingBottom(1).
 			PaddingTop(1).
-			Inherit(c.TextEmphasisStyle(header)),
+			Inherit(c.TextEmphasisStyle()),
 
 		Body: body.
 			Align(lipgloss.Left).

@@ -113,19 +113,18 @@ type Printer interface {
 }
 
 type Print struct {
-	boxWidth int                // Max width for strings when using WrapMode
-	writer   io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
-	renderer *lipgloss.Renderer // The renderer responsible for providing the output and color management
-	color    Color              // Color config
-
+	boxWidth     int                // Max width for strings when using WrapMode
+	writer       io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
+	renderer     *lipgloss.Renderer // The renderer responsible for providing the output and color management
+	color        Style              // Color config
 	textStyle    lipgloss.Style
 	textEmphasis bool
 	boxStyles    Box
 }
 
-func NewPrinter(color Color, renderer *lipgloss.Renderer, options ...PrinterOption) Print {
+func NewPrinter(color Style, renderer *lipgloss.Renderer, options ...PrinterOption) Print {
 	options = append([]PrinterOption{
-		WitBoxWidth(100),
+		WitBoxWidth(80),
 		WithColor(color),
 		WithRenderer(renderer),
 		WithEmphasis(false),
@@ -332,7 +331,7 @@ func (p Print) printHelper(a ...any) string {
 // Printer options
 // -----------------------------------------------------
 
-func WithColor(color Color) PrinterOption {
+func WithColor(color Style) PrinterOption {
 	return func(p *Print) {
 		p.color = color
 	}
@@ -362,12 +361,12 @@ func WithEmphasis(b bool) PrinterOption {
 		printer.textEmphasis = b
 
 		if b {
-			printer.textStyle = printer.color.TextEmphasisStyle(printer.renderer.NewStyle())
+			printer.textStyle = printer.renderer.NewStyle().Inherit(printer.color.TextEmphasisStyle())
 
 			return
 		}
 
-		printer.textStyle = printer.color.TextStyle(printer.renderer.NewStyle())
+		printer.textStyle = printer.renderer.NewStyle().Inherit(printer.color.TextStyle())
 	}
 }
 

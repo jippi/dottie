@@ -52,7 +52,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
 	}
 
-	stderr := tui.PrinterFromContext(cmd.Context(), tui.Stderr)
+	stderr := tui.WriterFromContext(cmd.Context(), tui.Stderr)
 
 	//
 	// Interpolate

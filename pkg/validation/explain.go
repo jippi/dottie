@@ -29,7 +29,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr Vali
 	light := printer.Color(tui.Light)
 	primary := printer.Color(tui.Primary)
 
-	stderr := tui.PrinterFromContext(ctx, tui.Stderr)
+	stderr := tui.WriterFromContext(ctx, tui.Stderr)
 
 	switch err := inputError.(type) {
 	// Unwrap the ValidationError
@@ -152,7 +152,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr Vali
 func AskToCreateDirectory(ctx context.Context, path string) {
 	var (
 		confirm = true
-		stderr  = tui.PrinterFromContext(ctx, tui.Stderr)
+		stderr  = tui.WriterFromContext(ctx, tui.Stderr)
 	)
 
 	err := huh.NewConfirm().
@@ -185,7 +185,7 @@ func AskToCreateDirectory(ctx context.Context, path string) {
 func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assignment) {
 	var (
 		value  string
-		stderr = tui.PrinterFromContext(ctx, tui.Stderr)
+		stderr = tui.WriterFromContext(ctx, tui.Stderr)
 	)
 
 	err := huh.NewInput().

@@ -31,7 +31,7 @@ func NewCommand() *cobra.Command {
 
 			width := longesGroupName(groups)
 
-			stdout := tui.PrinterFromContext(cmd.Context(), tui.Stdout)
+			stdout := tui.WriterFromContext(cmd.Context(), tui.Stdout)
 			secondary := stdout.Color(tui.Secondary)
 			primary := stdout.Color(tui.Primary)
 

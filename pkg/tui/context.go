@@ -32,7 +32,7 @@ func ThemeFromContext(ctx context.Context) Theme {
 	return ctx.Value(themeContextValue).(Theme) //nolint:forcetypeassert
 }
 
-func PrinterFromContext(ctx context.Context, key printerContextKey) ThemeWriter {
+func WriterFromContext(ctx context.Context, key printerContextKey) ThemeWriter {
 	return ctx.Value(key).(ThemeWriter) //nolint:forcetypeassert
 }
 

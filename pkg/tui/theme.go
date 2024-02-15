@@ -4,32 +4,16 @@ import (
 	"io"
 )
 
-type colorType int
-
-const (
-	Danger colorType = iota
-	Dark
-	Info
-	Light
-	NoColor
-	Primary
-	Secondary
-	Success
-	Warning
-)
-
 type Theme struct {
-	DefaultWidth int
-
-	Danger    Color
-	Dark      Color
-	Info      Color
-	Light     Color
-	NoColor   Color
-	Primary   Color
-	Secondary Color
-	Success   Color
-	Warning   Color
+	Danger    Style
+	Dark      Style
+	Info      Style
+	Light     Style
+	NoColor   Style
+	Primary   Style
+	Secondary Style
+	Success   Style
+	Warning   Style
 }
 
 func (theme Theme) Printer(w io.Writer) ThemeWriter {
@@ -42,7 +26,6 @@ func (theme Theme) Printer(w io.Writer) ThemeWriter {
 
 func NewTheme() Theme {
 	theme := Theme{}
-	theme.DefaultWidth = 80
 
 	theme.Danger = NewColor(NewColorComponentConfig(Red))
 	theme.Info = NewColor(NewColorComponentConfig(Cyan))
@@ -51,7 +34,7 @@ func NewTheme() Theme {
 	theme.Secondary = NewColor(NewColorComponentConfig(Gray600))
 	theme.Success = NewColor(NewColorComponentConfig(Green))
 	theme.Warning = NewColor(NewColorComponentConfig(Yellow))
-	theme.NoColor = NewNoColor()
+	theme.NoColor = NewStyle()
 
 	dark := NewColorComponentConfig(Gray700)
 
