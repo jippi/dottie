@@ -134,11 +134,10 @@ func (a *Assignment) CommentsSlice() []string {
 }
 
 func (assignment *Assignment) RecursiveDependentAssignments() []string {
-	var keys []string
+	keys := make([]string, 0)
 
 	for _, dependent := range assignment.Dependents {
 		keys = append(keys, dependent.Name)
-		// keys = append(keys, dependent.RecursiveDependentAssignments()...)
 	}
 
 	return keys

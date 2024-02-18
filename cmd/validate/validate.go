@@ -66,7 +66,13 @@ func runE(cmd *cobra.Command, args []string) error {
 		selectors = append(selectors, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors := document.Validate(selectors, ignoreRules)
+	validationErrors, warnings, errs := document.Validate(selectors, ignoreRules)
+	tui.MaybePrintWarnings(cmd.Context(), warnings)
+
+	if errs != nil {
+		return errs
+	}
+
 	if len(validationErrors) == 0 {
 		stderr.Success().Box("No validation errors found")
 
@@ -100,7 +106,13 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := document.Validate(selectors, ignoreRules)
+	newRes, warns, errs := document.Validate(selectors, ignoreRules)
+	tui.MaybePrintWarnings(cmd.Context(), warns)
+
+	if errs != nil {
+		return errs
+	}
+
 	if len(newRes) == 0 {
 		stderr.Success().Println("All validation errors fixed")
 

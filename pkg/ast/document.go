@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
@@ -18,18 +17,16 @@ import (
 
 // Document node represents .env file statement, that contains assignments and comments.
 type Document struct {
-	Statements          []Statement `json:"statements"` // Statements belonging to the root of the document
-	Groups              []*Group    `json:"groups"`     // Groups within the document
-	Annotations         []*Comment  `json:"-"`          // Global annotations for configuration of dottie
-	interpolationCache  []string    // Cache for interpolated values
+	Statements  []Statement `json:"statements"` // Statements belonging to the root of the document
+	Groups      []*Group    `json:"groups"`     // Groups within the document
+	Annotations []*Comment  `json:"-"`          // Global annotations for configuration of dottie
+
 	interpolateWarnings error
 	interpolateErrors   error
 }
 
 func NewDocument() *Document {
-	return &Document{
-		interpolationCache: make([]string, 0),
-	}
+	return &Document{}
 }
 
 func (d *Document) Is(other Statement) bool {
@@ -139,30 +136,16 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 	}
 
 	path = append(path, target.Name)
-	prefix := strings.Join(path, " -> ")
-
-	fmt.Println(prefix, "| doInterpolation")
+	// prefix := strings.Join(path, " -> ")
 
 	if !target.Enabled {
-		fmt.Println(prefix, "| exit = not enabled")
-
-		return
-	}
-
-	// Lookup the key in the cache and return it if it exists
-	if slices.Contains(doc.interpolationCache, target.Name) {
-		fmt.Println(prefix, "| exit = cached")
-
 		return
 	}
 
 	target.Initialize()
-	fmt.Println(prefix, "| dependency", spew.Sdump(target.Dependencies))
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, rel := range target.Dependencies {
-		fmt.Println(prefix, "| dependency", rel.Name)
-
 		dependency := doc.Get(rel.Name)
 		dependency.Initialize()
 
@@ -171,9 +154,6 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
 	if target.Quote.Is(token.SingleQuotes.Rune()) {
-		fmt.Println(prefix, "| exit = single quote")
-
-		doc.interpolationCache = append(doc.interpolationCache, target.Name)
 		target.Interpolated = target.Literal
 
 		return
@@ -182,9 +162,6 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		fmt.Println(prefix, "| exit = no $")
-
-		doc.interpolationCache = append(doc.interpolationCache, target.Name)
 		target.Interpolated = target.Literal
 
 		return
@@ -196,27 +173,18 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 	}
 
 	target.Interpolated = value
-	doc.interpolationCache = append(doc.interpolationCache, target.Name)
 
 	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 
-	fmt.Println(prefix, "| exit = interpolated")
-
 	// Then do interpolation of the dependent keys
 	for _, rel := range target.RecursiveDependentAssignments() {
-		fmt.Println(prefix, "RecursiveDependentAssignments", rel)
-
 		doc.doInterpolation(doc.Get(rel), path)
 	}
 }
 
 func (doc *Document) interpolationMapper(target *Assignment) func(input string) (string, bool) {
 	return func(input string) (string, bool) {
-		if slices.Contains(doc.interpolationCache, input) {
-			return doc.Get(input).Interpolated, true
-		}
-
 		// Lookup in process environment
 		if val, ok := os.LookupEnv(input); ok {
 			return val, ok
@@ -329,10 +297,6 @@ func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 	return -1, nil
 }
 
-func (d *Document) Cache() []string {
-	return d.interpolationCache
-}
-
 func (document *Document) Initialize() {
 	for _, assignment := range document.AllAssignments() {
 		assignment.Initialize()
@@ -389,15 +353,18 @@ func (document *Document) Replace(assignment *Assignment) error {
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
-func (document *Document) Validate(selectors []Selector, ignoreErrors []string) []*ValidationError {
-	data := map[string]any{}
-	rules := map[string]any{}
+func (document *Document) Validate(selectors []Selector, ignoreErrors []string) ([]*ValidationError, error, error) {
+	var (
+		warnings, errors error
+		data             = map[string]any{}
+		rules            = map[string]any{}
 
-	// The validation library uses a map[string]any as return value
-	// which causes random ordering of keys. We would like them
-	// to follow to order of which they are defined in the file
-	// so this slice tracks that
-	fieldOrder := []string{}
+		// The validation library uses a map[string]any as return value
+		// which causes random ordering of keys. We would like them
+		// to follow to order of which they are defined in the file
+		// so this slice tracks that
+		fieldOrder = []string{}
+	)
 
 NEXT:
 	for _, assignment := range document.AllAssignments() {
@@ -423,19 +390,24 @@ NEXT:
 			continue
 		}
 
+		warn, err := document.InterpolateStatement(assignment)
+
+		warnings = multierr.Append(warnings, warn)
+		errors = multierr.Append(errors, err)
+
 		data[assignment.Name] = assignment.Interpolated
 		rules[assignment.Name] = validationRules
 
 		fieldOrder = append(fieldOrder, assignment.Name)
 	}
 
-	errors := validator.New().ValidateMap(data, rules)
+	validationErrors := validator.New().ValidateMap(data, rules)
 
 	var result []*ValidationError
 
 NEXT_FIELD:
 	for _, field := range fieldOrder {
-		err, ok := errors[field]
+		err, ok := validationErrors[field]
 		if !ok {
 			continue
 		}
@@ -455,10 +427,10 @@ NEXT_FIELD:
 		})
 	}
 
-	return result
+	return result, warnings, errors
 }
 
-func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) ValidationErrors {
+func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
 	keys := assignment.AssignmentsToValidateRecursive()
 
 	return document.Validate(

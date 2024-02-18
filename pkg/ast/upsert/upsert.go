@@ -9,6 +9,7 @@ import (
 	"github.com/jippi/dottie/pkg/parser"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
+	"go.uber.org/multierr"
 )
 
 type Upserter struct {
@@ -135,8 +136,11 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors := u.document.ValidateSingleAssignment(assignment, nil, nil); len(validationErrors) > 0 {
-			return assignment, warnings, validationErrors
+		if validationErrors, warns, errs := u.document.ValidateSingleAssignment(assignment, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
+			warnings = multierr.Append(warnings, warns)
+			errs = multierr.Append(errs, validationErrors)
+
+			return assignment, warnings, errs
 		}
 	}
 

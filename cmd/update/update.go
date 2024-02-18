@@ -27,6 +27,8 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
+	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
+
 	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
 	shared.BoolWithInverse(cmd, "save", true, "Save the document after processing", "Do not save the document after processing")
@@ -128,6 +130,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			upsert.EnableSetting(upsert.UpdateComments),
 			upsert.EnableSetting(upsert.SkipIfSame),
 			upsert.EnableSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
+			upsert.WithSkipValidationRule(shared.StringSliceFlag(cmd.Flags(), "ignore-rule")...),
 		)
 		if err != nil {
 			return err
@@ -179,7 +182,6 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		fmt.Println("upsert", oldStatement.Name)
 		changed, warn, err := upserter.Upsert(cmd.Context(), oldStatement)
 		tui.MaybePrintWarnings(cmd.Context(), warn)
 
@@ -191,13 +193,6 @@ func runE(cmd *cobra.Command, args []string) error {
 				dark.Println()
 			}
 
-			// dark.Print("  ")
-			// dangerEmphasis.Print(oldStatement.Name)
-			// dark.Print(" could not be set to ")
-			// primary.Print(oldStatement.Literal)
-			// dark.Println(" due to error:")
-
-			// danger.Println(indent(validation.Explain(cmd.Context(), newDocument, err, changed, false, true), len(oldStatement.Name)))
 			danger.Print(validation.Explain(cmd.Context(), newDocument, err, changed, false, true))
 
 			counter++
@@ -219,6 +214,8 @@ func runE(cmd *cobra.Command, args []string) error {
 			primary.Println(oldStatement.Literal)
 		}
 	}
+
+	stdout.NoColor().Println()
 
 	if sawError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 		stdout.NoColor().Println()

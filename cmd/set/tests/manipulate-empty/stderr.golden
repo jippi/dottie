@@ -13,8 +13,8 @@
 ---- exec command line 7: [set A_NUMBER=1 --comment @dottie/validate number]
 (no output to stderr)
 ---- exec command line 8: [set NOT_A_NUMBER=abc --comment @dottie/validate number]
-NOT_A_NUMBER (memory://tmp:13)
-  * (number) The value [abc] is not a valid number.
+  NOT_A_NUMBER ( memory://tmp:13 )
+    * (number) The value [abc] is not a valid number.
 
 Error: validation error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
 Run 'dottie set --help' for usage.
