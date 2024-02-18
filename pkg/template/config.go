@@ -14,21 +14,12 @@
 
 package template
 
-import "regexp"
-
 type Config struct {
-	pattern         *regexp.Regexp
 	substituteFunc  SubstituteFunc
 	replacementFunc ReplacementFunc
 }
 
 type Option func(*Config)
-
-func WithPattern(pattern *regexp.Regexp) Option {
-	return func(cfg *Config) {
-		cfg.pattern = pattern
-	}
-}
 
 func WithSubstitutionFunction(subsFunc SubstituteFunc) Option {
 	return func(cfg *Config) {

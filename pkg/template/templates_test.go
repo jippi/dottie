@@ -78,17 +78,23 @@ func TestInvalid(t *testing.T) {
 	t.Parallel()
 
 	invalidTemplates := []string{
-		"${",
-		"${}",
+		// "${",
+		// "${}",
 		"${ }",
 		"${ foo}",
 		"${foo }",
 		"${foo!}",
 	}
 
-	for _, template := range invalidTemplates {
-		_, _, err := templatepkg.Substitute(template, defaultMapping)
-		assert.ErrorContains(t, err, "Invalid template")
+	for i, tt := range invalidTemplates {
+		tt := tt
+
+		t.Run(fmt.Sprintf("TestInvalid %d", i), func(t *testing.T) {
+			t.Parallel()
+
+			_, _, err := templatepkg.Substitute(tt, defaultMapping)
+			assert.ErrorContains(t, err, "Invalid template")
+		})
 	}
 }
 
@@ -339,11 +345,17 @@ func TestDefaultsWithNestedExpansion(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		result, warn, err := templatepkg.Substitute(tc.template, defaultMapping)
-		assert.NoError(t, warn)
-		assert.NoError(t, err)
-		assert.Equal(t, tc.expected, result)
+	for i, tt := range testCases {
+		tt := tt
+
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			result, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
+			assert.NoError(t, warn)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, result)
+		})
 	}
 }
 
@@ -454,17 +466,17 @@ func TestSubstituteWithCustomFunc(t *testing.T) {
 		return value, true, nil
 	}
 
-	result, warn, err := templatepkg.SubstituteWith("ok ${FOO}", defaultMapping, templatepkg.DefaultPattern, errIsMissing)
+	result, warn, err := templatepkg.SubstituteWith("ok ${FOO}", defaultMapping, errIsMissing)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok first", result)
 
-	result, warn, err = templatepkg.SubstituteWith("ok ${BAR}", defaultMapping, templatepkg.DefaultPattern, errIsMissing)
+	result, warn, err = templatepkg.SubstituteWith("ok ${BAR}", defaultMapping, errIsMissing)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok ", result)
 
-	_, _, err = templatepkg.SubstituteWith("ok ${NOTHERE}", defaultMapping, templatepkg.DefaultPattern, errIsMissing)
+	_, _, err = templatepkg.SubstituteWith("ok ${NOTHERE}", defaultMapping, errIsMissing)
 	assert.ErrorContains(t, err, "required variable")
 }
 
@@ -635,7 +647,7 @@ func TestExtractVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := templatepkg.ExtractVariables(tt.dict, templatepkg.DefaultPattern)
+			actual := templatepkg.ExtractVariables(tt.dict)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

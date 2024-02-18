@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 )
@@ -27,8 +26,7 @@ type Assignment struct {
 func (a *Assignment) statementNode() {}
 
 func (a *Assignment) Initialize() {
-	if dependencies := template.ExtractVariables(a.Literal, nil); len(dependencies) > 0 {
-		spew.Dump(a.Name, "Initialize", a.Literal, dependencies)
+	if dependencies := template.ExtractVariables(a.Literal); len(dependencies) > 0 {
 		a.Dependencies = dependencies
 	}
 }

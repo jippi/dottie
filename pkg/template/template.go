@@ -28,27 +28,14 @@ import (
 
 var (
 	delimiter          = "\\$"
-	substitutionNamed  = "[_a-z][_a-z0-9]*"
-	substitutionBraced = "[_a-z][_a-z0-9]*(?::?[-+?](.*))?"
+	substitutionNamed  = "^[_a-z][_a-z0-9]*$"
+	substitutionBraced = "^[_a-z][_a-z0-9]*(?::?[-+?](.*))?$"
 )
 
 var (
-	groupEscaped = "escaped"
-	groupNamed   = "named"
-	groupBraced  = "braced"
-	groupInvalid = "invalid"
+	substitutionPattern       = regexp.MustCompile(substitutionNamed)
+	substitutionBracedPattern = regexp.MustCompile(substitutionBraced)
 )
-
-var patternString = fmt.Sprintf(
-	"%s(?i:(?P<%s>%s)|(?P<%s>%s)|{(?:(?P<%s>%s)}|(?P<%s>)))",
-	delimiter,
-	groupEscaped, delimiter,
-	groupNamed, substitutionNamed,
-	groupBraced, substitutionBraced,
-	groupInvalid,
-)
-
-var DefaultPattern = regexp.MustCompile(patternString)
 
 // Mapping is a user-supplied function which maps from variable names to values.
 // Returns the value as a string and a bool indicating whether
@@ -71,7 +58,6 @@ func SubstituteWithOptions(template string, mapping Mapping, options ...Option) 
 	var returnErr, warnings error
 
 	cfg := &Config{
-		pattern:         DefaultPattern,
 		replacementFunc: DefaultReplacementFunc,
 	}
 
@@ -79,7 +65,11 @@ func SubstituteWithOptions(template string, mapping Mapping, options ...Option) 
 		o(cfg)
 	}
 
-	result := cfg.pattern.ReplaceAllStringFunc(template, func(substring string) string {
+	fmt.Println("TEMPLATE IN", template)
+
+	result := os.Expand(template, func(substring string) string {
+		fmt.Println("EXPAND IN", substring)
+
 		replacement, _, warning, err := cfg.replacementFunc(substring, mapping, cfg)
 		if err != nil {
 			// Add the template for template errors
@@ -98,12 +88,15 @@ func SubstituteWithOptions(template string, mapping Mapping, options ...Option) 
 		}
 
 		if warning != nil {
-			// panic("go go go")
 			warnings = multierr.Append(warnings, warning)
 		}
 
 		return replacement
 	})
+
+	fmt.Println("OUTPUT")
+
+	spew.Dump(result, warnings, returnErr)
 
 	return result, warnings, returnErr
 }
@@ -113,7 +106,12 @@ func DefaultReplacementFunc(substring string, mapping Mapping, cfg *Config) (str
 }
 
 func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Config) (string, bool, error, error) {
-	pattern := cfg.pattern
+	fmt.Println("DefaultReplacementAppliedFunc::substring")
+	spew.Dump(substring)
+
+	if !substitutionBracedPattern.MatchString(substring) {
+		return "", false, nil, InvalidTemplateError{}
+	}
 
 	subsFunc := cfg.substituteFunc
 	if subsFunc == nil {
@@ -128,33 +126,16 @@ func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Confi
 		substring = substring[0 : closingBraceIndex+1]
 	}
 
-	matches := pattern.FindStringSubmatch(substring)
-
-	groups := matchGroups(matches, pattern)
-	if escaped := groups[groupEscaped]; escaped != "" {
-		return escaped, true, nil, nil
-	}
-
-	braced := false
-
-	substitution := groups[groupNamed]
-	if substitution == "" {
-		substitution = groups[groupBraced]
-		braced = true
-	}
-
-	if substitution == "" {
-		return "", false, nil, &InvalidTemplateError{}
-	}
+	braced := true
 
 	if braced {
-		value, applied, err := subsFunc(substitution, mapping)
+		value, applied, err := subsFunc(substring, mapping)
 		if err != nil {
 			return "", false, nil, err
 		}
 
 		if applied {
-			interpolatedNested, _, err := SubstituteWith(rest, mapping, pattern)
+			interpolatedNested, _, err := SubstituteWith(rest, mapping)
 			if err != nil {
 				return "", false, nil, err
 			}
@@ -163,20 +144,38 @@ func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Confi
 		}
 	}
 
-	value, ok := mapping(substitution)
+	value, ok := mapping(substring)
 	if !ok {
-		return value, ok, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", substitution), nil
+		return value, ok, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", substring), nil
 	}
 
 	return value, ok, nil, nil
 }
 
+func getFirstBraceClosingIndex(str string) int {
+	openVariableBraces := 0
+
+	for i := 0; i < len(str); i++ {
+		if str[i] == '}' {
+			openVariableBraces--
+			if openVariableBraces == 0 {
+				return i
+			}
+		}
+
+		if strings.HasPrefix(str[i:], "${") {
+			openVariableBraces++
+			i++
+		}
+	}
+
+	return -1
+}
+
 // SubstituteWith substitute variables in the string with their values.
 // It accepts additional substitute function.
-func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, subsFuncs ...SubstituteFunc) (string, error, error) {
-	options := []Option{
-		WithPattern(pattern),
-	}
+func SubstituteWith(template string, mapping Mapping, subsFuncs ...SubstituteFunc) (string, error, error) {
+	options := []Option{}
 
 	if len(subsFuncs) > 0 {
 		options = append(options, WithSubstitutionFunction(subsFuncs[0]))
@@ -215,54 +214,30 @@ func GetSubstitutionFunctionForTemplate(template string) (string, SubstituteFunc
 	return interpolationMapping[0].string, interpolationMapping[0].SubstituteFunc
 }
 
-func getFirstBraceClosingIndex(str string) int {
-	openVariableBraces := 0
-
-	for i := 0; i < len(str); i++ {
-		if str[i] == '}' {
-			openVariableBraces--
-			if openVariableBraces == 0 {
-				return i
-			}
-		}
-
-		if strings.HasPrefix(str[i:], "${") {
-			openVariableBraces++
-			i++
-		}
-	}
-
-	return -1
-}
-
 // Substitute variables in the string with their values
 func Substitute(template string, mapping Mapping) (string, error, error) {
-	return SubstituteWith(template, mapping, DefaultPattern)
+	return SubstituteWith(template, mapping)
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict any, pattern *regexp.Regexp) map[string]Variable {
-	if pattern == nil {
-		pattern = DefaultPattern
-	}
-
-	return recurseExtract(configDict, pattern)
+func ExtractVariables(configDict any) map[string]Variable {
+	return recurseExtract(configDict)
 }
 
-func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]Variable {
+func recurseExtract(value interface{}) map[string]Variable {
 	results := map[string]Variable{}
 
 	switch value := value.(type) {
 	case string:
-		if values, is := extractVariable(value, pattern); is {
+		if values, is := extractVariable(value); is {
 			for _, v := range values {
 				results[v.Name] = v
 			}
 		}
 	case map[string]interface{}:
 		for _, elem := range value {
-			submap := recurseExtract(elem, pattern)
+			submap := recurseExtract(elem)
 			for key, value := range submap {
 				results[key] = value
 			}
@@ -270,7 +245,7 @@ func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]Variab
 
 	case []interface{}:
 		for _, elem := range value {
-			if values, is := extractVariable(elem, pattern); is {
+			if values, is := extractVariable(elem); is {
 				for _, v := range values {
 					results[v.Name] = v
 				}
@@ -288,17 +263,11 @@ type Variable struct {
 	Required      bool
 }
 
-func extractVariable(value interface{}, pattern *regexp.Regexp) ([]Variable, bool) {
-	fmt.Println("extractVariable")
-	fmt.Println("patternString", patternString)
-	spew.Dump(value)
-
+func extractVariable(value interface{}) ([]Variable, bool) {
 	sValue, ok := value.(string)
 	if !ok {
 		return []Variable{}, false
 	}
-
-	fmt.Println("sValue", sValue)
 
 	var matches []string
 
@@ -307,9 +276,6 @@ func extractVariable(value interface{}, pattern *regexp.Regexp) ([]Variable, boo
 
 		return ""
 	})
-
-	fmt.Println("matches")
-	spew.Dump(matches)
 
 	if len(matches) == 0 {
 		return []Variable{}, false
@@ -457,15 +423,6 @@ func withRequired(substitution string, mapping Mapping, sep string, valid func(s
 	}
 
 	return value, true, nil
-}
-
-func matchGroups(matches []string, pattern *regexp.Regexp) map[string]string {
-	groups := make(map[string]string)
-	for i, name := range pattern.SubexpNames()[1:] {
-		groups[name] = matches[i+1]
-	}
-
-	return groups
 }
 
 // Split the string at the first occurrence of sep, and return the part before the separator,
