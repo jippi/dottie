@@ -36,12 +36,12 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	originalDocument, err := pkg.Load(filename)
+	oldDocument, err := pkg.Load(filename)
 	if err != nil {
 		return err
 	}
 
-	stdout, stderr := tui.WritersFromContext(cmd.Context())
+	stdout, _ := tui.WritersFromContext(cmd.Context())
 
 	dark := stdout.Dark()
 	info := stdout.Info()
@@ -49,7 +49,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	dangerEmphasis := stdout.Danger().Copy(tui.WithEmphasis(true))
 	success := stdout.Success()
 	primary := stdout.Primary()
-	warningStderr := stderr.Warning()
 
 	info.Box("Starting update of " + filename + " from upstream")
 	info.Println()
@@ -58,7 +57,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	source, _ := cmd.Flags().GetString("source")
 	if len(source) == 0 {
-		source, err = originalDocument.GetConfig("dottie/source")
+		source, err = oldDocument.GetConfig("dottie/source")
 		if err != nil {
 			return err
 		}
@@ -103,7 +102,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	sourceDocument, err := pkg.Load(tmp.Name())
+	newDocument, err := pkg.Load(tmp.Name())
 	if err != nil {
 		return err
 	}
@@ -119,49 +118,53 @@ func runE(cmd *cobra.Command, args []string) error {
 	lastWasError := false
 	counter := 0
 
-	for _, originalStatement := range originalDocument.AllAssignments() {
-		if !originalStatement.Enabled {
+	for _, oldStatement := range oldDocument.AllAssignments() {
+		if !oldStatement.Enabled {
 			continue
 		}
 
 		upserter, err := upsert.New(
-			sourceDocument,
-			upsert.WithSetting(upsert.SkipIfSame),
-			upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
+			newDocument,
+			// upsert.DisableSetting(upsert.Validate),
+			upsert.EnableSetting(upsert.UpdateComments),
+			upsert.EnableSetting(upsert.SkipIfSame),
+			upsert.EnableSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
 		)
 		if err != nil {
 			return err
 		}
 
 		// If the KEY does *NOT* exists in the SOURCE doc
-		if sourceDocument.Get(originalStatement.Name) == nil {
+		if newDocument.Get(oldStatement.Name) == nil {
 			// Try to find positioning in the statement list for the new KEY pair
-			var parent ast.StatementCollection = originalDocument
+			var parent ast.StatementCollection = oldDocument
 
-			if originalStatement.Group != nil {
-				parent = originalStatement.Group
+			if oldStatement.Group != nil {
+				parent = oldStatement.Group
 			}
 
-			idx, _ := parent.GetAssignmentIndex(originalStatement.Name)
+			idx, _ := parent.GetAssignmentIndex(oldStatement.Name)
 
 			// Try to keep the position of the KEY around where it was before
 			switch {
 			// If we can't find any placement, put us last in the list
 			case idx == -1:
+				fmt.Println(oldStatement.Name, upsert.AddLast)
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddLast))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if originalStatement.Group != nil && sourceDocument.HasGroup(originalStatement.Group.String()) {
-					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
+				if oldStatement.Group != nil && newDocument.HasGroup(oldStatement.Group.String()) {
+					upserter.ApplyOptions(upsert.WithGroup(oldStatement.Group.String()))
 				}
 
 			// If we were first in the FILE doc, make sure we're first again
 			case idx == 0:
+				fmt.Println(oldStatement.Name, upsert.AddFirst)
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddFirst))
 
 				// Retain the group name if its still present in the SOURCE doc
-				if originalStatement.Group != nil && sourceDocument.HasGroup(originalStatement.Group.String()) {
-					upserter.ApplyOptions(upsert.WithGroup(originalStatement.Group.String()))
+				if oldStatement.Group != nil && newDocument.HasGroup(oldStatement.Group.String()) {
+					upserter.ApplyOptions(upsert.WithGroup(oldStatement.Group.String()))
 				}
 
 			// If we were not first, then put us behind the key that was
@@ -169,20 +172,20 @@ func runE(cmd *cobra.Command, args []string) error {
 			case idx > 0:
 				before := parent.Assignments()[idx-1]
 
+				fmt.Println(oldStatement.Name, upsert.AddAfterKey, before.Name)
+
 				if err := upserter.ApplyOptions(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
 					return err
 				}
 
-				if before.Group != nil && sourceDocument.HasGroup(before.Group.String()) {
+				if before.Group != nil && newDocument.HasGroup(before.Group.String()) {
 					upserter.ApplyOptions(upsert.WithGroup(before.Group.String()))
 				}
 			}
 		}
 
-		changed, warn, err := upserter.Upsert(cmd.Context(), originalStatement)
-		if warn != nil {
-			warningStderr.Println(warn)
-		}
+		changed, warn, err := upserter.Upsert(cmd.Context(), oldStatement)
+		tui.MaybePrintWarnings(cmd.Context(), warn)
 
 		if err != nil {
 			sawError = true
@@ -193,35 +196,12 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 
 			dark.Print("  ")
-			dangerEmphasis.Print(originalStatement.Name)
+			dangerEmphasis.Print(oldStatement.Name)
 			dark.Print(" could not be set to ")
-			primary.Print(originalStatement.Literal)
+			primary.Print(oldStatement.Literal)
 			dark.Println(" due to error:")
 
-			danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), err.Error())
-
-			counter++
-
-			continue
-		}
-
-		if errors := validation.ValidateSingleAssignment(cmd.Context(), originalDocument, originalStatement, nil, []string{"file", "dir"}); len(errors) > 0 {
-			sawError = true
-			lastWasError = true
-
-			if counter > 0 {
-				dark.Println()
-			}
-
-			dark.Print("  ")
-			dangerEmphasis.Print(originalStatement.Name)
-			dark.Print(" could not be set to ")
-			primary.Print(originalStatement.Literal)
-			dark.Println(" due to validation error:")
-
-			for _, errIsh := range errors {
-				danger.Println(" ", strings.Repeat(" ", len(originalStatement.Name)), strings.TrimSpace(validation.Explain(cmd.Context(), originalDocument, errIsh, errIsh, false, false)))
-			}
+			danger.Println(" ", strings.Repeat(" ", len(oldStatement.Name)), err.Error())
 
 			counter++
 
@@ -237,9 +217,20 @@ func runE(cmd *cobra.Command, args []string) error {
 
 			lastWasError = false
 
-			success.Print("  ", originalStatement.Name)
+			success.Print("  ", oldStatement.Name)
 			dark.Print(" was successfully set to ")
-			primary.Println(originalStatement.Literal)
+			primary.Println(oldStatement.Literal)
+		}
+	}
+
+	newDocument.Initialize()
+	newDocument.InterpolateAll()
+
+	if errors := newDocument.Validate(cmd.Context(), []ast.Selector{ast.ExcludeDisabledAssignments}, []string{"file", "dir"}); len(errors) > 0 {
+		sawError = true
+
+		for _, err := range errors {
+			danger.Println(validation.Explain(cmd.Context(), oldDocument, err, err, false, true))
 		}
 	}
 
@@ -266,7 +257,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Saving the new", primary.Sprint(filename))
 
-	if err := pkg.Save(cmd.Context(), filename, sourceDocument); err != nil {
+	return fmt.Errorf("stop before save")
+
+	if err := pkg.Save(cmd.Context(), filename, newDocument); err != nil {
 		danger.Println("  ERROR", err.Error())
 
 		return err

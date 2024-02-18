@@ -2,6 +2,7 @@
 package ast
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 	"go.uber.org/multierr"
@@ -118,6 +120,7 @@ func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
 	defer func() {
 		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
+		doc.interpolationCache = make([]string, 0)
 	}()
 
 	doc.doInterpolation(target)
@@ -134,6 +137,13 @@ func (doc *Document) doInterpolation(target *Assignment) {
 
 	if !target.Enabled {
 		return
+	}
+
+	target.Initialize()
+
+	// Interpolate dependencies of the assignment before the assignment itself
+	for _, rel := range target.Dependencies {
+		doc.doInterpolation(doc.Get(rel.Name))
 	}
 
 	// Lookup the key in the cache and return it if it exists
@@ -298,6 +308,8 @@ func (document *Document) Initialize() {
 			}
 		}
 	}
+
+	document.ReindexStatements()
 }
 
 func (document *Document) Replace(assignment *Assignment) error {
@@ -335,4 +347,115 @@ func (document *Document) Replace(assignment *Assignment) error {
 	}
 
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
+}
+
+func (document *Document) Validate(ctx context.Context, handlers []Selector, ignoreErrors []string) []ValidationError {
+	data := map[string]any{}
+	rules := map[string]any{}
+
+	// The validation library uses a map[string]any as return value
+	// which causes random ordering of keys. We would like them
+	// to follow to order of which they are defined in the file
+	// so this slice tracks that
+	fieldOrder := []string{}
+
+NEXT:
+	for _, assignment := range document.AllAssignments() {
+		for _, handler := range handlers {
+			status := handler(assignment)
+
+			switch status {
+			// Stop processing the statement and return nothing
+			case Exclude:
+				continue NEXT
+
+			// Continue to next handler (or default behavior if we run out of handlers)
+			case Keep:
+
+			// Unknown signal
+			default:
+				panic(fmt.Errorf("unknown signal: %v", status))
+			}
+		}
+
+		validationRules := assignment.ValidationRules()
+		if len(validationRules) == 0 {
+			continue
+		}
+
+		data[assignment.Name] = assignment.Interpolated
+		rules[assignment.Name] = validationRules
+
+		fieldOrder = append(fieldOrder, assignment.Name)
+	}
+
+	errors := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
+
+	result := []ValidationError{}
+
+NEXT_FIELD:
+	for _, field := range fieldOrder {
+		err, ok := errors[field]
+		if !ok {
+			continue
+		}
+
+		switch err := err.(type) {
+		case validator.ValidationErrors:
+			for _, rule := range err {
+				if slices.Contains(ignoreErrors, rule.ActualTag()) {
+					continue NEXT_FIELD
+				}
+			}
+		}
+
+		result = append(result, ValidationError{
+			WrappedError: err,
+			Assignment:   document.Get(field),
+		})
+	}
+
+	return result
+}
+
+func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, handlers []Selector, ignoreErrors []string) []ValidationError {
+	keys := AssignmentsToValidateRecursive(assignment)
+
+	return document.Validate(
+		ctx,
+		append(
+			[]Selector{
+				ExcludeDisabledAssignments,
+				RetainExactKey(keys...),
+			},
+			handlers...,
+		),
+		ignoreErrors,
+	)
+}
+
+func AssignmentsToValidateRecursive(assignment *Assignment) []string {
+	if assignment == nil {
+		return nil
+	}
+
+	assignment.Initialize()
+
+	return append([]string{assignment.Name}, RecursiveDependentAssignments(assignment)...)
+}
+
+func RecursiveDependentAssignments(assignment *Assignment) []string {
+	var keys []string
+
+	for _, dependent := range assignment.Dependents {
+		dependent.Initialize()
+
+		keys = append(keys, dependent.Name)
+
+		for _, d := range dependent.Dependents {
+			keys = append(keys, RecursiveDependentAssignments(d)...)
+		}
+	}
+
+	return keys
 }

@@ -18,19 +18,19 @@ func WithGroup(name string) Option {
 	}
 }
 
-// WithSettingIf will, depending on [boolean], either enable or disable a
+// EnableSettingIf will, depending on [boolean], either enable or disable a
 // [Upserter] setting. Its mainly a convenience function to avoid if/else on the caller
 // side - such as in cases of bool CLI flags changing controlling a setting.
-func WithSettingIf(setting Setting, boolean bool) Option {
+func EnableSettingIf(setting Setting, boolean bool) Option {
 	if boolean {
-		return WithSetting(setting)
+		return EnableSetting(setting)
 	}
 
-	return WithoutSetting(setting)
+	return DisableSetting(setting)
 }
 
-// WithSetting will set the provided [Setting] in the [Upserter] settings bitmask.
-func WithSetting(setting Setting) Option {
+// EnableSetting will set the provided [Setting] in the [Upserter] settings bitmask.
+func EnableSetting(setting Setting) Option {
 	return func(upserter *Upserter) error {
 		upserter.settings = upserter.settings | setting
 
@@ -39,7 +39,7 @@ func WithSetting(setting Setting) Option {
 }
 
 // WithSetting will remove the provided [Setting] in the [Upserter] settings bitmask.
-func WithoutSetting(setting Setting) Option {
+func DisableSetting(setting Setting) Option {
 	return func(upserter *Upserter) error {
 		upserter.settings = upserter.settings &^ setting
 
@@ -128,4 +128,13 @@ func WithPlacementInGroupIgnoringEmpty(placement Placement, key string) Option {
 	}
 
 	return WithPlacementInGroup(placement, key)
+}
+
+// WithSkipValidationRule allow you to skip/ignore specific validation rules
+func WithSkipValidationRule(rules ...string) Option {
+	return func(u *Upserter) error {
+		u.ignoreValidationRules = rules
+
+		return nil
+	}
 }

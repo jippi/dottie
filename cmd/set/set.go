@@ -8,7 +8,6 @@ import (
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
@@ -24,7 +23,7 @@ func NewCommand() *cobra.Command {
 		Args:    cobra.MinimumNArgs(1),
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
-			WithHandlers(render.ExcludeDisabledAssignments).
+			WithHandlers(ast.ExcludeDisabledAssignments).
 			Get(),
 		RunE: runE,
 	}
@@ -62,10 +61,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	upserter, err := upsert.New(
 		document,
 		upsert.WithGroup(shared.StringFlag(cmd.Flags(), "group")),
-		upsert.WithSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
-		upsert.WithSettingIf(upsert.SkipIfExists, shared.BoolFlag(cmd.Flags(), "skip-if-exists")),
-		upsert.WithSettingIf(upsert.SkipIfSame, shared.BoolFlag(cmd.Flags(), "skip-if-same")),
-		upsert.WithSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
+		upsert.EnableSettingIf(upsert.ErrorIfMissing, shared.BoolFlag(cmd.Flags(), "error-if-missing")),
+		upsert.EnableSettingIf(upsert.SkipIfExists, shared.BoolFlag(cmd.Flags(), "skip-if-exists")),
+		upsert.EnableSettingIf(upsert.SkipIfSame, shared.BoolFlag(cmd.Flags(), "skip-if-same")),
+		upsert.EnableSettingIf(upsert.UpdateComments, cmd.Flag("comment").Changed),
 	)
 	if err != nil {
 		return fmt.Errorf("error setting up upserter: %w", err)
@@ -79,7 +78,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("error in processing [--after] flag: %w", err)
 	}
 
-	if err := upserter.ApplyOptions(upsert.WithSettingIf(upsert.Validate, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
+	if err := upserter.ApplyOptions(upsert.EnableSettingIf(upsert.Validate, shared.BoolWithInverseValue(cmd.Flags(), "validate"))); err != nil {
 		return fmt.Errorf("error configuring [--validate] flag: %w", err)
 	}
 
@@ -120,7 +119,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 		if err != nil {
-			z := validation.NewError(assignment, err)
+			z := ast.NewError(assignment, err)
 			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, z, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {

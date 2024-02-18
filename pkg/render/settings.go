@@ -1,5 +1,7 @@
 package render
 
+import "github.com/jippi/dottie/pkg/ast"
+
 type OutputType uint
 
 const (
@@ -39,23 +41,23 @@ func (rs Settings) ShowBlankLines() bool {
 	return rs.formatOutput || (rs.showBlankLines && rs.showComments)
 }
 
-func (rs Settings) Handlers() []Handler {
-	var res []Handler
+func (rs Settings) Handlers() []ast.Selector {
+	var res []ast.Selector
 
 	if !rs.showComments {
-		res = append(res, ExcludeComments)
+		res = append(res, ast.ExcludeComments)
 	}
 
 	if !rs.includeDisabled {
-		res = append(res, ExcludeDisabledAssignments)
+		res = append(res, ast.ExcludeDisabledAssignments)
 	}
 
 	if len(rs.retainGroup) > 0 {
-		res = append(res, RetainGroup(rs.retainGroup))
+		res = append(res, ast.RetainGroup(rs.retainGroup))
 	}
 
 	if len(rs.retainKeyPrefix) > 0 {
-		res = append(res, RetainKeyPrefix(rs.retainKeyPrefix))
+		res = append(res, ast.RetainKeyPrefix(rs.retainKeyPrefix))
 	}
 
 	return res

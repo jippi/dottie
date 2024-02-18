@@ -19,7 +19,7 @@ type multiError interface {
 	Errors() []error
 }
 
-func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr ValidationError, applyFixer, showField bool) string {
+func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr ast.ValidationError, applyFixer, showField bool) string {
 	var buff bytes.Buffer
 
 	writer := tui.NewWriter(ctx, &buff)
@@ -34,12 +34,12 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, keyErr Vali
 
 	switch err := inputError.(type) {
 	// Unwrap the ValidationError
-	case ValidationError:
+	case ast.ValidationError:
 		return Explain(ctx, doc, err.WrappedError, err, applyFixer, showField)
 
 	case multiError:
 		for _, e := range err.Errors() {
-			buff.WriteString(Explain(ctx, doc, e, ValidationError{}, applyFixer, showField))
+			buff.WriteString(Explain(ctx, doc, e, ast.ValidationError{}, applyFixer, showField))
 			buff.WriteString("\n")
 		}
 
@@ -195,7 +195,7 @@ func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assig
 		Validate(func(s string) error {
 			err := validator.New().Var(s, assignment.ValidationRules())
 			if err != nil {
-				z := ValidationError{
+				z := ast.ValidationError{
 					WrappedError: err,
 					Assignment:   assignment,
 				}

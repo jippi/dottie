@@ -27,3 +27,23 @@ type Position struct {
 func (p Position) String() string {
 	return fmt.Sprintf("%s:%d", p.File, p.Line)
 }
+
+type ValidationError struct {
+	WrappedError any
+	Assignment   *Assignment
+}
+
+func (e ValidationError) Error() string {
+	if val, ok := e.WrappedError.(error); ok {
+		return val.Error()
+	}
+
+	return fmt.Sprintf("%+v", e.WrappedError)
+}
+
+func NewError(assignment *Assignment, err error) ValidationError {
+	return ValidationError{
+		WrappedError: err,
+		Assignment:   assignment,
+	}
+}

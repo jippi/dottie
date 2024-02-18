@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
@@ -56,16 +56,16 @@ func runE(cmd *cobra.Command, args []string) error {
 		excludedPrefixes = shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
 		ignoreRules      = shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
 		stderr           = tui.StderrFromContext(cmd.Context())
-		handlers         = []render.Handler{
-			render.ExcludeDisabledAssignments,
+		handlers         = []ast.Selector{
+			ast.ExcludeDisabledAssignments,
 		}
 	)
 
 	for _, filter := range excludedPrefixes {
-		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
+		handlers = append(handlers, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
+	validationErrors := document.Validate(cmd.Context(), handlers, ignoreRules)
 	if len(validationErrors) == 0 {
 		stderr.Success().Box("No validation errors found")
 
@@ -99,7 +99,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
+	newRes := document.Validate(cmd.Context(), handlers, ignoreRules)
 	if len(newRes) == 0 {
 		stderr.Success().Println("All validation errors fixed")
 

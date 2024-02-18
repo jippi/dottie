@@ -3,7 +3,7 @@ package ast
 // RetainGroup will exclude Assignment, Group, and Comment statements
 // that do not belong to the provided group name
 func RetainGroup(name string) Selector {
-	return func(input Statement) SelectorResult {
+	return func(input Statement) selectorResult {
 		switch statement := input.(type) {
 		case *Assignment:
 			if !statement.BelongsToGroup(name) {
