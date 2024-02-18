@@ -1,5 +1,5 @@
----- exec command line 0: [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
+---- exec command line 1: [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
 (no output to stdout)
----- exec command line 1: [set --error-if-missing SOME_KEY=SUCCESS]
+---- exec command line 2: [set --error-if-missing SOME_KEY=SUCCESS]
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved
