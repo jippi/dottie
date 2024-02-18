@@ -176,11 +176,6 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 
 	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
-
-	// Then do interpolation of the dependent keys
-	for _, rel := range target.RecursiveDependentAssignments() {
-		doc.doInterpolation(doc.Get(rel), path)
-	}
 }
 
 func (doc *Document) interpolationMapper(target *Assignment) func(input string) (string, bool) {
