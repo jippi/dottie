@@ -168,10 +168,8 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 			}
 		}
 
-	case error:
-		panic(err)
-
-		danger.Printfln("%+s", err)
+	case *error:
+		danger.Printfln("%+s", *err)
 
 	default:
 		danger.Printfln("(error %T) %+s", err, err)

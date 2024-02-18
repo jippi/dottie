@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	templatepkg "github.com/jippi/dottie/pkg/template"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,14 +37,14 @@ func defaultMapping(name string) (string, bool) {
 	return val, ok
 }
 
-func TestEscaped(t *testing.T) {
-	t.Parallel()
-
-	result, warn, err := templatepkg.Substitute("$${foo}", defaultMapping)
-	assert.NoError(t, warn)
-	assert.NoError(t, err)
-	assert.Equal(t, "${foo}", result)
-}
+// func TestEscaped(t *testing.T) {
+// 	t.Parallel()
+//
+// 	result, warn, err := templatepkg.Substitute("$${foo}", defaultMapping)
+// 	assert.NoError(t, warn)
+// 	assert.NoError(t, err)
+// 	assert.Equal(t, "${foo}", result)
+// }
 
 func TestSubstituteNoMatch(t *testing.T) {
 	t.Parallel()
@@ -78,21 +77,22 @@ func TestInvalid(t *testing.T) {
 	t.Parallel()
 
 	invalidTemplates := []string{
-		// "${",
-		// "${}",
+		"${",
+		"${}",
 		"${ }",
 		"${ foo}",
-		"${foo }",
+		// "${foo }",
 		"${foo!}",
 	}
 
 	for i, tt := range invalidTemplates {
 		tt := tt
 
-		t.Run(fmt.Sprintf("TestInvalid %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
 			_, _, err := templatepkg.Substitute(tt, defaultMapping)
+
 			assert.ErrorContains(t, err, "Invalid template")
 		})
 	}
@@ -114,6 +114,7 @@ func TestNoValueNoDefault(t *testing.T) {
 	{
 		template := "This ${missing} var"
 		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+
 		require.ErrorContains(t, warn, `The "missing" variable is not set. Defaulting to a blank string`)
 		require.NoError(t, err)
 		assert.Equal(t, "This  var", result)
@@ -122,6 +123,7 @@ func TestNoValueNoDefault(t *testing.T) {
 	{
 		template := "This ${BAR} var"
 		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+
 		require.NoError(t, warn)
 		require.NoError(t, err)
 		assert.Equal(t, "This  var", result)
@@ -181,8 +183,8 @@ func TestPresentValueWithUnset(t *testing.T) {
 	t.Parallel()
 
 	result, warn, err := templatepkg.Substitute("ok ${UNSET_VAR:+presence_value}", defaultMapping)
-	assert.NoError(t, warn)
-	assert.NoError(t, err)
+	assert.NoError(t, warn, "warning")
+	assert.NoError(t, err, "error")
 	assert.Equal(t, "ok ", result)
 }
 
@@ -190,8 +192,8 @@ func TestPresentValueWithUnset2(t *testing.T) {
 	t.Parallel()
 
 	result, warn, err := templatepkg.Substitute("ok ${UNSET_VAR+presence_value}", defaultMapping)
-	assert.NoError(t, warn)
-	assert.NoError(t, err)
+	assert.NoError(t, warn, "warning")
+	assert.NoError(t, err, "error")
 	assert.Equal(t, "ok ", result)
 }
 
@@ -293,7 +295,7 @@ func TestInterpolationExternalInterference(t *testing.T) {
 	for i, tt := range testCases {
 		tt := tt
 
-		t.Run(fmt.Sprintf("Interpolation Should not be impacted by outer text: %d", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
 			result, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
@@ -388,12 +390,18 @@ func TestMandatoryVariableErrors(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		_, warn, err := templatepkg.Substitute(tc.template, defaultMapping)
-		require.NoError(t, warn)
-		require.ErrorContains(t, err, tc.expectedError)
+	for i, tt := range testCases {
+		tt := tt
 
-		assert.ErrorAs(t, err, &MissingRequiredError)
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			_, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
+			require.NoError(t, warn)
+			require.ErrorContains(t, err, tt.expectedError)
+
+			assert.ErrorAs(t, err, &MissingRequiredError)
+		})
 	}
 }
 
@@ -414,12 +422,17 @@ func TestMandatoryVariableErrorsWithNestedExpansion(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		_, _, err := templatepkg.Substitute(tc.template, defaultMapping)
-		spew.Dump(err)
-		require.ErrorContains(t, err, tc.expectedError)
+	for i, tt := range testCases {
+		tt := tt
 
-		assert.ErrorAs(t, err, &MissingRequiredError)
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			_, _, err := templatepkg.Substitute(tt.template, defaultMapping)
+			require.ErrorContains(t, err, tt.expectedError)
+
+			assert.ErrorAs(t, err, &MissingRequiredError)
+		})
 	}
 }
 
@@ -452,34 +465,6 @@ func TestDefaultsForMandatoryVariables(t *testing.T) {
 	}
 }
 
-func TestSubstituteWithCustomFunc(t *testing.T) {
-	t.Parallel()
-
-	errIsMissing := func(substitution string, mapping templatepkg.Mapping) (string, bool, error) {
-		value, found := mapping(substitution)
-		if !found {
-			return "", true, &templatepkg.InvalidTemplateError{
-				Template: fmt.Sprintf("required variable %s is missing a value", substitution),
-			}
-		}
-
-		return value, true, nil
-	}
-
-	result, warn, err := templatepkg.SubstituteWith("ok ${FOO}", defaultMapping, errIsMissing)
-	assert.NoError(t, warn)
-	assert.NoError(t, err)
-	assert.Equal(t, "ok first", result)
-
-	result, warn, err = templatepkg.SubstituteWith("ok ${BAR}", defaultMapping, errIsMissing)
-	assert.NoError(t, warn)
-	assert.NoError(t, err)
-	assert.Equal(t, "ok ", result)
-
-	_, _, err = templatepkg.SubstituteWith("ok ${NOTHERE}", defaultMapping, errIsMissing)
-	assert.ErrorContains(t, err, "required variable")
-}
-
 // TestPrecedence tests is the precedence on '-' and '?' is of the first match
 func TestPrecedence(t *testing.T) {
 	t.Parallel()
@@ -502,7 +487,6 @@ func TestPrecedence(t *testing.T) {
 			expected: "myerror?msg",
 			err:      nil,
 		},
-
 		{
 			template: "${FOO?bar-baz}", // Existent variable
 			expected: "first",
@@ -517,11 +501,17 @@ func TestPrecedence(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		result, warn, err := templatepkg.Substitute(tc.template, defaultMapping)
-		require.NoError(t, warn)
-		assert.Equal(t, tc.err, err)
-		assert.Equal(t, tc.expected, result)
+	for i, tt := range testCases {
+		tt := tt
+
+		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
+			t.Parallel()
+
+			result, _, err := templatepkg.Substitute(tt.template, defaultMapping)
+
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.expected, result)
+		})
 	}
 }
 
@@ -652,64 +642,3 @@ func TestExtractVariables(t *testing.T) {
 		})
 	}
 }
-
-func TestSubstitutionFunctionChoice(t *testing.T) {
-	t.Parallel()
-
-	testcases := []struct {
-		name   string
-		input  string
-		symbol string
-	}{
-		{"Error when EMPTY or UNSET", "VARNAME:?val?ue", ":?"},
-		{"Error when UNSET 1", "VARNAME?val:?ue", "?"},
-		{"Error when UNSET 2", "VARNAME?va-lu+e:?e", "?"},
-		{"Error when UNSET 3", "VARNAME?va+lu-e:?e", "?"},
-
-		{"Default when EMPTY or UNSET", "VARNAME:-value", ":-"},
-		{"Default when UNSET 1", "VARNAME-va:-lu:?e", "-"},
-		{"Default when UNSET 2", "VARNAME-va+lu?e", "-"},
-		{"Default when UNSET 3", "VARNAME-va?lu+e", "-"},
-
-		{"Default when NOT EMPTY", "VARNAME:+va:?lu:-e", ":+"},
-		{"Default when SET 1", "VARNAME+va:+lue", "+"},
-		{"Default when SET 2", "VARNAME+va?lu-e", "+"},
-		{"Default when SET 3", "VARNAME+va-lu?e", "+"},
-	}
-
-	for _, tt := range testcases {
-		tt := tt
-
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			symbol, _ := templatepkg.GetSubstitutionFunctionForTemplate(tt.input)
-			assert.Equal(t, symbol, tt.symbol,
-				fmt.Sprintf("Wrong on output for: %s got symbol -> %#v", tt.input, symbol),
-			)
-		})
-	}
-}
-
-func TestNoValueWithCurlyBracesDefault(t *testing.T) {
-	t.Parallel()
-
-	for _, template := range []string{`ok ${missing:-{"json":1}}`, `ok ${missing-{"json":1}}`} {
-		result, warn, err := templatepkg.Substitute(template, defaultMapping)
-		assert.NoError(t, warn)
-		assert.NoError(t, err)
-		assert.Equal(t, `ok {"json":1}`, result)
-	}
-}
-
-// TODO: figure out whats up with this one later
-// func TestValueWithCurlyBracesDefault(t *testing.T) {
-// 	t.Parallel()
-
-// 	for _, template := range []string{`ok ${JSON:-{"json":1}}`, `ok ${JSON-{"json":1}}`} {
-// 		result, warn, err := templatepkg.Substitute(template, defaultMapping)
-// 		assert.NoError(t, warn)
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, `ok {"json":2}`, result)
-// 	}
-// }

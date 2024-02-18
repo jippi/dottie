@@ -17,24 +17,12 @@ package template
 import (
 	"errors"
 	"fmt"
-	"os"
-	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/multierr"
-)
-
-var (
-	delimiter          = "\\$"
-	substitutionNamed  = "^[_a-z][_a-z0-9]*$"
-	substitutionBraced = "^[_a-z][_a-z0-9]*(?::?[-+?](.*))?$"
-)
-
-var (
-	substitutionPattern       = regexp.MustCompile(substitutionNamed)
-	substitutionBracedPattern = regexp.MustCompile(substitutionBraced)
+	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 // Mapping is a user-supplied function which maps from variable names to values.
@@ -43,180 +31,99 @@ var (
 // and the absence of a value.
 type Mapping func(string) (string, bool)
 
-// SubstituteFunc is a user-supplied function that apply substitution.
-// Returns the value as a string, a bool indicating if the function could apply
-// the substitution and an error.
-type SubstituteFunc func(string, Mapping) (string, bool, error)
+type Lookupper struct {
+	resolver Mapping
+	missing  func(string)
+}
 
-// ReplacementFunc is a user-supplied function that is apply to the matching
-// substring. Returns the value as a string and an error.
-type ReplacementFunc func(string, Mapping, *Config) (string, bool, error, error)
+func (l Lookupper) Get(name string) expand.Variable {
+	val, ok := l.resolver(name)
+	if !ok {
+		if name != "IFS" {
+			l.missing(name)
+		}
+
+		return expand.Variable{
+			Kind: expand.Unset,
+		}
+	}
+
+	return expand.Variable{
+		Str:      val,
+		Exported: true,
+		ReadOnly: true,
+		Kind:     expand.String,
+	}
+}
+
+func (l Lookupper) Each(cb func(name string, vr expand.Variable) bool) {
+	panic("Lookupper each")
+}
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func SubstituteWithOptions(template string, mapping Mapping, options ...Option) (string, error, error) {
-	var returnErr, warnings error
-
-	cfg := &Config{
-		replacementFunc: DefaultReplacementFunc,
-	}
-
-	for _, o := range options {
-		o(cfg)
-	}
-
-	fmt.Println("TEMPLATE IN", template)
-
-	result := os.Expand(template, func(substring string) string {
-		fmt.Println("EXPAND IN", substring)
-
-		replacement, _, warning, err := cfg.replacementFunc(substring, mapping, cfg)
-		if err != nil {
-			// Add the template for template errors
-			var tmplErr *InvalidTemplateError
-
-			if errors.As(err, &tmplErr) {
-				if tmplErr.Template == "" {
-					tmplErr.Template = template
-				}
-			}
-
-			// Save the first error to be returned
-			if returnErr == nil {
-				returnErr = err
-			}
-		}
-
-		if warning != nil {
-			warnings = multierr.Append(warnings, warning)
-		}
-
-		return replacement
-	})
-
-	fmt.Println("OUTPUT")
-
-	spew.Dump(result, warnings, returnErr)
-
-	return result, warnings, returnErr
-}
-
-func DefaultReplacementFunc(substring string, mapping Mapping, cfg *Config) (string, bool, error, error) {
-	return DefaultReplacementAppliedFunc(substring, mapping, cfg)
-}
-
-func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Config) (string, bool, error, error) {
-	fmt.Println("DefaultReplacementAppliedFunc::substring")
-	spew.Dump(substring)
-
-	if !substitutionBracedPattern.MatchString(substring) {
-		return "", false, nil, InvalidTemplateError{}
-	}
-
-	subsFunc := cfg.substituteFunc
-	if subsFunc == nil {
-		_, subsFunc = GetSubstitutionFunctionForTemplate(substring)
-	}
-
-	rest := ""
-
-	closingBraceIndex := getFirstBraceClosingIndex(substring)
-	if closingBraceIndex > -1 {
-		rest = substring[closingBraceIndex+1:]
-		substring = substring[0 : closingBraceIndex+1]
-	}
-
-	braced := true
-
-	if braced {
-		value, applied, err := subsFunc(substring, mapping)
-		if err != nil {
-			return "", false, nil, err
-		}
-
-		if applied {
-			interpolatedNested, _, err := SubstituteWith(rest, mapping)
-			if err != nil {
-				return "", false, nil, err
-			}
-
-			return value + interpolatedNested, true, nil, nil
-		}
-	}
-
-	value, ok := mapping(substring)
-	if !ok {
-		return value, ok, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", substring), nil
-	}
-
-	return value, ok, nil, nil
-}
-
-func getFirstBraceClosingIndex(str string) int {
-	openVariableBraces := 0
-
-	for i := 0; i < len(str); i++ {
-		if str[i] == '}' {
-			openVariableBraces--
-			if openVariableBraces == 0 {
-				return i
-			}
-		}
-
-		if strings.HasPrefix(str[i:], "${") {
-			openVariableBraces++
-			i++
-		}
-	}
-
-	return -1
-}
-
-// SubstituteWith substitute variables in the string with their values.
-// It accepts additional substitute function.
-func SubstituteWith(template string, mapping Mapping, subsFuncs ...SubstituteFunc) (string, error, error) {
-	options := []Option{}
-
-	if len(subsFuncs) > 0 {
-		options = append(options, WithSubstitutionFunction(subsFuncs[0]))
-	}
-
-	return SubstituteWithOptions(template, mapping, options...)
-}
-
-func GetSubstitutionFunctionForTemplate(template string) (string, SubstituteFunc) {
-	interpolationMapping := []struct {
-		string
-		SubstituteFunc
-	}{
-		{":?", requiredErrorWhenEmptyOrUnset},
-		{"?", requiredErrorWhenUnset},
-		{":-", defaultWhenEmptyOrUnset},
-		{"-", defaultWhenUnset},
-		{":+", defaultWhenNotEmpty},
-		{"+", defaultWhenSet},
-	}
-	sort.Slice(interpolationMapping, func(i, j int) bool {
-		idxI := strings.Index(template, interpolationMapping[i].string)
-		idxJ := strings.Index(template, interpolationMapping[j].string)
-
-		if idxI < 0 {
-			return false
-		}
-
-		if idxJ < 0 {
-			return true
-		}
-
-		return idxI < idxJ
-	})
-
-	return interpolationMapping[0].string, interpolationMapping[0].SubstituteFunc
-}
-
-// Substitute variables in the string with their values
 func Substitute(template string, mapping Mapping) (string, error, error) {
-	return SubstituteWith(template, mapping)
+	var (
+		combinedWarnings, combinedErrors error
+		missing                          []string
+		variables                        = ExtractVariables(template)
+	)
+
+	looker := Lookupper{
+		resolver: mapping,
+		missing: func(key string) {
+			variable, ok := variables[key]
+
+			// shouldn't be a lookup for anything that
+			if !ok {
+				panic(fmt.Errorf("unexpected missing() call during template.Substitute() for KEY [%s] - it's not in variable list?!", key))
+			}
+
+			// Required variables are errors, so we ignore them as warnings
+			if variable.Required {
+				return
+			}
+
+			// If the variable has a default value, then it's not missing
+			if len(variable.DefaultValue) > 0 {
+				return
+			}
+
+			// If the variable has a alternate/presence value, then it's not missing
+			if len(variable.PresenceValue) > 0 {
+				return
+			}
+
+			missing = append(missing, key)
+		},
+	}
+
+	config := &expand.Config{
+		Env:     looker,
+		NoUnset: false,
+	}
+
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
+	if err != nil {
+		return "", nil, InvalidTemplateError{Template: template}
+	}
+
+	// Expand variables
+	result, err := expand.Literal(config, words)
+
+	target := &expand.UnsetParameterError{}
+	if errors.As(err, target) {
+		combinedErrors = multierr.Append(combinedErrors, &MissingRequiredError{
+			Variable: target.Node.Param.Value,
+			Reason:   target.Message,
+		})
+	}
+
+	for _, missingKey := range missing {
+		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", missingKey))
+	}
+
+	return result, combinedWarnings, combinedErrors
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified
@@ -235,6 +142,7 @@ func recurseExtract(value interface{}) map[string]Variable {
 				results[v.Name] = v
 			}
 		}
+
 	case map[string]interface{}:
 		for _, elem := range value {
 			submap := recurseExtract(elem)
@@ -269,160 +177,51 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 		return []Variable{}, false
 	}
 
-	var matches []string
+	var variables []Variable
 
-	os.Expand(sValue, func(in string) string {
-		matches = append(matches, in)
+	grab := func(p syntax.WordPart) string {
+		switch val := p.(type) {
+		case *syntax.Lit:
+			return val.Value
 
-		return ""
+		case *syntax.ParamExp:
+			return val.Param.Value
+
+		default:
+			panic(val)
+		}
+	}
+
+	syntax.NewParser(syntax.Variant(syntax.LangBash)).Words(strings.NewReader(sValue), func(w *syntax.Word) bool {
+		for _, p := range w.Parts {
+			switch part := p.(type) {
+			case *syntax.ParamExp:
+				variable := Variable{
+					Name: part.Param.Value,
+				}
+
+				if part.Exp != nil {
+					if slices.Contains([]syntax.ParExpOperator{syntax.ErrorUnset, syntax.ErrorUnsetOrNull}, part.Exp.Op) {
+						variable.Required = true
+					}
+
+					if slices.Contains([]syntax.ParExpOperator{syntax.DefaultUnsetOrNull, syntax.DefaultUnset}, part.Exp.Op) {
+						variable.DefaultValue = grab(part.Exp.Word.Parts[0])
+					}
+
+					if slices.Contains([]syntax.ParExpOperator{syntax.AlternateUnset, syntax.AlternateUnsetOrNull}, part.Exp.Op) {
+						variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+					}
+				}
+
+				variables = append(variables, variable)
+			}
+		}
+
+		return true
 	})
 
-	if len(matches) == 0 {
-		return []Variable{}, false
-	}
-
-	values := []Variable{}
-
-	for _, val := range matches {
-		name := val
-
-		var (
-			defaultValue  string
-			presenceValue string
-			required      bool
-		)
-
-		switch {
-		case strings.Contains(val, ":?"):
-			name, _ = partition(val, ":?")
-			required = true
-
-		case strings.Contains(val, "?"):
-			name, _ = partition(val, "?")
-			required = true
-
-		case strings.Contains(val, ":-"):
-			name, defaultValue = partition(val, ":-")
-
-		case strings.Contains(val, "-"):
-			name, defaultValue = partition(val, "-")
-
-		case strings.Contains(val, ":+"):
-			name, presenceValue = partition(val, ":+")
-
-		case strings.Contains(val, "+"):
-			name, presenceValue = partition(val, "+")
-		}
-
-		values = append(values, Variable{
-			Name:          name,
-			DefaultValue:  defaultValue,
-			PresenceValue: presenceValue,
-			Required:      required,
-		})
-	}
-
-	return values, len(values) > 0
-}
-
-// Soft default (fall back if unset or empty)
-func defaultWhenEmptyOrUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenAbsence(substitution, mapping, true)
-}
-
-// Hard default (fall back if-and-only-if empty)
-func defaultWhenUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenAbsence(substitution, mapping, false)
-}
-
-func defaultWhenNotEmpty(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenPresence(substitution, mapping, true)
-}
-
-func defaultWhenSet(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenPresence(substitution, mapping, false)
-}
-
-func requiredErrorWhenEmptyOrUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withRequired(substitution, mapping, ":?", func(v string) bool { return v != "" })
-}
-
-func requiredErrorWhenUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withRequired(substitution, mapping, "?", func(_ string) bool { return true })
-}
-
-func withDefaultWhenPresence(substitution string, mapping Mapping, notEmpty bool) (string, bool, error) {
-	sep := "+"
-
-	if notEmpty {
-		sep = ":+"
-	}
-
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, defaultValue := partition(substitution, sep)
-
-	defaultValue, _, err := Substitute(defaultValue, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if ok && (!notEmpty || (notEmpty && value != "")) {
-		return defaultValue, true, nil
-	}
-
-	return value, true, nil
-}
-
-func withDefaultWhenAbsence(substitution string, mapping Mapping, emptyOrUnset bool) (string, bool, error) {
-	sep := "-"
-	if emptyOrUnset {
-		sep = ":-"
-	}
-
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, defaultValue := partition(substitution, sep)
-
-	defaultValue, _, err := Substitute(defaultValue, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if !ok || (emptyOrUnset && value == "") {
-		return defaultValue, true, nil
-	}
-
-	return value, true, nil
-}
-
-func withRequired(substitution string, mapping Mapping, sep string, valid func(string) bool) (string, bool, error) {
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, errorMessage := partition(substitution, sep)
-
-	errorMessage, _, err := Substitute(errorMessage, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if !ok || !valid(value) {
-		return "", true, &MissingRequiredError{
-			Reason:   errorMessage,
-			Variable: name,
-		}
-	}
-
-	return value, true, nil
+	return variables, len(variables) > 0
 }
 
 // Split the string at the first occurrence of sep, and return the part before the separator,
