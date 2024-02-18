@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
@@ -103,16 +104,19 @@ func (d *Document) Has(name string) bool {
 }
 
 func (doc *Document) InterpolateAll() (error, error) {
-	var warnings, errors error
+	var (
+		interpolateWarnings error
+		interpolateErrors   error
+	)
 
 	for _, assignment := range doc.AllAssignments() {
 		warn, err := doc.InterpolateStatement(assignment)
 
-		warnings = multierr.Append(warnings, warn)
-		errors = multierr.Append(errors, err)
+		interpolateWarnings = multierr.Append(interpolateWarnings, warn)
+		interpolateErrors = multierr.Append(interpolateErrors, err)
 	}
 
-	return warnings, errors
+	return interpolateWarnings, interpolateErrors
 }
 
 func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
@@ -122,41 +126,54 @@ func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
 	}()
 
 	// First do interpolation of the target itself
-	doc.doInterpolation(target)
-
-	// Then do interpolation of the dependent keys
-	for _, rel := range target.RecursiveDependentAssignments() {
-		doc.doInterpolation(doc.Get(rel))
-	}
+	doc.doInterpolation(target, nil)
 
 	return doc.interpolateWarnings, doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(target *Assignment) {
+func (doc *Document) doInterpolation(target *Assignment, path []string) {
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
 		return
 	}
 
+	path = append(path, target.Name)
+	prefix := strings.Join(path, " -> ")
+
+	fmt.Println(prefix, "| doInterpolation")
+
 	if !target.Enabled {
+		fmt.Println(prefix, "| exit = not enabled")
+
 		return
 	}
 
 	// Lookup the key in the cache and return it if it exists
 	if slices.Contains(doc.interpolationCache, target.Name) {
+		fmt.Println(prefix, "| exit = cached")
+
 		return
 	}
 
 	target.Initialize()
+	fmt.Println(prefix, "| dependency", spew.Sdump(target.Dependencies))
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, rel := range target.Dependencies {
-		doc.doInterpolation(doc.Get(rel.Name))
+		fmt.Println(prefix, "| dependency", rel.Name)
+
+		dependency := doc.Get(rel.Name)
+		dependency.Initialize()
+
+		doc.doInterpolation(dependency, path)
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
 	if target.Quote.Is(token.SingleQuotes.Rune()) {
+		fmt.Println(prefix, "| exit = single quote")
+
+		doc.interpolationCache = append(doc.interpolationCache, target.Name)
 		target.Interpolated = target.Literal
 
 		return
@@ -165,18 +182,33 @@ func (doc *Document) doInterpolation(target *Assignment) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
+		fmt.Println(prefix, "| exit = no $")
+
+		doc.interpolationCache = append(doc.interpolationCache, target.Name)
 		target.Interpolated = target.Literal
 
 		return
 	}
 
 	value, warnings, err := template.Substitute(target.Literal, doc.interpolationMapper(target))
+	if err != nil {
+		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
+	}
 
 	target.Interpolated = value
+	doc.interpolationCache = append(doc.interpolationCache, target.Name)
+
 	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 
-	doc.interpolationCache = append(doc.interpolationCache, target.Name)
+	fmt.Println(prefix, "| exit = interpolated")
+
+	// Then do interpolation of the dependent keys
+	for _, rel := range target.RecursiveDependentAssignments() {
+		fmt.Println(prefix, "RecursiveDependentAssignments", rel)
+
+		doc.doInterpolation(doc.Get(rel), path)
+	}
 }
 
 func (doc *Document) interpolationMapper(target *Assignment) func(input string) (string, bool) {
@@ -205,25 +237,29 @@ func (doc *Document) interpolationMapper(target *Assignment) func(input string) 
 
 		// Inspect the target literal and see if it has any variable references
 		// that we need to resolve first.
+		target.Initialize()
+
 		if len(target.Dependencies) > 0 {
-			for _, variable := range target.Dependencies {
+			for _, dependency := range target.Dependencies {
 				// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
 				// which would trigger infinite recursive loop
-				if variable.Name == target.Name {
+				if dependency.Name == target.Name {
 					doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must not reference itself", target.Name)))
 
 					continue
 				}
 
 				// Lookup the assignment
-				prerequisite := doc.Get(variable.Name)
+				prerequisite := doc.Get(dependency.Name)
 
 				// If it does not exists or is not enabled, abort
 				if prerequisite == nil {
+					doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
+
 					continue
 				}
 
-				doc.doInterpolation(prerequisite)
+				doc.doInterpolation(prerequisite, nil)
 			}
 		}
 
@@ -365,8 +401,8 @@ func (document *Document) Validate(selectors []Selector, ignoreErrors []string) 
 
 NEXT:
 	for _, assignment := range document.AllAssignments() {
-		for _, handler := range selectors {
-			status := handler(assignment)
+		for _, selector := range selectors {
+			status := selector(assignment)
 
 			switch status {
 			// Stop processing the statement and return nothing
@@ -378,7 +414,7 @@ NEXT:
 
 			// Unknown signal
 			default:
-				panic(fmt.Errorf("unknown signal: %v", status))
+				panic(fmt.Errorf("unknown selector result: %v", status))
 			}
 		}
 
@@ -393,9 +429,9 @@ NEXT:
 		fieldOrder = append(fieldOrder, assignment.Name)
 	}
 
-	errors := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
+	errors := validator.New().ValidateMap(data, rules)
 
-	result := []*ValidationError{}
+	var result []*ValidationError
 
 NEXT_FIELD:
 	for _, field := range fieldOrder {
@@ -422,7 +458,7 @@ NEXT_FIELD:
 	return result
 }
 
-func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) []*ValidationError {
+func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) ValidationErrors {
 	keys := assignment.AssignmentsToValidateRecursive()
 
 	return document.Validate(

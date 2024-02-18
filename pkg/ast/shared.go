@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	"fmt"
 )
 
@@ -46,4 +47,20 @@ func NewError(assignment *Assignment, err error) *ValidationError {
 		WrappedError: err,
 		Assignment:   assignment,
 	}
+}
+
+type ValidationErrors []*ValidationError
+
+func (x ValidationErrors) Error() string {
+	var out bytes.Buffer
+
+	for _, err := range x {
+		out.WriteString(err.Error())
+	}
+
+	return out.String()
+}
+
+func (x ValidationErrors) Errors() []*ValidationError {
+	return x
 }

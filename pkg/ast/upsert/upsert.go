@@ -9,7 +9,6 @@ import (
 	"github.com/jippi/dottie/pkg/parser"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
-	"go.uber.org/multierr"
 )
 
 type Upserter struct {
@@ -130,20 +129,14 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	if assignment.Enabled {
 		warnings, err = u.document.InterpolateStatement(assignment)
 		if err != nil {
-			return nil, warnings, fmt.Errorf("could not interpolate variable: %w", err)
+			return nil, warnings, err
 		}
 	}
 
 	// Validate
 	if u.settings.Has(Validate) {
 		if validationErrors := u.document.ValidateSingleAssignment(assignment, nil, nil); len(validationErrors) > 0 {
-			var errorCollection error
-
-			for _, err := range validationErrors {
-				errorCollection = multierr.Append(errorCollection, err)
-			}
-
-			return nil, warnings, errorCollection
+			return assignment, warnings, validationErrors
 		}
 	}
 

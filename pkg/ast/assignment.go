@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 )
@@ -12,7 +13,6 @@ import (
 type Assignment struct {
 	Complete     bool                         `json:"complete"`     // The key/value had no value/content after the "=" sign
 	Enabled      bool                         `json:"enabled"`      // The assignment was enabled out (#KEY=VALUE)
-	Group        *Group                       `json:"-"`            // The (optional) group this assignment belongs to
 	Interpolated string                       `json:"interpolated"` // Value of the key (after interpolation)
 	Literal      string                       `json:"literal"`      // Value of the key (right hand side of the "=" sign)
 	Name         string                       `json:"key"`          // Name of the key (left hand side of the "=" sign)
@@ -21,12 +21,14 @@ type Assignment struct {
 	Comments     []*Comment                   `json:"comments"`     // Comments attached to the assignment (e.g. doc block before it)
 	Dependencies map[string]template.Variable `json:"dependencies"` // Assignments that this assignment depends on
 	Dependents   map[string]*Assignment       `json:"dependents"`   // Assignments dependents on this assignment
+	Group        *Group                       `json:"-"`            // The (optional) group this assignment belongs to
 }
 
 func (a *Assignment) statementNode() {}
 
 func (a *Assignment) Initialize() {
 	if dependencies := template.ExtractVariables(a.Literal, nil); len(dependencies) > 0 {
+		spew.Dump(a.Name, "Initialize", a.Literal, dependencies)
 		a.Dependencies = dependencies
 	}
 }
@@ -134,16 +136,11 @@ func (a *Assignment) CommentsSlice() []string {
 }
 
 func (assignment *Assignment) RecursiveDependentAssignments() []string {
-	keys := []string{}
+	var keys []string
 
 	for _, dependent := range assignment.Dependents {
-		dependent.Initialize()
-
 		keys = append(keys, dependent.Name)
-
-		for _, d := range dependent.Dependents {
-			keys = append(keys, d.RecursiveDependentAssignments()...)
-		}
+		// keys = append(keys, dependent.RecursiveDependentAssignments()...)
 	}
 
 	return keys

@@ -120,7 +120,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		if err != nil {
 			z := ast.NewError(assignment, err)
-			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, z, false, true))
+			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, assignment, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)

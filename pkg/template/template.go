@@ -17,10 +17,12 @@ package template
 import (
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/multierr"
 )
 
@@ -46,7 +48,7 @@ var patternString = fmt.Sprintf(
 	groupInvalid,
 )
 
-var defaultPattern = regexp.MustCompile(patternString)
+var DefaultPattern = regexp.MustCompile(patternString)
 
 // Mapping is a user-supplied function which maps from variable names to values.
 // Returns the value as a string and a bool indicating whether
@@ -69,7 +71,7 @@ func SubstituteWithOptions(template string, mapping Mapping, options ...Option) 
 	var returnErr, warnings error
 
 	cfg := &Config{
-		pattern:         defaultPattern,
+		pattern:         DefaultPattern,
 		replacementFunc: DefaultReplacementFunc,
 	}
 
@@ -115,7 +117,7 @@ func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Confi
 
 	subsFunc := cfg.substituteFunc
 	if subsFunc == nil {
-		_, subsFunc = getSubstitutionFunctionForTemplate(substring)
+		_, subsFunc = GetSubstitutionFunctionForTemplate(substring)
 	}
 
 	rest := ""
@@ -183,7 +185,7 @@ func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, su
 	return SubstituteWithOptions(template, mapping, options...)
 }
 
-func getSubstitutionFunctionForTemplate(template string) (string, SubstituteFunc) {
+func GetSubstitutionFunctionForTemplate(template string) (string, SubstituteFunc) {
 	interpolationMapping := []struct {
 		string
 		SubstituteFunc
@@ -235,14 +237,14 @@ func getFirstBraceClosingIndex(str string) int {
 
 // Substitute variables in the string with their values
 func Substitute(template string, mapping Mapping) (string, error, error) {
-	return SubstituteWith(template, mapping, defaultPattern)
+	return SubstituteWith(template, mapping, DefaultPattern)
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
 func ExtractVariables(configDict any, pattern *regexp.Regexp) map[string]Variable {
 	if pattern == nil {
-		pattern = defaultPattern
+		pattern = DefaultPattern
 	}
 
 	return recurseExtract(configDict, pattern)
@@ -287,29 +289,35 @@ type Variable struct {
 }
 
 func extractVariable(value interface{}, pattern *regexp.Regexp) ([]Variable, bool) {
+	fmt.Println("extractVariable")
+	fmt.Println("patternString", patternString)
+	spew.Dump(value)
+
 	sValue, ok := value.(string)
 	if !ok {
 		return []Variable{}, false
 	}
 
-	matches := pattern.FindAllStringSubmatch(sValue, -1)
+	fmt.Println("sValue", sValue)
+
+	var matches []string
+
+	os.Expand(sValue, func(in string) string {
+		matches = append(matches, in)
+
+		return ""
+	})
+
+	fmt.Println("matches")
+	spew.Dump(matches)
+
 	if len(matches) == 0 {
 		return []Variable{}, false
 	}
 
 	values := []Variable{}
 
-	for _, match := range matches {
-		groups := matchGroups(match, pattern)
-		if escaped := groups[groupEscaped]; escaped != "" {
-			continue
-		}
-
-		val := groups[groupNamed]
-		if val == "" {
-			val = groups[groupBraced]
-		}
-
+	for _, val := range matches {
 		name := val
 
 		var (

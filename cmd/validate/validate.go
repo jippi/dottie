@@ -34,7 +34,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	document, err := pkg.Load(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load file: %w", err)
 	}
 
 	//
@@ -42,10 +42,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	//
 
 	warnings, err := document.InterpolateAll()
+
 	tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to interpolate file: %w", err)
 	}
 
 	//
@@ -84,7 +85,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				cmd.Context(),
 				document,
 				errIsh,
-				errIsh,
+				errIsh.Assignment,
 				attemptFixOfValidationError,
 				true,
 			))

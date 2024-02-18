@@ -44,10 +44,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	stdout, _ := tui.WritersFromContext(cmd.Context())
 
-	dark := stdout.Dark()
+	dark := stdout.NoColor()
 	info := stdout.Info()
 	danger := stdout.Danger()
-	dangerEmphasis := stdout.Danger().Copy(tui.WithEmphasis(true))
 	success := stdout.Success()
 	primary := stdout.Primary()
 
@@ -180,6 +179,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
+		fmt.Println("upsert", oldStatement.Name)
 		changed, warn, err := upserter.Upsert(cmd.Context(), oldStatement)
 		tui.MaybePrintWarnings(cmd.Context(), warn)
 
@@ -191,13 +191,14 @@ func runE(cmd *cobra.Command, args []string) error {
 				dark.Println()
 			}
 
-			dark.Print("  ")
-			dangerEmphasis.Print(oldStatement.Name)
-			dark.Print(" could not be set to ")
-			primary.Print(oldStatement.Literal)
-			dark.Println(" due to error:")
+			// dark.Print("  ")
+			// dangerEmphasis.Print(oldStatement.Name)
+			// dark.Print(" could not be set to ")
+			// primary.Print(oldStatement.Literal)
+			// dark.Println(" due to error:")
 
-			danger.Println(indent(validation.Explain(cmd.Context(), newDocument, err, nil, false, false), len(oldStatement.Name)))
+			// danger.Println(indent(validation.Explain(cmd.Context(), newDocument, err, changed, false, true), len(oldStatement.Name)))
+			danger.Print(validation.Explain(cmd.Context(), newDocument, err, changed, false, true))
 
 			counter++
 
@@ -220,6 +221,8 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if sawError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
+		stdout.NoColor().Println()
+
 		return errors.New("some fields failed validation, aborting ...")
 	}
 
