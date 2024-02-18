@@ -17,7 +17,7 @@ type Renderer struct {
 func NewRenderer(settings Settings, extraHandlers ...Handler) *Renderer {
 	// Default handlers for filtering down the
 	handlers := []Handler{}
-	handlers = append(handlers, NewSelectorHandler(settings.Handlers()...))
+	handlers = append(handlers, NewAstSelectorHandler(settings.Handlers()...))
 	handlers = append(handlers, extraHandlers...)
 
 	// Add Formatter handler if we're going to print pretty output!
@@ -36,7 +36,7 @@ func NewRenderer(settings Settings, extraHandlers ...Handler) *Renderer {
 func NewUnfilteredRenderer(settings *Settings, extraHandlers ...Handler) *Renderer {
 	// Default handlers for filtering down the
 	handlers := []Handler{}
-	handlers = append(handlers, NewSelectorHandler(settings.Handlers()...))
+	handlers = append(handlers, NewAstSelectorHandler(settings.Handlers()...))
 	handlers = append(handlers, extraHandlers...)
 
 	return &Renderer{

@@ -2,7 +2,6 @@
 package ast
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -120,10 +119,15 @@ func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
 	defer func() {
 		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
-		doc.interpolationCache = make([]string, 0)
 	}()
 
+	// First do interpolation of the target itself
 	doc.doInterpolation(target)
+
+	// Then do interpolation of the dependent keys
+	for _, rel := range target.RecursiveDependentAssignments() {
+		doc.doInterpolation(doc.Get(rel))
+	}
 
 	return doc.interpolateWarnings, doc.interpolateErrors
 }
@@ -139,16 +143,16 @@ func (doc *Document) doInterpolation(target *Assignment) {
 		return
 	}
 
+	// Lookup the key in the cache and return it if it exists
+	if slices.Contains(doc.interpolationCache, target.Name) {
+		return
+	}
+
 	target.Initialize()
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, rel := range target.Dependencies {
 		doc.doInterpolation(doc.Get(rel.Name))
-	}
-
-	// Lookup the key in the cache and return it if it exists
-	if slices.Contains(doc.interpolationCache, target.Name) {
-		return
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -349,7 +353,7 @@ func (document *Document) Replace(assignment *Assignment) error {
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
-func (document *Document) Validate(ctx context.Context, handlers []Selector, ignoreErrors []string) []ValidationError {
+func (document *Document) Validate(selectors []Selector, ignoreErrors []string) []*ValidationError {
 	data := map[string]any{}
 	rules := map[string]any{}
 
@@ -361,7 +365,7 @@ func (document *Document) Validate(ctx context.Context, handlers []Selector, ign
 
 NEXT:
 	for _, assignment := range document.AllAssignments() {
-		for _, handler := range handlers {
+		for _, handler := range selectors {
 			status := handler(assignment)
 
 			switch status {
@@ -391,7 +395,7 @@ NEXT:
 
 	errors := validator.New(validator.WithRequiredStructEnabled()).ValidateMap(data, rules)
 
-	result := []ValidationError{}
+	result := []*ValidationError{}
 
 NEXT_FIELD:
 	for _, field := range fieldOrder {
@@ -409,7 +413,7 @@ NEXT_FIELD:
 			}
 		}
 
-		result = append(result, ValidationError{
+		result = append(result, &ValidationError{
 			WrappedError: err,
 			Assignment:   document.Get(field),
 		})
@@ -418,11 +422,10 @@ NEXT_FIELD:
 	return result
 }
 
-func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, handlers []Selector, ignoreErrors []string) []ValidationError {
-	keys := AssignmentsToValidateRecursive(assignment)
+func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) []*ValidationError {
+	keys := assignment.AssignmentsToValidateRecursive()
 
 	return document.Validate(
-		ctx,
 		append(
 			[]Selector{
 				ExcludeDisabledAssignments,
@@ -432,30 +435,4 @@ func (document *Document) ValidateSingleAssignment(ctx context.Context, assignme
 		),
 		ignoreErrors,
 	)
-}
-
-func AssignmentsToValidateRecursive(assignment *Assignment) []string {
-	if assignment == nil {
-		return nil
-	}
-
-	assignment.Initialize()
-
-	return append([]string{assignment.Name}, RecursiveDependentAssignments(assignment)...)
-}
-
-func RecursiveDependentAssignments(assignment *Assignment) []string {
-	var keys []string
-
-	for _, dependent := range assignment.Dependents {
-		dependent.Initialize()
-
-		keys = append(keys, dependent.Name)
-
-		for _, d := range dependent.Dependents {
-			keys = append(keys, RecursiveDependentAssignments(d)...)
-		}
-	}
-
-	return keys
 }

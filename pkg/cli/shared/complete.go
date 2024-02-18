@@ -64,7 +64,7 @@ func (c *Completer) Get() CobraCompleter {
 		)
 
 		lines := render.
-			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewSelectorHandler(c.selectors...), nil).
+			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...), nil).
 			Statement(cmd.Context(), doc).
 			Lines()
 

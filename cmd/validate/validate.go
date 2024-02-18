@@ -56,16 +56,16 @@ func runE(cmd *cobra.Command, args []string) error {
 		excludedPrefixes = shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
 		ignoreRules      = shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
 		stderr           = tui.StderrFromContext(cmd.Context())
-		handlers         = []ast.Selector{
+		selectors        = []ast.Selector{
 			ast.ExcludeDisabledAssignments,
 		}
 	)
 
 	for _, filter := range excludedPrefixes {
-		handlers = append(handlers, ast.ExcludeKeyPrefix(filter))
+		selectors = append(selectors, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors := document.Validate(cmd.Context(), handlers, ignoreRules)
+	validationErrors := document.Validate(selectors, ignoreRules)
 	if len(validationErrors) == 0 {
 		stderr.Success().Box("No validation errors found")
 
@@ -99,7 +99,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := document.Validate(cmd.Context(), handlers, ignoreRules)
+	newRes := document.Validate(selectors, ignoreRules)
 	if len(newRes) == 0 {
 		stderr.Success().Println("All validation errors fixed")
 

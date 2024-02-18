@@ -41,8 +41,8 @@ func (e ValidationError) Error() string {
 	return fmt.Sprintf("%+v", e.WrappedError)
 }
 
-func NewError(assignment *Assignment, err error) ValidationError {
-	return ValidationError{
+func NewError(assignment *Assignment, err error) *ValidationError {
+	return &ValidationError{
 		WrappedError: err,
 		Assignment:   assignment,
 	}

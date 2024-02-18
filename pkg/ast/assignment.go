@@ -132,3 +132,29 @@ func (a *Assignment) CommentsSlice() []string {
 
 	return res
 }
+
+func (assignment *Assignment) RecursiveDependentAssignments() []string {
+	keys := []string{}
+
+	for _, dependent := range assignment.Dependents {
+		dependent.Initialize()
+
+		keys = append(keys, dependent.Name)
+
+		for _, d := range dependent.Dependents {
+			keys = append(keys, d.RecursiveDependentAssignments()...)
+		}
+	}
+
+	return keys
+}
+
+func (assignment *Assignment) AssignmentsToValidateRecursive() []string {
+	if assignment == nil {
+		return nil
+	}
+
+	assignment.Initialize()
+
+	return append([]string{assignment.Name}, assignment.RecursiveDependentAssignments()...)
+}

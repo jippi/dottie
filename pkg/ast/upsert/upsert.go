@@ -125,7 +125,6 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Reinitialize the document so all indices and such are correct
 	u.document.Initialize()
-	// u.document.InterpolateAll()
 
 	// Interpolate the Assignment if it is enabled
 	if assignment.Enabled {
@@ -137,7 +136,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors := u.document.ValidateSingleAssignment(ctx, assignment, nil, nil); len(validationErrors) > 0 {
+		if validationErrors := u.document.ValidateSingleAssignment(assignment, nil, nil); len(validationErrors) > 0 {
 			var errorCollection error
 
 			for _, err := range validationErrors {

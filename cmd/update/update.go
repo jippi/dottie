@@ -29,6 +29,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
 	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
+	shared.BoolWithInverse(cmd, "save", true, "Save the document after processing", "Do not save the document after processing")
 
 	return cmd
 }
@@ -125,7 +126,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		upserter, err := upsert.New(
 			newDocument,
-			// upsert.DisableSetting(upsert.Validate),
 			upsert.EnableSetting(upsert.UpdateComments),
 			upsert.EnableSetting(upsert.SkipIfSame),
 			upsert.EnableSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
@@ -149,7 +149,6 @@ func runE(cmd *cobra.Command, args []string) error {
 			switch {
 			// If we can't find any placement, put us last in the list
 			case idx == -1:
-				fmt.Println(oldStatement.Name, upsert.AddLast)
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddLast))
 
 				// Retain the group name if its still present in the SOURCE doc
@@ -159,7 +158,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 			// If we were first in the FILE doc, make sure we're first again
 			case idx == 0:
-				fmt.Println(oldStatement.Name, upsert.AddFirst)
 				upserter.ApplyOptions(upsert.WithPlacement(upsert.AddFirst))
 
 				// Retain the group name if its still present in the SOURCE doc
@@ -171,8 +169,6 @@ func runE(cmd *cobra.Command, args []string) error {
 			// just before us in the FILE doc
 			case idx > 0:
 				before := parent.Assignments()[idx-1]
-
-				fmt.Println(oldStatement.Name, upsert.AddAfterKey, before.Name)
 
 				if err := upserter.ApplyOptions(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
 					return err
@@ -201,7 +197,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			primary.Print(oldStatement.Literal)
 			dark.Println(" due to error:")
 
-			danger.Println(" ", strings.Repeat(" ", len(oldStatement.Name)), err.Error())
+			danger.Println(indent(validation.Explain(cmd.Context(), newDocument, err, nil, false, false), len(oldStatement.Name)))
 
 			counter++
 
@@ -223,21 +219,14 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	newDocument.Initialize()
-	newDocument.InterpolateAll()
-
-	if errors := newDocument.Validate(cmd.Context(), []ast.Selector{ast.ExcludeDisabledAssignments}, []string{"file", "dir"}); len(errors) > 0 {
-		sawError = true
-
-		for _, err := range errors {
-			danger.Println(validation.Explain(cmd.Context(), oldDocument, err, err, false, true))
-		}
-	}
-
-	dark.Println()
-
 	if sawError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 		return errors.New("some fields failed validation, aborting ...")
+	}
+
+	if !shared.BoolWithInverseValue(cmd.Flags(), "save") {
+		stdout.Warning().Println("[--no-save] was provided, not saving file")
+
+		return nil
 	}
 
 	dark.Print("Backing up ")
@@ -256,8 +245,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println()
 
 	dark.Println("Saving the new", primary.Sprint(filename))
-
-	return fmt.Errorf("stop before save")
 
 	if err := pkg.Save(cmd.Context(), filename, newDocument); err != nil {
 		danger.Println("  ERROR", err.Error())
@@ -296,4 +283,8 @@ func Copy(src, dst string) error {
 	}
 
 	return nil
+}
+
+func indent(in string, width int) string {
+	return strings.Repeat(" ", width) + strings.TrimSpace(strings.Join(strings.Split(in, "\n"), "\n"+strings.Repeat(" ", width)))
 }
