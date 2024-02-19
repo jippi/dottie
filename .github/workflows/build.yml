@@ -20,21 +20,69 @@ jobs:
   # ------------------------------
 
   govulncheck:
-    uses: caarlos0/meta/.github/workflows/govulncheck.yml@main
-    with:
-      go-version: ~1.21
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: run govulncheck
+        run: govulncheck ./...
 
   # ------------------------------
 
   semgrep:
-    uses: caarlos0/meta/.github/workflows/semgrep.yml@main
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: dgryski/semgrep-go
+          path: rules
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: semgrep
+        run: semgrep scan --error --enable-nosem -f ./rules .
 
   # ------------------------------
 
   ruleguard:
-    uses: caarlos0/meta/.github/workflows/ruleguard.yml@main
-    with:
-      go-version: ~1.21
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: dgryski/semgrep-go
+          path: rules
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: install ruleguard
+        run: go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@latest
+
+      - name: install dsl
+        run: go get -u github.com/quasilyte/go-ruleguard/dsl@latest
+
+      # needs to be outside of the workspace for some reason
+      - name: move rules
+        run: mv rules ../
+
+      - name: ruleguard
+        run: ruleguard -c=0 -rules ../rules/ruleguard.rules.go ./...
 
   # ------------------------------
 
@@ -66,7 +114,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: ~1.21
+          go-version-file: go.mod
 
       - uses: actions/cache@v4
         with:
