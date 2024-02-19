@@ -23,10 +23,10 @@ import (
 
 // nolint: gochecknoglobals
 var (
-	commit    = ""
-	date      = ""
-	treeState = ""
-	version   = ""
+	commit    = "UNSET"
+	date      = "UNSET"
+	treeState = "UNSET"
+	version   = "dev"
 )
 
 const globalOptionsTemplate = `{{if .VisibleFlags}}
@@ -50,6 +50,8 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 		SilenceUsage:  true,
 		Version:       buildVersion().String(),
 	}
+
+	root.SetVersionTemplate(`{{ .Version }}`)
 
 	ctx = tui.NewContext(ctx, stdout, stderr)
 
@@ -91,6 +93,7 @@ func indent(in string) string {
 
 func buildVersion() goversion.Info {
 	return goversion.GetVersionInfo(
+		goversion.WithAppDetails("dottie", "Making .env file management easy", "https://github.com/jippi/dottie"),
 		func(versionInfo *goversion.Info) {
 			if commit != "" {
 				versionInfo.GitCommit = commit
