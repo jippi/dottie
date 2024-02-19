@@ -395,7 +395,10 @@ NEXT:
 		fieldOrder = append(fieldOrder, assignment.Name)
 	}
 
-	validationErrors := validator.New().ValidateMap(data, rules)
+	validationErrors, err := document.doValidationAndRecoverFromPanic(data, rules)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	var result []*ValidationError
 
@@ -422,6 +425,16 @@ NEXT_FIELD:
 	}
 
 	return result, warnings, errors
+}
+
+func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string]any) (res map[string]any, err error) {
+	defer func() {
+		if recoveryErr := recover(); recoveryErr != nil {
+			err = fmt.Errorf("validation configuration error: %+v", recoveryErr)
+		}
+	}()
+
+	return validator.New().ValidateMap(data, rules), nil
 }
 
 func (document *Document) ValidateSingleAssignment(assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
