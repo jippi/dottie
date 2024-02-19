@@ -87,15 +87,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          save-always: true
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - uses: sigstore/cosign-installer@v3.4.0
 
       - uses: anchore/sbom-action/download-syft@v0.15.8
