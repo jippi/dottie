@@ -67,9 +67,13 @@ jobs:
           repository: dgryski/semgrep-go
           path: rules
 
+      # needs to be outside of the workspace for some reason
+      - name: move rules
+        run: mv -v rules ../
+
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.21
+          go-version: ~1.21
 
       - name: install ruleguard
         run: go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@latest
@@ -77,9 +81,6 @@ jobs:
       - name: install dsl
         run: go get -u github.com/quasilyte/go-ruleguard/dsl@latest
 
-      # needs to be outside of the workspace for some reason
-      - name: move rules
-        run: mv rules ../
 
       - name: ruleguard
         run: ruleguard -c=0 -rules ../rules/ruleguard.rules.go ./...
