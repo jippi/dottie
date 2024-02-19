@@ -84,7 +84,6 @@ changelog:
 
 dockers:
   - image_templates:
-      # - "jippi/dottie:v{{ .Version }}-amd64"
       - "ghcr.io/jippi/dottie:v{{ .Version }}-amd64"
     dockerfile: Dockerfile.release
     use: buildx
@@ -101,7 +100,6 @@ dockers:
       - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--platform=linux/amd64"
   - image_templates:
-      #      - "jippi/dottie:v{{ .Version }}-arm64"
       - "ghcr.io/jippi/dottie:v{{ .Version }}-arm64"
     dockerfile: Dockerfile.release
     use: buildx
@@ -118,30 +116,16 @@ dockers:
       - "--label=org.opencontainers.image.source={{.GitURL}}"
       - "--platform=linux/arm64"
     goarch: arm64
-    # extra_files:
-    #   - scripts/entrypoint.sh
 
 docker_manifests:
-  # - name_template: "jippi/dottie:v{{ .Version }}"
-  #   image_templates:
-  #     - "jippi/dottie:v{{ .Version }}-amd64"
-  #     - "jippi/dottie:v{{ .Version }}-arm64"
   - name_template: "ghcr.io/jippi/dottie:v{{ .Version }}"
     image_templates:
       - "ghcr.io/jippi/dottie:v{{ .Version }}-amd64"
       - "ghcr.io/jippi/dottie:v{{ .Version }}-arm64"
-  # - name_template: "{{ if not .IsNightly }}jippi/dottie:latest{{ end }}"
-  #   image_templates:
-  #     - "jippi/dottie:v{{ .Version }}-amd64"
-  #     - "jippi/dottie:v{{ .Version }}-arm64"
   - name_template: "{{ if not .IsNightly }}ghcr.io/jippi/dottie:latest{{ end }}"
     image_templates:
       - "ghcr.io/jippi/dottie:v{{ .Version }}-amd64"
       - "ghcr.io/jippi/dottie:v{{ .Version }}-arm64"
-  # - name_template: "{{ if .IsNightly }}jippi/dottie:nightly{{ end }}"
-  #   image_templates:
-  #     - "jippi/dottie:v{{ .Version }}-amd64"
-  #     - "jippi/dottie:v{{ .Version }}-arm64"
   - name_template: "{{ if .IsNightly }}ghcr.io/jippi/dottie:nightly{{ end }}"
     image_templates:
       - "ghcr.io/jippi/dottie:v{{ .Version }}-amd64"
@@ -301,6 +285,9 @@ docker_signs:
 
 release:
   name_template: "v{{ .Version }}"
+  prerelease: "auto"
+  make_latest: true
+  mode: append
   footer: |
     **Full Changelog**: https://github.com/jippi/dottie/compare/{{ .PreviousTag }}...{{ if .IsNightly }}nightly{{ else }}{{ .Tag }}{{ end }}
 
