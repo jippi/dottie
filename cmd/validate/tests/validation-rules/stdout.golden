@@ -1,2 +1,10 @@
 ---- exec command line 1: [validate --no-fix]
 (no output to stdout)
+---- exec command line 2: [validate --no-fix --exclude-prefix BOOLEAN_]
+(no output to stdout)
+---- exec command line 3: [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
+(no output to stdout)
+---- exec command line 4: [validate --no-fix --ignore-rule boolean]
+(no output to stdout)
+---- exec command line 5: [validate --no-fix --ignore-rule boolean,dir,file,http]
+(no output to stdout)

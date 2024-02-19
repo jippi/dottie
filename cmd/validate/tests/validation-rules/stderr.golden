@@ -67,3 +67,195 @@ FILE_KEY_ERR_3 (tests/validation-rules.env:162)
 
 Error: Validation failed
 Run 'dottie validate --help' for usage.
+---- exec command line 2: [validate --no-fix --exclude-prefix BOOLEAN_]
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                          16 validation errors found                          │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+ONEOF_KEY_ERR (tests/validation-rules.env:11)
+    * (oneof) The value [X] is not one of [a b c].
+
+NUMBER_KEY_ERR (tests/validation-rules.env:21)
+    * (number) The value [hello] is not a valid number.
+
+EMAIL_KEY_ERR (tests/validation-rules.env:31)
+    * (email) The value [hello] is not a valid e-mail.
+
+REQUIRED_KEY_ERR (tests/validation-rules.env:41)
+    * (required) This value must not be empty/blank.
+
+FQDN_KEY_ERR (tests/validation-rules.env:51)
+    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+
+HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
+    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+
+NE_KEY_ERR (tests/validation-rules.env:71)
+    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+
+HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
+    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
+    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
+    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+
+DIR_KEY_ERR_1 (tests/validation-rules.env:137)
+    * (dir) The directory [not-tests] does not exist.
+
+DIR_KEY_ERR_2 (tests/validation-rules.env:140)
+    * (dir) The directory [./not-tests] does not exist.
+
+DIR_KEY_ERR_3 (tests/validation-rules.env:143)
+    * (dir) The directory [] does not exist.
+
+FILE_KEY_ERR_1 (tests/validation-rules.env:156)
+    * (file) The file [not-tests/some-file.golden] does not exist.
+
+FILE_KEY_ERR_2 (tests/validation-rules.env:159)
+    * (file) The file [./not-tests/file.golden] does not exist.
+
+FILE_KEY_ERR_3 (tests/validation-rules.env:162)
+    * (file) The file [] does not exist.
+
+Error: Validation failed
+Run 'dottie validate --help' for usage.
+---- exec command line 3: [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                          10 validation errors found                          │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+ONEOF_KEY_ERR (tests/validation-rules.env:11)
+    * (oneof) The value [X] is not one of [a b c].
+
+NUMBER_KEY_ERR (tests/validation-rules.env:21)
+    * (number) The value [hello] is not a valid number.
+
+EMAIL_KEY_ERR (tests/validation-rules.env:31)
+    * (email) The value [hello] is not a valid e-mail.
+
+REQUIRED_KEY_ERR (tests/validation-rules.env:41)
+    * (required) This value must not be empty/blank.
+
+FQDN_KEY_ERR (tests/validation-rules.env:51)
+    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+
+HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
+    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+
+NE_KEY_ERR (tests/validation-rules.env:71)
+    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+
+HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
+    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
+    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
+    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+
+Error: Validation failed
+Run 'dottie validate --help' for usage.
+---- exec command line 4: [validate --no-fix --ignore-rule boolean]
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                          16 validation errors found                          │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+ONEOF_KEY_ERR (tests/validation-rules.env:11)
+    * (oneof) The value [X] is not one of [a b c].
+
+NUMBER_KEY_ERR (tests/validation-rules.env:21)
+    * (number) The value [hello] is not a valid number.
+
+EMAIL_KEY_ERR (tests/validation-rules.env:31)
+    * (email) The value [hello] is not a valid e-mail.
+
+REQUIRED_KEY_ERR (tests/validation-rules.env:41)
+    * (required) This value must not be empty/blank.
+
+FQDN_KEY_ERR (tests/validation-rules.env:51)
+    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+
+HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
+    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+
+NE_KEY_ERR (tests/validation-rules.env:71)
+    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+
+HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
+    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
+    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
+    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+
+DIR_KEY_ERR_1 (tests/validation-rules.env:137)
+    * (dir) The directory [not-tests] does not exist.
+
+DIR_KEY_ERR_2 (tests/validation-rules.env:140)
+    * (dir) The directory [./not-tests] does not exist.
+
+DIR_KEY_ERR_3 (tests/validation-rules.env:143)
+    * (dir) The directory [] does not exist.
+
+FILE_KEY_ERR_1 (tests/validation-rules.env:156)
+    * (file) The file [not-tests/some-file.golden] does not exist.
+
+FILE_KEY_ERR_2 (tests/validation-rules.env:159)
+    * (file) The file [./not-tests/file.golden] does not exist.
+
+FILE_KEY_ERR_3 (tests/validation-rules.env:162)
+    * (file) The file [] does not exist.
+
+Error: Validation failed
+Run 'dottie validate --help' for usage.
+---- exec command line 5: [validate --no-fix --ignore-rule boolean,dir,file,http]
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                          10 validation errors found                          │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+ONEOF_KEY_ERR (tests/validation-rules.env:11)
+    * (oneof) The value [X] is not one of [a b c].
+
+NUMBER_KEY_ERR (tests/validation-rules.env:21)
+    * (number) The value [hello] is not a valid number.
+
+EMAIL_KEY_ERR (tests/validation-rules.env:31)
+    * (email) The value [hello] is not a valid e-mail.
+
+REQUIRED_KEY_ERR (tests/validation-rules.env:41)
+    * (required) This value must not be empty/blank.
+
+FQDN_KEY_ERR (tests/validation-rules.env:51)
+    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+
+HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
+    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+
+NE_KEY_ERR (tests/validation-rules.env:71)
+    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+
+HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
+    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
+    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+
+HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
+    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+
+Error: Validation failed
+Run 'dottie validate --help' for usage.
