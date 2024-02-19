@@ -26,7 +26,7 @@ func NewCommand() *cobra.Command {
 
 			tui.StdoutFromContext(cmd.Context()).
 				Success().
-				Printfln("File [ %s ] was successfully formatted", filename)
+				Printfln("File was successfully formatted")
 
 			return nil
 		},
