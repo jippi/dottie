@@ -85,7 +85,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 		}
 
 		// Make sure to reindex the document
-		u.document.ReindexStatements()
+		u.document.Initialize()
 	}
 
 	// Replace comments on the assignment if the Setting is on

@@ -138,8 +138,8 @@ func (doc *Document) doInterpolation(target *Assignment) {
 	target.Initialize()
 
 	// Interpolate dependencies of the assignment before the assignment itself
-	for _, rel := range target.Dependencies {
-		doc.doInterpolation(doc.Get(rel.Name))
+	for _, dependency := range target.Dependencies {
+		doc.doInterpolation(doc.Get(dependency.Name))
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -407,16 +407,14 @@ NEXT_FIELD:
 	return result, warnings, errors
 }
 
-func (document *Document) ValidateSingleAssignment(assignment *Assignment, handlers []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
-	keys := assignment.AssignmentsToValidateRecursive()
-
+func (document *Document) ValidateSingleAssignment(assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
 	return document.Validate(
 		append(
 			[]Selector{
 				ExcludeDisabledAssignments,
-				RetainExactKey(keys...),
+				RetainExactKey(assignment.Name),
 			},
-			handlers...,
+			selectors...,
 		),
 		ignoreErrors,
 	)
