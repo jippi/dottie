@@ -2,8 +2,6 @@ name: release
 
 on:
   push:
-    branches:
-      - "main"
     tags:
       - "v*"
 
@@ -122,4 +120,5 @@ jobs:
           FURY_PUSH_TOKEN: "${{ secrets.FURY_PUSH_TOKEN }}"
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
           SNAPCRAFT_STORE_CREDENTIALS: "${{ secrets.SNAPCRAFT_LOGIN }}"
+          GITHUB_REF: "${{ github.ref }}"
         run: task goreleaser
