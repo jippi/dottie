@@ -61,9 +61,6 @@ changelog:
   sort: asc
   use: github
   groups:
-    - title: Dependency updates
-      regexp: '^.*?(feat|fix|chore)\(deps\)!?:.+$'
-      order: 300
     - title: "New Features"
       regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
       order: 100
@@ -73,6 +70,9 @@ changelog:
     - title: "Bug fixes"
       regexp: '^.*?(fix|refactor)(\([[:word:]]+\))??!?:.+$'
       order: 200
+    - title: Dependency updates
+      regexp: '^.*?(feat|fix|chore)\(deps\)!?:.+$'
+      order: 300
     - title: "Documentation updates"
       regexp: ^.*?docs?(\([[:word:]]+\))??!?:.+$
       order: 400
