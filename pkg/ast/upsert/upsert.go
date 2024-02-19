@@ -60,23 +60,23 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	switch {
 	// The assignment exists, so return early
 	case exists && u.settings.Has(SkipIfExists):
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the KEY already exists in the document (SkipIfExists)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key already exists in the document (SkipIfExists)"}, nil
 
 	// The assignment does *NOT* exists, and we require it to
 	case !exists && u.settings.Has(ErrorIfMissing):
-		return nil, nil, fmt.Errorf("KEY [%s] does not exists in the document", input.Name)
+		return nil, nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
 
 		// The assignment does not have any VALUE
 	case exists && u.settings.Has(SkipIfEmpty) && len(input.Literal) == 0:
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the KEY has an empty VALUE (SkipIfEmpty)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has an empty value (SkipIfEmpty)"}, nil
 
 	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
 	case exists && u.settings.Has(SkipIfSet) && len(existing.Literal) > 0 && len(u.valuesConsideredEmpty) > 0 && !slices.Contains(u.valuesConsideredEmpty, existing.Literal):
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the KEY is already set to a non-empty VALUE (SkipIfSet)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}, nil
 
 	// The assignment exists, the literal values are the same
 	case exists && u.settings.Has(SkipIfSame) && existing.Literal == input.Literal:
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the KEY has same VALUE in both documents (SkipIfSame)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}, nil
 
 	// The KEY was *NOT* found, and all other preconditions are not triggering
 	case !exists:
