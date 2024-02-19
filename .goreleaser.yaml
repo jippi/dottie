@@ -14,21 +14,13 @@ before:
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
 
-# gomod:
-#   proxy: true
-
 report_sizes: true
-
-git:
-  ignore_tags:
-    - "{{ if not .IsNightly }}nightly{{ end }}"
 
 metadata:
   mod_timestamp: "{{ .CommitTimestamp }}"
 
 builds:
-  - main: .
-    env:
+  - env:
       - CGO_ENABLED=0
     goos:
       - linux
@@ -49,7 +41,7 @@ builds:
     flags:
       - -trimpath
     ldflags:
-      - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X main.treeState={{ .IsGitDirty }}
+      - -s -w -X cmd.version={{.Version}} -X cmd.commit={{.Commit}} -X cmd.date={{ .CommitDate }} -X cmd.treeState={{ .IsGitDirty }}
 
 universal_binaries:
   - replace: false
