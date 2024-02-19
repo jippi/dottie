@@ -14,9 +14,11 @@ type Renderer struct {
 	handlers          []Handler
 }
 
-func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
+func NewRenderer(settings Settings, extraHandlers ...Handler) *Renderer {
 	// Default handlers for filtering down the
-	handlers := append(settings.Handlers(), additionalHandlers...)
+	handlers := []Handler{}
+	handlers = append(handlers, NewAstSelectorHandler(settings.Handlers()...))
+	handlers = append(handlers, extraHandlers...)
 
 	// Add Formatter handler if we're going to print pretty output!
 	if settings.formatOutput {
@@ -31,12 +33,17 @@ func NewRenderer(settings Settings, additionalHandlers ...Handler) *Renderer {
 	}
 }
 
-func NewUnfilteredRenderer(settings *Settings, additionalHandlers ...Handler) *Renderer {
+func NewUnfilteredRenderer(settings *Settings, extraHandlers ...Handler) *Renderer {
+	// Default handlers for filtering down the
+	handlers := []Handler{}
+	handlers = append(handlers, NewAstSelectorHandler(settings.Handlers()...))
+	handlers = append(handlers, extraHandlers...)
+
 	return &Renderer{
 		Output:            settings.outputter,
 		PreviousStatement: nil,
 		Settings:          *settings,
-		handlers:          additionalHandlers,
+		handlers:          handlers,
 	}
 }
 
@@ -110,6 +117,15 @@ func (r *Renderer) Statement(ctx context.Context, currentStatement any) *Lines {
 
 		for _, group := range statement {
 			buf.Append(r.Statement(ctx, group))
+		}
+
+		return buf
+
+	case []*ast.Assignment:
+		buf := NewLinesCollection()
+
+		for _, assignment := range statement {
+			buf.Append(r.Statement(ctx, assignment))
 		}
 
 		return buf

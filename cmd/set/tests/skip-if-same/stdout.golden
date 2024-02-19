@@ -1,6 +1,6 @@
----- exec command line 0: [set --skip-if-same SOME_KEY=ERROR THIS SHOULD BE CHANGED BY NEXT LINE]
+---- exec command line 1: [set --skip-if-same SOME_KEY=ERROR THIS SHOULD BE CHANGED BY NEXT LINE]
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved
----- exec command line 1: [set --skip-if-same SOME_KEY=SUCCESS]
+---- exec command line 2: [set --skip-if-same SOME_KEY=SUCCESS]
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved

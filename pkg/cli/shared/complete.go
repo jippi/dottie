@@ -4,13 +4,14 @@ import (
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/spf13/cobra"
 )
 
 type Completer struct {
 	options         []render.SettingsOption
-	handlers        []render.Handler
+	selectors       []ast.Selector
 	suffix          string
 	suffixIsLiteral bool
 }
@@ -34,8 +35,8 @@ func (c *Completer) WithSuffixIsLiteral(b bool) *Completer {
 	return c
 }
 
-func (c *Completer) WithHandlers(handlers ...render.Handler) *Completer {
-	c.handlers = append(c.handlers, handlers...)
+func (c *Completer) WithHandlers(handlers ...ast.Selector) *Completer {
+	c.selectors = append(c.selectors, handlers...)
 
 	return c
 }
@@ -55,15 +56,15 @@ func (c *Completer) Get() CobraCompleter {
 			return nil, cobra.ShellCompDirectiveError
 		}
 
-		c.handlers = append(
-			c.handlers,
-			render.ExcludeComments,
-			render.ExcludeHiddenViaAnnotation,
-			render.RetainKeyPrefix(toComplete),
+		c.selectors = append(
+			c.selectors,
+			ast.ExcludeComments,
+			ast.ExcludeHiddenViaAnnotation,
+			ast.RetainKeyPrefix(toComplete),
 		)
 
 		lines := render.
-			NewUnfilteredRenderer(render.NewSettings(c.options...), c.handlers...).
+			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...), nil).
 			Statement(cmd.Context(), doc).
 			Lines()
 

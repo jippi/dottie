@@ -1,10 +1,10 @@
 package ast
 
-type SelectorResult uint
+type selectorResult uint
 
 const (
-	Exclude SelectorResult = iota
+	Exclude selectorResult = iota
 	Keep
 )
 
-type Selector func(input Statement) SelectorResult
+type Selector func(input Statement) selectorResult

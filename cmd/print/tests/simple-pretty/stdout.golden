@@ -1,4 +1,4 @@
----- exec command line 0: [print --no-color --pretty]
+---- exec command line 1: [print --no-color --pretty]
 KEY_A="I'm key A"
 
 # Comment for KEY_B

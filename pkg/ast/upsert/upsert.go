@@ -9,7 +9,6 @@ import (
 	"github.com/jippi/dottie/pkg/parser"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
-	"github.com/jippi/dottie/pkg/validation"
 	"go.uber.org/multierr"
 )
 
@@ -20,6 +19,7 @@ type Upserter struct {
 	placementValue        string        // The placement value (e.g. [KEY] in [PlaceBefore] and [PlaceAfter])
 	settings              Setting       // Upserter settings (bitmask)
 	valuesConsideredEmpty []string      // List of values that would be considered "empty" / not-set
+	ignoreValidationRules []string      // Validation rules that should be ignored
 }
 
 // New creates an [Upserter] with the provided settings, returning
@@ -83,6 +83,9 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 		if err != nil {
 			return nil, nil, err
 		}
+
+		// Make sure to reindex the document
+		u.document.Initialize()
 	}
 
 	// Replace comments on the assignment if the Setting is on
@@ -92,8 +95,8 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	assignment.Enabled = input.Enabled
 	assignment.Literal = input.Literal
-	assignment.Quote = input.Quote
 	assignment.Interpolated = input.Literal
+	assignment.Quote = input.Quote
 
 	var (
 		tempDoc       *ast.Document
@@ -101,7 +104,9 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	)
 
 	// Render and parse back the Statement to ensure annotations and such are properly handled
-	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, assignment).String()), "-").Parse()
+	thing := u.document.AllAssignments()[:assignment.Position.Index+1]
+
+	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, thing).String()), "memory://tmp").Parse()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
 	}
@@ -125,20 +130,17 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	if assignment.Enabled {
 		warnings, err = u.document.InterpolateStatement(assignment)
 		if err != nil {
-			return nil, warnings, fmt.Errorf("could not interpolate variable: %w", err)
+			return nil, warnings, err
 		}
 	}
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors := validation.ValidateSingleAssignment(ctx, u.document, assignment, nil, nil); len(validationErrors) > 0 {
-			var errorCollection error
+		if validationErrors, warns, errs := u.document.ValidateSingleAssignment(assignment, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
+			warnings = multierr.Append(warnings, warns)
+			errs = multierr.Append(errs, validationErrors)
 
-			for _, err := range validationErrors {
-				errorCollection = multierr.Append(errorCollection, err)
-			}
-
-			return nil, warnings, errorCollection
+			return assignment, warnings, errs
 		}
 	}
 

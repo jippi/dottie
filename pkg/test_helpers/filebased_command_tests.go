@@ -145,8 +145,10 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				args = append(args, globalArgs...)
 				args = append(args, command...)
 
-				combinedStdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
-				combinedStderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx, args))
+				t.Logf("Running step from line %d: %+v", idx+1, args)
+
+				combinedStdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx+1, args))
+				combinedStderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx+1, args))
 
 				commandArgs := append(args, "--file", dotEnvFile)
 

@@ -17,250 +17,158 @@ package template
 import (
 	"errors"
 	"fmt"
-	"regexp"
-	"sort"
+	"io"
+	"slices"
 	"strings"
 
 	"go.uber.org/multierr"
+	"mvdan.cc/sh/v3/expand"
+	"mvdan.cc/sh/v3/syntax"
 )
 
-var (
-	delimiter          = "\\$"
-	substitutionNamed  = "[_a-z][_a-z0-9]*"
-	substitutionBraced = "[_a-z][_a-z0-9]*(?::?[-+?](.*))?"
-)
-
-var (
-	groupEscaped = "escaped"
-	groupNamed   = "named"
-	groupBraced  = "braced"
-	groupInvalid = "invalid"
-)
-
-var patternString = fmt.Sprintf(
-	"%s(?i:(?P<%s>%s)|(?P<%s>%s)|{(?:(?P<%s>%s)}|(?P<%s>)))",
-	delimiter,
-	groupEscaped, delimiter,
-	groupNamed, substitutionNamed,
-	groupBraced, substitutionBraced,
-	groupInvalid,
-)
-
-var defaultPattern = regexp.MustCompile(patternString)
-
-// Mapping is a user-supplied function which maps from variable names to values.
+// Resolver is a user-supplied function which maps from variable names to values.
 // Returns the value as a string and a bool indicating whether
 // the value is present, to distinguish between an empty string
 // and the absence of a value.
-type Mapping func(string) (string, bool)
+type Resolver func(string) (string, bool)
 
-// SubstituteFunc is a user-supplied function that apply substitution.
-// Returns the value as a string, a bool indicating if the function could apply
-// the substitution and an error.
-type SubstituteFunc func(string, Mapping) (string, bool, error)
+type EnvironmentHelper struct {
+	resolver           Resolver
+	missingKeyCallback func(string)
+}
 
-// ReplacementFunc is a user-supplied function that is apply to the matching
-// substring. Returns the value as a string and an error.
-type ReplacementFunc func(string, Mapping, *Config) (string, bool, error, error)
+func (helper EnvironmentHelper) Get(name string) expand.Variable {
+	val, ok := helper.resolver(name)
+	if !ok {
+		if name != "IFS" {
+			helper.missingKeyCallback(name)
+		}
+
+		return expand.Variable{
+			Kind: expand.Unset,
+		}
+	}
+
+	return expand.Variable{
+		Str:      val,
+		Exported: true,
+		ReadOnly: true,
+		Kind:     expand.String,
+	}
+}
+
+func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
+	panic("EnvironmentHelper.Each() should never be called")
+}
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func SubstituteWithOptions(template string, mapping Mapping, options ...Option) (string, error, error) {
-	var returnErr, warnings error
+func Substitute(template string, resolver Resolver) (string, error, error) {
+	var (
+		combinedWarnings, combinedErrors error
+		missing                          []string
+		variables                        = ExtractVariables(template)
+	)
 
-	cfg := &Config{
-		pattern:         defaultPattern,
-		replacementFunc: DefaultReplacementFunc,
-	}
+	environment := EnvironmentHelper{
+		resolver: resolver,
+		missingKeyCallback: func(key string) {
+			variable, ok := variables[key]
 
-	for _, o := range options {
-		o(cfg)
-	}
-
-	result := cfg.pattern.ReplaceAllStringFunc(template, func(substring string) string {
-		replacement, _, warning, err := cfg.replacementFunc(substring, mapping, cfg)
-		if err != nil {
-			// Add the template for template errors
-			var tmplErr *InvalidTemplateError
-
-			if errors.As(err, &tmplErr) {
-				if tmplErr.Template == "" {
-					tmplErr.Template = template
-				}
+			// shouldn't be a lookup for anything that
+			if !ok {
+				panic(fmt.Errorf("unexpected missing() call during template.Substitute() for KEY [%s] - it's not in variable list?!", key))
 			}
 
-			// Save the first error to be returned
-			if returnErr == nil {
-				returnErr = err
-			}
-		}
-
-		if warning != nil {
-			// panic("go go go")
-			warnings = multierr.Append(warnings, warning)
-		}
-
-		return replacement
-	})
-
-	return result, warnings, returnErr
-}
-
-func DefaultReplacementFunc(substring string, mapping Mapping, cfg *Config) (string, bool, error, error) {
-	return DefaultReplacementAppliedFunc(substring, mapping, cfg)
-}
-
-func DefaultReplacementAppliedFunc(substring string, mapping Mapping, cfg *Config) (string, bool, error, error) {
-	pattern := cfg.pattern
-
-	subsFunc := cfg.substituteFunc
-	if subsFunc == nil {
-		_, subsFunc = getSubstitutionFunctionForTemplate(substring)
-	}
-
-	rest := ""
-
-	closingBraceIndex := getFirstBraceClosingIndex(substring)
-	if closingBraceIndex > -1 {
-		rest = substring[closingBraceIndex+1:]
-		substring = substring[0 : closingBraceIndex+1]
-	}
-
-	matches := pattern.FindStringSubmatch(substring)
-
-	groups := matchGroups(matches, pattern)
-	if escaped := groups[groupEscaped]; escaped != "" {
-		return escaped, true, nil, nil
-	}
-
-	braced := false
-
-	substitution := groups[groupNamed]
-	if substitution == "" {
-		substitution = groups[groupBraced]
-		braced = true
-	}
-
-	if substitution == "" {
-		return "", false, nil, &InvalidTemplateError{}
-	}
-
-	if braced {
-		value, applied, err := subsFunc(substitution, mapping)
-		if err != nil {
-			return "", false, nil, err
-		}
-
-		if applied {
-			interpolatedNested, _, err := SubstituteWith(rest, mapping, pattern)
-			if err != nil {
-				return "", false, nil, err
+			// Required variables are errors, so we ignore them as warnings
+			if variable.Required {
+				return
 			}
 
-			return value + interpolatedNested, true, nil, nil
-		}
-	}
-
-	value, ok := mapping(substitution)
-	if !ok {
-		return value, ok, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", substitution), nil
-	}
-
-	return value, ok, nil, nil
-}
-
-// SubstituteWith substitute variables in the string with their values.
-// It accepts additional substitute function.
-func SubstituteWith(template string, mapping Mapping, pattern *regexp.Regexp, subsFuncs ...SubstituteFunc) (string, error, error) {
-	options := []Option{
-		WithPattern(pattern),
-	}
-
-	if len(subsFuncs) > 0 {
-		options = append(options, WithSubstitutionFunction(subsFuncs[0]))
-	}
-
-	return SubstituteWithOptions(template, mapping, options...)
-}
-
-func getSubstitutionFunctionForTemplate(template string) (string, SubstituteFunc) {
-	interpolationMapping := []struct {
-		string
-		SubstituteFunc
-	}{
-		{":?", requiredErrorWhenEmptyOrUnset},
-		{"?", requiredErrorWhenUnset},
-		{":-", defaultWhenEmptyOrUnset},
-		{"-", defaultWhenUnset},
-		{":+", defaultWhenNotEmpty},
-		{"+", defaultWhenSet},
-	}
-	sort.Slice(interpolationMapping, func(i, j int) bool {
-		idxI := strings.Index(template, interpolationMapping[i].string)
-		idxJ := strings.Index(template, interpolationMapping[j].string)
-
-		if idxI < 0 {
-			return false
-		}
-
-		if idxJ < 0 {
-			return true
-		}
-
-		return idxI < idxJ
-	})
-
-	return interpolationMapping[0].string, interpolationMapping[0].SubstituteFunc
-}
-
-func getFirstBraceClosingIndex(str string) int {
-	openVariableBraces := 0
-
-	for i := 0; i < len(str); i++ {
-		if str[i] == '}' {
-			openVariableBraces--
-			if openVariableBraces == 0 {
-				return i
+			// If the variable has a default value, then it's not missing
+			if len(variable.DefaultValue) > 0 {
+				return
 			}
-		}
 
-		if strings.HasPrefix(str[i:], "${") {
-			openVariableBraces++
-			i++
+			// If the variable has a alternate/presence value, then it's not missing
+			if len(variable.PresenceValue) > 0 {
+				return
+			}
+
+			missing = append(missing, key)
+		},
+	}
+
+	config := &expand.Config{
+		Env: environment,
+		// Any commands being tried to run will simply be treated as literals
+		//
+		// NOTE: the printer _will_ format the code, so that might cause some unwanted side-effects,
+		//       please see https://github.com/mvdan/sh for any issues
+		//
+		// Example:
+		//  - $(date)
+		//  - $(echo hello | tee > something)
+		CmdSubst: func(w io.Writer, i *syntax.CmdSubst) error {
+			p := syntax.NewPrinter()
+			p.Print(w, i)
+
+			return nil
+		},
+	}
+
+	// Parse template into Shell words
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
+	if err != nil {
+		return "", nil, InvalidTemplateError{Template: template}
+	}
+
+	// Expand variables
+	result, err := expand.Literal(config, words)
+	if err != nil {
+		// Inspect error and enrich it
+		target := &expand.UnsetParameterError{}
+
+		switch {
+		case errors.As(err, target):
+			combinedErrors = multierr.Append(combinedErrors, &MissingRequiredError{
+				Variable: target.Node.Param.Value,
+				Reason:   target.Message,
+			})
+
+		default:
+			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: template, Wrapped: err})
 		}
 	}
 
-	return -1
-}
+	// Emit missing key warnings
+	for _, missingKey := range missing {
+		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", missingKey))
+	}
 
-// Substitute variables in the string with their values
-func Substitute(template string, mapping Mapping) (string, error, error) {
-	return SubstituteWith(template, mapping, defaultPattern)
+	return result, combinedWarnings, combinedErrors
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict any, pattern *regexp.Regexp) map[string]Variable {
-	if pattern == nil {
-		pattern = defaultPattern
-	}
-
-	return recurseExtract(configDict, pattern)
+func ExtractVariables(configDict any) map[string]Variable {
+	return recurseExtract(configDict)
 }
 
-func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]Variable {
+func recurseExtract(value interface{}) map[string]Variable {
 	results := map[string]Variable{}
 
 	switch value := value.(type) {
 	case string:
-		if values, is := extractVariable(value, pattern); is {
+		if values, is := extractVariable(value); is {
 			for _, v := range values {
 				results[v.Name] = v
 			}
 		}
+
 	case map[string]interface{}:
 		for _, elem := range value {
-			submap := recurseExtract(elem, pattern)
+			submap := recurseExtract(elem)
 			for key, value := range submap {
 				results[key] = value
 			}
@@ -268,7 +176,7 @@ func recurseExtract(value interface{}, pattern *regexp.Regexp) map[string]Variab
 
 	case []interface{}:
 		for _, elem := range value {
-			if values, is := extractVariable(elem, pattern); is {
+			if values, is := extractVariable(elem); is {
 				for _, v := range values {
 					results[v.Name] = v
 				}
@@ -286,190 +194,61 @@ type Variable struct {
 	Required      bool
 }
 
-func extractVariable(value interface{}, pattern *regexp.Regexp) ([]Variable, bool) {
+func extractVariable(value interface{}) ([]Variable, bool) {
 	sValue, ok := value.(string)
 	if !ok {
 		return []Variable{}, false
 	}
 
-	matches := pattern.FindAllStringSubmatch(sValue, -1)
-	if len(matches) == 0 {
-		return []Variable{}, false
-	}
+	var variables []Variable
 
-	values := []Variable{}
+	grab := func(p syntax.WordPart) string {
+		switch val := p.(type) {
+		case *syntax.Lit:
+			return val.Value
 
-	for _, match := range matches {
-		groups := matchGroups(match, pattern)
-		if escaped := groups[groupEscaped]; escaped != "" {
-			continue
-		}
+		case *syntax.ParamExp:
+			return val.Param.Value
 
-		val := groups[groupNamed]
-		if val == "" {
-			val = groups[groupBraced]
-		}
-
-		name := val
-
-		var (
-			defaultValue  string
-			presenceValue string
-			required      bool
-		)
-
-		switch {
-		case strings.Contains(val, ":?"):
-			name, _ = partition(val, ":?")
-			required = true
-
-		case strings.Contains(val, "?"):
-			name, _ = partition(val, "?")
-			required = true
-
-		case strings.Contains(val, ":-"):
-			name, defaultValue = partition(val, ":-")
-
-		case strings.Contains(val, "-"):
-			name, defaultValue = partition(val, "-")
-
-		case strings.Contains(val, ":+"):
-			name, presenceValue = partition(val, ":+")
-
-		case strings.Contains(val, "+"):
-			name, presenceValue = partition(val, "+")
-		}
-
-		values = append(values, Variable{
-			Name:          name,
-			DefaultValue:  defaultValue,
-			PresenceValue: presenceValue,
-			Required:      required,
-		})
-	}
-
-	return values, len(values) > 0
-}
-
-// Soft default (fall back if unset or empty)
-func defaultWhenEmptyOrUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenAbsence(substitution, mapping, true)
-}
-
-// Hard default (fall back if-and-only-if empty)
-func defaultWhenUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenAbsence(substitution, mapping, false)
-}
-
-func defaultWhenNotEmpty(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenPresence(substitution, mapping, true)
-}
-
-func defaultWhenSet(substitution string, mapping Mapping) (string, bool, error) {
-	return withDefaultWhenPresence(substitution, mapping, false)
-}
-
-func requiredErrorWhenEmptyOrUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withRequired(substitution, mapping, ":?", func(v string) bool { return v != "" })
-}
-
-func requiredErrorWhenUnset(substitution string, mapping Mapping) (string, bool, error) {
-	return withRequired(substitution, mapping, "?", func(_ string) bool { return true })
-}
-
-func withDefaultWhenPresence(substitution string, mapping Mapping, notEmpty bool) (string, bool, error) {
-	sep := "+"
-
-	if notEmpty {
-		sep = ":+"
-	}
-
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, defaultValue := partition(substitution, sep)
-
-	defaultValue, _, err := Substitute(defaultValue, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if ok && (!notEmpty || (notEmpty && value != "")) {
-		return defaultValue, true, nil
-	}
-
-	return value, true, nil
-}
-
-func withDefaultWhenAbsence(substitution string, mapping Mapping, emptyOrUnset bool) (string, bool, error) {
-	sep := "-"
-	if emptyOrUnset {
-		sep = ":-"
-	}
-
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, defaultValue := partition(substitution, sep)
-
-	defaultValue, _, err := Substitute(defaultValue, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if !ok || (emptyOrUnset && value == "") {
-		return defaultValue, true, nil
-	}
-
-	return value, true, nil
-}
-
-func withRequired(substitution string, mapping Mapping, sep string, valid func(string) bool) (string, bool, error) {
-	if !strings.Contains(substitution, sep) {
-		return "", false, nil
-	}
-
-	name, errorMessage := partition(substitution, sep)
-
-	errorMessage, _, err := Substitute(errorMessage, mapping)
-	if err != nil {
-		return "", false, err
-	}
-
-	value, ok := mapping(name)
-	if !ok || !valid(value) {
-		return "", true, &MissingRequiredError{
-			Reason:   errorMessage,
-			Variable: name,
+		default:
+			panic(val)
 		}
 	}
 
-	return value, true, nil
-}
+	syntax.NewParser(syntax.Variant(syntax.LangBash)).Words(strings.NewReader(sValue), func(w *syntax.Word) bool {
+		for _, partInterface := range w.Parts {
+			switch part := partInterface.(type) {
+			case *syntax.ParamExp:
+				variable := Variable{
+					Name: part.Param.Value,
+				}
 
-func matchGroups(matches []string, pattern *regexp.Regexp) map[string]string {
-	groups := make(map[string]string)
-	for i, name := range pattern.SubexpNames()[1:] {
-		groups[name] = matches[i+1]
-	}
+				if part.Exp != nil {
+					if slices.Contains([]syntax.ParExpOperator{syntax.ErrorUnset, syntax.ErrorUnsetOrNull}, part.Exp.Op) {
+						variable.Required = true
+					}
 
-	return groups
-}
+					if slices.Contains([]syntax.ParExpOperator{syntax.DefaultUnsetOrNull, syntax.DefaultUnset}, part.Exp.Op) {
+						variable.DefaultValue = grab(part.Exp.Word.Parts[0])
+					}
 
-// Split the string at the first occurrence of sep, and return the part before the separator,
-// and the part after the separator.
-//
-// If the separator is not found, return the string itself, followed by an empty string.
-func partition(str, sep string) (string, string) {
-	if strings.Contains(str, sep) {
-		parts := strings.SplitN(str, sep, 2)
+					if slices.Contains([]syntax.ParExpOperator{syntax.AlternateUnset, syntax.AlternateUnsetOrNull}, part.Exp.Op) {
+						variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+					}
+				}
 
-		return parts[0], parts[1]
-	}
+				variables = append(variables, variable)
 
-	return str, ""
+			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.Lit:
+				// Ignore known good-to-ignore-keywords
+
+			default:
+				panic(fmt.Errorf("unexpected type: %T", partInterface))
+			}
+		}
+
+		return true
+	})
+
+	return variables, len(variables) > 0
 }

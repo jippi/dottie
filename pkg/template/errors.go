@@ -20,9 +20,14 @@ import "fmt"
 // format
 type InvalidTemplateError struct {
 	Template string
+	Wrapped  error
 }
 
 func (e InvalidTemplateError) Error() string {
+	if e.Wrapped != nil {
+		return fmt.Sprintf("Invalid template: %#v (%s)", e.Template, e.Wrapped)
+	}
+
 	return fmt.Sprintf("Invalid template: %#v", e.Template)
 }
 

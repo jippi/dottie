@@ -1,7 +1,7 @@
 package ast
 
 // ExcludeComments will *EXCLUDE* all comments
-func ExcludeComments(input Statement) SelectorResult {
+func ExcludeComments(input Statement) selectorResult {
 	switch input.(type) {
 	case *Comment:
 		return Exclude

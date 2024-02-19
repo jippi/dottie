@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,7 @@ func NewCommand() *cobra.Command {
 		Short:             "Print value of a env key if it exists",
 		GroupID:           "output",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: shared.NewCompleter().WithHandlers(render.ExcludeDisabledAssignments).Get(),
+		ValidArgsFunction: shared.NewCompleter().WithHandlers(ast.ExcludeDisabledAssignments).Get(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 

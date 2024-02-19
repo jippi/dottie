@@ -1,4 +1,4 @@
----- exec command line 0: [print --no-color]
+---- exec command line 1: [print --no-color]
 KEY_A="I'm key A"
 KEY_B="I'm key B"
 KEY_C="I'm key C"

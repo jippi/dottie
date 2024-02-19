@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/jippi/dottie/pkg"
+	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
@@ -34,7 +34,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	document, err := pkg.Load(filename)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load file: %w", err)
 	}
 
 	//
@@ -42,10 +42,11 @@ func runE(cmd *cobra.Command, args []string) error {
 	//
 
 	warnings, err := document.InterpolateAll()
+
 	tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to interpolate file: %w", err)
 	}
 
 	//
@@ -56,16 +57,22 @@ func runE(cmd *cobra.Command, args []string) error {
 		excludedPrefixes = shared.StringSliceFlag(cmd.Flags(), "exclude-prefix")
 		ignoreRules      = shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
 		stderr           = tui.StderrFromContext(cmd.Context())
-		handlers         = []render.Handler{
-			render.ExcludeDisabledAssignments,
+		selectors        = []ast.Selector{
+			ast.ExcludeDisabledAssignments,
 		}
 	)
 
 	for _, filter := range excludedPrefixes {
-		handlers = append(handlers, render.ExcludeKeyPrefix(filter))
+		selectors = append(selectors, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
+	validationErrors, warnings, errs := document.Validate(selectors, ignoreRules)
+	tui.MaybePrintWarnings(cmd.Context(), warnings)
+
+	if errs != nil {
+		return errs
+	}
+
 	if len(validationErrors) == 0 {
 		stderr.Success().Box("No validation errors found")
 
@@ -84,7 +91,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				cmd.Context(),
 				document,
 				errIsh,
-				errIsh,
+				errIsh.Assignment,
 				attemptFixOfValidationError,
 				true,
 			))
@@ -99,7 +106,13 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes := validation.Validate(cmd.Context(), document, handlers, ignoreRules)
+	newRes, warns, errs := document.Validate(selectors, ignoreRules)
+	tui.MaybePrintWarnings(cmd.Context(), warns)
+
+	if errs != nil {
+		return errs
+	}
+
 	if len(newRes) == 0 {
 		stderr.Success().Println("All validation errors fixed")
 

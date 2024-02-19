@@ -38,7 +38,7 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 
 func init() {
 	spew.Config.DisablePointerMethods = true
-	spew.Config.DisableMethods = true
+	spew.Config.DisableMethods = false
 	cobra.EnableCommandSorting = false
 }
 
