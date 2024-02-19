@@ -1,4 +1,13 @@
----- exec command line 1: [set --skip-if-exists SOME_KEY=SUCCESS]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/skip-if-exists.run]:
+- [set --skip-if-exists SOME_KEY=SUCCESS]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 2: [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/skip-if-exists.run]:
+- [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
+--------------------------------------------------------------------------------
+
 WARNING: Key [ SOME_KEY ] was skipped: the key already exists in the document (SkipIfExists)

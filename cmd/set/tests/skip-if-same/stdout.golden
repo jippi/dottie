@@ -1,6 +1,15 @@
----- exec command line 1: [set --skip-if-same SOME_KEY=ERROR THIS SHOULD BE CHANGED BY NEXT LINE]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/skip-if-same.run]:
+- [set --skip-if-same SOME_KEY=ERROR THIS SHOULD BE CHANGED BY NEXT LINE]
+--------------------------------------------------------------------------------
+
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved
----- exec command line 2: [set --skip-if-same SOME_KEY=SUCCESS]
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/skip-if-same.run]:
+- [set --skip-if-same SOME_KEY=SUCCESS]
+--------------------------------------------------------------------------------
+
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved

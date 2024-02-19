@@ -1,10 +1,34 @@
----- exec command line 1: [validate --no-fix]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/validation-rules.run]:
+- [validate --no-fix]
+--------------------------------------------------------------------------------
+
 (no output to stdout)
----- exec command line 2: [validate --no-fix --exclude-prefix BOOLEAN_]
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/validation-rules.run]:
+- [validate --no-fix --exclude-prefix BOOLEAN_]
+--------------------------------------------------------------------------------
+
 (no output to stdout)
----- exec command line 3: [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
+
+--------------------------------------------------------------------------------
+- Output of command from line 3 in [tests/validation-rules.run]:
+- [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
+--------------------------------------------------------------------------------
+
 (no output to stdout)
----- exec command line 4: [validate --no-fix --ignore-rule boolean]
+
+--------------------------------------------------------------------------------
+- Output of command from line 4 in [tests/validation-rules.run]:
+- [validate --no-fix --ignore-rule boolean]
+--------------------------------------------------------------------------------
+
 (no output to stdout)
----- exec command line 5: [validate --no-fix --ignore-rule boolean,dir,file,http]
+
+--------------------------------------------------------------------------------
+- Output of command from line 5 in [tests/validation-rules.run]:
+- [validate --no-fix --ignore-rule boolean,dir,file,http]
+--------------------------------------------------------------------------------
+
 (no output to stdout)

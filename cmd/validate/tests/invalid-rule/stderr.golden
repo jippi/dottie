@@ -1,3 +1,7 @@
----- exec command line 1: [validate --no-fix]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/invalid-rule.run]:
+- [validate --no-fix]
+--------------------------------------------------------------------------------
+
 Error: validation configuration error: Undefined validation function 'invalid-rule' on field ''
 Run 'dottie validate --help' for usage.
