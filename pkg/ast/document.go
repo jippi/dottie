@@ -101,19 +101,16 @@ func (d *Document) Has(name string) bool {
 }
 
 func (doc *Document) InterpolateAll() (error, error) {
-	var (
-		interpolateWarnings error
-		interpolateErrors   error
-	)
+	defer func() {
+		doc.interpolateWarnings = nil
+		doc.interpolateErrors = nil
+	}()
 
 	for _, assignment := range doc.AllAssignments() {
-		warn, err := doc.InterpolateStatement(assignment)
-
-		interpolateWarnings = multierr.Append(interpolateWarnings, warn)
-		interpolateErrors = multierr.Append(interpolateErrors, err)
+		doc.doInterpolation(assignment)
 	}
 
-	return interpolateWarnings, interpolateErrors
+	return doc.interpolateWarnings, doc.interpolateErrors
 }
 
 func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
@@ -122,21 +119,17 @@ func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
 		doc.interpolateErrors = nil
 	}()
 
-	// First do interpolation of the target itself
-	doc.doInterpolation(target, nil)
+	doc.doInterpolation(target)
 
 	return doc.interpolateWarnings, doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(target *Assignment, path []string) {
+func (doc *Document) doInterpolation(target *Assignment) {
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
 		return
 	}
-
-	path = append(path, target.Name)
-	// prefix := strings.Join(path, " -> ")
 
 	if !target.Enabled {
 		return
@@ -146,10 +139,7 @@ func (doc *Document) doInterpolation(target *Assignment, path []string) {
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, rel := range target.Dependencies {
-		dependency := doc.Get(rel.Name)
-		dependency.Initialize()
-
-		doc.doInterpolation(dependency, path)
+		doc.doInterpolation(doc.Get(rel.Name))
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -198,31 +188,23 @@ func (doc *Document) interpolationMapper(target *Assignment) func(input string) 
 			return "", false
 		}
 
-		// Inspect the target literal and see if it has any variable references
-		// that we need to resolve first.
-		target.Initialize()
+		for _, dependency := range target.Dependencies {
+			// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
+			// which would trigger infinite recursive loop
+			if dependency.Name == target.Name {
+				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must not reference itself", target.Name)))
 
-		if len(target.Dependencies) > 0 {
-			for _, dependency := range target.Dependencies {
-				// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
-				// which would trigger infinite recursive loop
-				if dependency.Name == target.Name {
-					doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must not reference itself", target.Name)))
+				continue
+			}
 
-					continue
-				}
+			// Lookup the assignment
+			prerequisite := doc.Get(dependency.Name)
 
-				// Lookup the assignment
-				prerequisite := doc.Get(dependency.Name)
+			// If it does not exists or is not enabled, abort
+			if prerequisite == nil {
+				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
 
-				// If it does not exists or is not enabled, abort
-				if prerequisite == nil {
-					doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
-
-					continue
-				}
-
-				doc.doInterpolation(prerequisite, nil)
+				continue
 			}
 		}
 

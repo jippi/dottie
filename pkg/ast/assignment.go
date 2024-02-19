@@ -134,6 +134,7 @@ func (a *Assignment) CommentsSlice() []string {
 }
 
 func (assignment *Assignment) RecursiveDependentAssignments() []string {
+	return nil
 	keys := make([]string, 0)
 
 	for _, dependent := range assignment.Dependents {
