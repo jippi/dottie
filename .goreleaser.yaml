@@ -60,15 +60,6 @@ checksum:
 changelog:
   sort: asc
   use: github
-  filters:
-    exclude:
-      - "^test:"
-      - "^chore"
-      - "merge conflict"
-      - Merge pull request
-      - Merge remote-tracking branch
-      - Merge branch
-      - go mod tidy
   groups:
     - title: Dependency updates
       regexp: '^.*?(feat|fix|chore)\(deps\)!?:.+$'
