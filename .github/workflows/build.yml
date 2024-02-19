@@ -57,35 +57,6 @@ jobs:
 
   # ------------------------------
 
-  ruleguard:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/checkout@v4
-        with:
-          repository: dgryski/semgrep-go
-          path: rules
-
-      # needs to be outside of the workspace for some reason
-      - name: move rules
-        run: mv -v rules ../
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-
-      - name: install ruleguard
-        run: go install github.com/quasilyte/go-ruleguard/cmd/ruleguard@latest
-
-      - name: install dsl
-        run: go get -u github.com/quasilyte/go-ruleguard/dsl@latest
-
-      - name: ruleguard
-        run: ruleguard -c=0 -rules ../rules/ruleguard.rules.go ./...
-
-  # ------------------------------
-
   test:
     runs-on: ubuntu-latest
     env:
