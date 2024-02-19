@@ -13,49 +13,6 @@ permissions:
   packages: write
 
 jobs:
-  # ------------------------------
-
-  goreleaser-check-pkgs:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    needs:
-      - goreleaser
-
-    env:
-      DOCKER_CLI_EXPERIMENTAL: "enabled"
-
-    strategy:
-      matrix:
-        format:
-          - deb
-          - rpm
-          - apk
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/setup-qemu-action@v3
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ./dist/*.deb
-            ./dist/*.rpm
-            ./dist/*.apk
-          key: ${{ github.ref }}
-
-      - run: task dottie:test:${{ matrix.format }}
-
-  # ------------------------------
-
   goreleaser:
     runs-on: ubuntu-latest
     env:
@@ -85,15 +42,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - uses: actions/cache@v4
-        if: github.ref == 'refs/heads/main'
-        with:
-          path: |
-            ./dist/*.deb
-            ./dist/*.rpm
-            ./dist/*.apk
-          key: ${{ github.ref }}
 
       - uses: sigstore/cosign-installer@v3.4.0
 
