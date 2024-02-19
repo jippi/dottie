@@ -1,0 +1,2 @@
+# ensure that line endings on Windows builds are properly formatted
+*.go text eol=lf
