@@ -28,6 +28,7 @@ func NewCommand() *cobra.Command {
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
+	cmd.Flags().StringSlice("exclude-key-prefix", []string{}, "Ignore these KEY prefixes")
 
 	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
@@ -38,11 +39,6 @@ func NewCommand() *cobra.Command {
 
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
-
-	oldDocument, err := pkg.Load(filename)
-	if err != nil {
-		return err
-	}
 
 	stdout, _ := tui.WritersFromContext(cmd.Context())
 
@@ -57,6 +53,11 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Looking for upstream source")
 
+	oldDocument, err := pkg.Load(filename)
+	if err != nil {
+		return err
+	}
+
 	source, _ := cmd.Flags().GetString("source")
 	if len(source) == 0 {
 		source, err = oldDocument.GetConfig("dottie/source")
@@ -69,7 +70,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		success.Println("  Found source via CLI flag")
 	}
 
-	fmt.Println()
+	dark.Println()
 
 	dark.Println("Copying source from", primary.Sprint(source))
 
@@ -120,15 +121,26 @@ func runE(cmd *cobra.Command, args []string) error {
 	lastWasError := false
 	counter := 0
 
-	for _, oldStatement := range oldDocument.AllAssignments() {
+	var selectors []ast.Selector
+
+	selectors = append(selectors, ast.ExcludeDisabledAssignments)
+
+	if slice := shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix"); len(slice) > 0 {
+		for _, prefix := range slice {
+			selectors = append(selectors, ast.ExcludeKeyPrefix(prefix))
+		}
+	}
+
+	for _, oldStatement := range oldDocument.AllAssignments(selectors...) {
 		if !oldStatement.Enabled {
 			continue
 		}
 
 		upserter, err := upsert.New(
 			newDocument,
-			upsert.EnableSetting(upsert.UpdateComments),
 			upsert.EnableSetting(upsert.SkipIfSame),
+			upsert.EnableSetting(upsert.SkipIfEmpty),
+			upsert.EnableSetting(upsert.SkipIfSet),
 			upsert.EnableSettingIf(upsert.ErrorIfMissing, shared.BoolWithInverseValue(cmd.Flags(), "error-on-missing-key")),
 			upsert.WithSkipValidationRule(shared.StringSliceFlag(cmd.Flags(), "ignore-rule")...),
 		)
@@ -140,6 +152,8 @@ func runE(cmd *cobra.Command, args []string) error {
 		if newDocument.Get(oldStatement.Name) == nil {
 			// Try to find positioning in the statement list for the new KEY pair
 			var parent ast.StatementCollection = oldDocument
+
+			upserter.ApplyOptions(upsert.EnableSetting(upsert.UpdateComments))
 
 			if oldStatement.Group != nil {
 				parent = oldStatement.Group
@@ -170,20 +184,42 @@ func runE(cmd *cobra.Command, args []string) error {
 			// If we were not first, then put us behind the key that was
 			// just before us in the FILE doc
 			case idx > 0:
-				before := parent.Assignments()[idx-1]
+				// Search previous keys to find a possible group to add the new KEY to
+				for ; idx > 0; idx-- {
+					before := parent.Assignments()[idx-1]
 
-				if err := upserter.ApplyOptions(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
-					return err
-				}
+					if err := upserter.ApplyOptions(upsert.WithPlacementRelativeToKey(upsert.AddAfterKey, before.Name)); err != nil {
+						return err
+					}
 
-				if before.Group != nil && newDocument.HasGroup(before.Group.String()) {
-					upserter.ApplyOptions(upsert.WithGroup(before.Group.String()))
+					if before.Group != nil && newDocument.HasGroup(before.Group.String()) {
+						upserter.ApplyOptions(upsert.WithGroup(before.Group.String()))
+
+						break
+					}
+
+					if x := newDocument.Get(before.Name); x != nil && x.Group != nil {
+						upserter.ApplyOptions(upsert.WithGroup(x.Group.String()))
+
+						break
+					}
 				}
 			}
 		}
 
-		changed, warn, err := upserter.Upsert(cmd.Context(), oldStatement)
-		tui.MaybePrintWarnings(cmd.Context(), warn)
+		var skippedStatementWarning upsert.SkippedStatementError
+
+		changed, warnings, err := upserter.Upsert(cmd.Context(), oldStatement)
+
+		switch {
+		case errors.As(warnings, &skippedStatementWarning):
+			stdout.Warning().Print("  ", oldStatement.Name)
+			dark.Print(" was skipped: ")
+			dark.Println(skippedStatementWarning.Reason)
+
+		default:
+			tui.MaybePrintWarnings(cmd.Context(), warnings)
+		}
 
 		if err != nil {
 			sawError = true

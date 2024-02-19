@@ -52,17 +52,34 @@ func (d *Document) BelongsToGroup(name string) bool {
 func (d *Document) statementNode() {
 }
 
-func (d *Document) AllAssignments() []*Assignment {
+func (d *Document) AllAssignments(selectors ...Selector) []*Assignment {
 	var assignments []*Assignment
 
+NEXT_STATEMENT:
 	for _, statement := range d.Statements {
+		// Filter
+		for _, selector := range selectors {
+			if selector(statement) == Exclude {
+				continue NEXT_STATEMENT
+			}
+		}
+
+		// Assign
 		if assign, ok := statement.(*Assignment); ok {
 			assignments = append(assignments, assign)
 		}
 	}
 
 	for _, group := range d.Groups {
+	NEXT_GROUP_STATEMENT:
 		for _, statement := range group.Statements {
+			// FILTER
+			for _, selector := range selectors {
+				if selector(statement) == Exclude {
+					continue NEXT_GROUP_STATEMENT
+				}
+			}
+
 			if assignment, ok := statement.(*Assignment); ok {
 				assignments = append(assignments, assignment)
 			}

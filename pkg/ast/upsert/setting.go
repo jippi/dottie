@@ -21,6 +21,9 @@ const (
 	// SkipIfSet will skip the upsert operation if the KEY exists in the document and *NOT* empty.
 	SkipIfSet
 
+	// SkipIfEmpty will skip the upsert operation if the KEY VALUE is empty
+	SkipIfEmpty
+
 	// Validate the KEY/VALUE pair and fail the operation if its invalid
 	Validate
 
@@ -54,7 +57,7 @@ func (bitmask Setting) Has(setting Setting) bool {
 func (setting Setting) String() string {
 	// Single key bitmask
 	switch setting {
-	case SkipIfSame, SkipIfExists, SkipIfSet, Validate, ErrorIfMissing, UpdateComments:
+	case SkipIfSame, SkipIfExists, SkipIfSet, Validate, ErrorIfMissing, UpdateComments, SkipIfEmpty:
 		return fmt.Sprintf("upsert.Setting<%s>", setting.name())
 	case maxKey:
 	}
@@ -82,6 +85,9 @@ func (setting Setting) name() string {
 
 	case SkipIfSet:
 		return "SkipIfSet"
+
+	case SkipIfEmpty:
+		return "SkipIfEmpty"
 
 	case Validate:
 		return "Validate"
