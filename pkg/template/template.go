@@ -17,6 +17,7 @@ package template
 import (
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"strings"
 
@@ -25,22 +26,22 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
-// Mapping is a user-supplied function which maps from variable names to values.
+// Resolver is a user-supplied function which maps from variable names to values.
 // Returns the value as a string and a bool indicating whether
 // the value is present, to distinguish between an empty string
 // and the absence of a value.
-type Mapping func(string) (string, bool)
+type Resolver func(string) (string, bool)
 
-type Lookupper struct {
-	resolver Mapping
-	missing  func(string)
+type EnvironmentHelper struct {
+	resolver           Resolver
+	missingKeyCallback func(string)
 }
 
-func (l Lookupper) Get(name string) expand.Variable {
-	val, ok := l.resolver(name)
+func (helper EnvironmentHelper) Get(name string) expand.Variable {
+	val, ok := helper.resolver(name)
 	if !ok {
 		if name != "IFS" {
-			l.missing(name)
+			helper.missingKeyCallback(name)
 		}
 
 		return expand.Variable{
@@ -56,22 +57,22 @@ func (l Lookupper) Get(name string) expand.Variable {
 	}
 }
 
-func (l Lookupper) Each(cb func(name string, vr expand.Variable) bool) {
-	panic("Lookupper each")
+func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
+	panic("EnvironmentHelper.Each() should never be called")
 }
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(template string, mapping Mapping) (string, error, error) {
+func Substitute(template string, resolver Resolver) (string, error, error) {
 	var (
 		combinedWarnings, combinedErrors error
 		missing                          []string
 		variables                        = ExtractVariables(template)
 	)
 
-	looker := Lookupper{
-		resolver: mapping,
-		missing: func(key string) {
+	environment := EnvironmentHelper{
+		resolver: resolver,
+		missingKeyCallback: func(key string) {
 			variable, ok := variables[key]
 
 			// shouldn't be a lookup for anything that
@@ -99,10 +100,24 @@ func Substitute(template string, mapping Mapping) (string, error, error) {
 	}
 
 	config := &expand.Config{
-		Env:     looker,
-		NoUnset: false,
+		Env: environment,
+		// Any commands being tried to run will simply be treated as literals
+		//
+		// NOTE: the printer _will_ format the code, so that might cause some unwanted side-effects,
+		//       please see https://github.com/mvdan/sh for any issues
+		//
+		// Example:
+		//  - $(date)
+		//  - $(echo hello | tee > something)
+		CmdSubst: func(w io.Writer, i *syntax.CmdSubst) error {
+			p := syntax.NewPrinter()
+			p.Print(w, i)
+
+			return nil
+		},
 	}
 
+	// Parse template into Shell words
 	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
 	if err != nil {
 		return "", nil, InvalidTemplateError{Template: template}
@@ -110,15 +125,23 @@ func Substitute(template string, mapping Mapping) (string, error, error) {
 
 	// Expand variables
 	result, err := expand.Literal(config, words)
+	if err != nil {
+		// Inspect error and enrich it
+		target := &expand.UnsetParameterError{}
 
-	target := &expand.UnsetParameterError{}
-	if errors.As(err, target) {
-		combinedErrors = multierr.Append(combinedErrors, &MissingRequiredError{
-			Variable: target.Node.Param.Value,
-			Reason:   target.Message,
-		})
+		switch {
+		case errors.As(err, target):
+			combinedErrors = multierr.Append(combinedErrors, &MissingRequiredError{
+				Variable: target.Node.Param.Value,
+				Reason:   target.Message,
+			})
+
+		default:
+			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: template, Wrapped: err})
+		}
 	}
 
+	// Emit missing key warnings
 	for _, missingKey := range missing {
 		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", missingKey))
 	}
@@ -193,8 +216,8 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 	}
 
 	syntax.NewParser(syntax.Variant(syntax.LangBash)).Words(strings.NewReader(sValue), func(w *syntax.Word) bool {
-		for _, p := range w.Parts {
-			switch part := p.(type) {
+		for _, partInterface := range w.Parts {
+			switch part := partInterface.(type) {
 			case *syntax.ParamExp:
 				variable := Variable{
 					Name: part.Param.Value,
@@ -215,6 +238,12 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 				}
 
 				variables = append(variables, variable)
+
+			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.Lit:
+				// Ignore known good-to-ignore-keywords
+
+			default:
+				panic(fmt.Errorf("unexpected type: %T", partInterface))
 			}
 		}
 
@@ -222,18 +251,4 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 	})
 
 	return variables, len(variables) > 0
-}
-
-// Split the string at the first occurrence of sep, and return the part before the separator,
-// and the part after the separator.
-//
-// If the separator is not found, return the string itself, followed by an empty string.
-func partition(str, sep string) (string, string) {
-	if strings.Contains(str, sep) {
-		parts := strings.SplitN(str, sep, 2)
-
-		return parts[0], parts[1]
-	}
-
-	return str, ""
 }

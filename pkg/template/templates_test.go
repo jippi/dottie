@@ -29,8 +29,6 @@ var defaults = map[string]string{
 	"JSON": `{"json":2}`,
 }
 
-var MissingRequiredError = &templatepkg.MissingRequiredError{}
-
 func defaultMapping(name string) (string, bool) {
 	val, ok := defaults[name]
 
@@ -400,7 +398,8 @@ func TestMandatoryVariableErrors(t *testing.T) {
 			require.NoError(t, warn)
 			require.ErrorContains(t, err, tt.expectedError)
 
-			assert.ErrorAs(t, err, &MissingRequiredError)
+			missingRequiredError := &templatepkg.MissingRequiredError{}
+			assert.ErrorAs(t, err, &missingRequiredError)
 		})
 	}
 }
@@ -431,7 +430,9 @@ func TestMandatoryVariableErrorsWithNestedExpansion(t *testing.T) {
 			_, _, err := templatepkg.Substitute(tt.template, defaultMapping)
 			require.ErrorContains(t, err, tt.expectedError)
 
-			assert.ErrorAs(t, err, &MissingRequiredError)
+			missingRequiredError := &templatepkg.MissingRequiredError{}
+
+			assert.ErrorAs(t, err, &missingRequiredError)
 		})
 	}
 }
