@@ -99,7 +99,7 @@ brew install jippi/tap/dottie
 ### apt
 
 ```shell
-echo 'deb [trusted=yes] https://pkg.jippi.dev/apt/ /' | sudo tee /etc/apt/sources.list.d/dottie.list
+echo 'deb [trusted=yes] https://pkg.jippi.dev/apt/ * *' | sudo tee /etc/apt/sources.list.d/dottie.list
 sudo apt update
 sudo apt install dottie
 ```
