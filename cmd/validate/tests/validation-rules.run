@@ -1,0 +1,5 @@
+--no-fix
+--no-fix --exclude-prefix BOOLEAN_
+--no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_
+--no-fix --ignore-rule boolean
+--no-fix --ignore-rule boolean,dir,file,http

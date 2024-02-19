@@ -1,2 +1,6 @@
----- exec command line 1: [print --no-color --pretty]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/simple-pretty.run]:
+- [print --no-color --pretty]
+--------------------------------------------------------------------------------
+
 (no output to stderr)

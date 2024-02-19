@@ -147,7 +147,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 			case "boolean":
 				light.Print("(boolean) The value [")
 				bold.Print(assignment.Interpolated)
-				light.Print("] is not a valid boolean.")
+				light.Println("] is not a valid boolean.")
 
 			case "http_url":
 				light.Print("(http_url) The value [")

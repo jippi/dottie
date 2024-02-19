@@ -52,6 +52,7 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 		goldenStdout string
 		goldenStderr string
 		goldenEnv    string
+		commandsFile string
 		commands     [][]string
 	}
 
@@ -96,6 +97,7 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 			goldenEnv:    "env",
 			envFile:      base + ".env",
 			commands:     commands,
+			commandsFile: "tests/" + file.Name(),
 		}
 
 		tests = append(tests, test)
@@ -111,8 +113,13 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 		goldie.WithDiffEngine(goldie.ColoredDiff),
 	)
 
+	const sep = "-"
+
 	for _, tt := range tests {
 		tt := tt
+
+		header := strings.Repeat(sep, 80) + "\n"
+		footer := "\n" + strings.Repeat(sep, 80) + "\n\n"
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -147,8 +154,13 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 				t.Logf("Running step from line %d: %+v", idx+1, args)
 
-				combinedStdout.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx+1, args))
-				combinedStderr.WriteString(fmt.Sprintf("---- exec command line %d: %+v\n", idx+1, args))
+				combinedStdout.WriteString(header)
+				combinedStdout.WriteString(fmt.Sprintf("%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args))
+				combinedStdout.WriteString(footer)
+
+				combinedStderr.WriteString(header)
+				combinedStderr.WriteString(fmt.Sprintf("%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args))
+				combinedStderr.WriteString(footer)
 
 				commandArgs := append(args, "--file", dotEnvFile)
 
@@ -167,6 +179,10 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 				stdout.WriteTo(&combinedStdout)
 				stderr.WriteTo(&combinedStderr)
+
+				if idx == 0 {
+					header = "\n" + header
+				}
 
 				// Assert we got a Cobra command back
 				require.NotNil(t, out, "expected a return value")

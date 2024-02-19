@@ -1,22 +1,66 @@
----- exec command line 1: [set SOME_KEY=SOME_VALUE]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/manipulate-empty.run]:
+- [set SOME_KEY=SOME_VALUE]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 2: [set ANOTHER_KEY=ANOTHER_VALUE --quote-style single]
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/manipulate-empty.run]:
+- [set ANOTHER_KEY=ANOTHER_VALUE --quote-style single]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 3: [set SECOND_KEY=should be before ANOTHER_KEY --before ANOTHER_KEY]
+
+--------------------------------------------------------------------------------
+- Output of command from line 3 in [tests/manipulate-empty.run]:
+- [set SECOND_KEY=should be before ANOTHER_KEY --before ANOTHER_KEY]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 4: [set TRUE_SECOND_KEY=HA, I'm after SOME_KEY, so I'm before ANOTHER_KEY now --after SOME_KEY]
+
+--------------------------------------------------------------------------------
+- Output of command from line 4 in [tests/manipulate-empty.run]:
+- [set TRUE_SECOND_KEY=HA, I'm after SOME_KEY, so I'm before ANOTHER_KEY now --after SOME_KEY]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 5: [set SECOND_KEY=damn, I'm the third key now]
+
+--------------------------------------------------------------------------------
+- Output of command from line 5 in [tests/manipulate-empty.run]:
+- [set SECOND_KEY=damn, I'm the third key now]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 6: [set SOME_KEY=ANOTHER_VALUE --comment I'm a comment --comment I'm another comment]
+
+--------------------------------------------------------------------------------
+- Output of command from line 6 in [tests/manipulate-empty.run]:
+- [set SOME_KEY=ANOTHER_VALUE --comment I'm a comment --comment I'm another comment]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 7: [set A_NUMBER=1 --comment @dottie/validate number]
+
+--------------------------------------------------------------------------------
+- Output of command from line 7 in [tests/manipulate-empty.run]:
+- [set A_NUMBER=1 --comment @dottie/validate number]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
----- exec command line 8: [set NOT_A_NUMBER=abc --comment @dottie/validate number]
+
+--------------------------------------------------------------------------------
+- Output of command from line 8 in [tests/manipulate-empty.run]:
+- [set NOT_A_NUMBER=abc --comment @dottie/validate number]
+--------------------------------------------------------------------------------
+
   NOT_A_NUMBER ( memory://tmp:13 )
     * (number) The value [abc] is not a valid number.
 
 Error: validation error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
 Run 'dottie set --help' for usage.
----- exec command line 9: [set A_NUMBER=2]
+
+--------------------------------------------------------------------------------
+- Output of command from line 9 in [tests/manipulate-empty.run]:
+- [set A_NUMBER=2]
+--------------------------------------------------------------------------------
+
 (no output to stderr)

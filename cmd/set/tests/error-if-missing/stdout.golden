@@ -1,5 +1,14 @@
----- exec command line 1: [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/error-if-missing.run]:
+- [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
+--------------------------------------------------------------------------------
+
 (no output to stdout)
----- exec command line 2: [set --error-if-missing SOME_KEY=SUCCESS]
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/error-if-missing.run]:
+- [set --error-if-missing SOME_KEY=SUCCESS]
+--------------------------------------------------------------------------------
+
 Key [ SOME_KEY ] was successfully upserted
 File was successfully saved

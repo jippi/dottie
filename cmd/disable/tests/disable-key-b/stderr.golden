@@ -1,2 +1,6 @@
----- exec command line 1: [disable KEY_B]
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/disable-key-b.run]:
+- [disable KEY_B]
+--------------------------------------------------------------------------------
+
 (no output to stderr)
