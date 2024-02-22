@@ -17,7 +17,7 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			document, err := pkg.Load(filename)
+			document, err := pkg.Load(cmd.Context(), filename)
 			if err != nil {
 				return err
 			}
@@ -27,7 +27,7 @@ func NewCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Println(string(output))
+			fmt.Fprintln(cmd.OutOrStdout(), string(output))
 
 			return nil
 		},

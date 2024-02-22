@@ -98,7 +98,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	}
 
 	existing.Enabled = input.Enabled
-	existing.Literal = input.Literal
+	existing.Literal = input.Quote.Escape(input.Literal)
 	existing.Interpolated = input.Literal
 	existing.Quote = input.Quote
 
@@ -109,14 +109,17 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Render and parse back the Statement to ensure annotations and such are properly handled
 	thing := u.document.AllAssignments()[:existing.Position.Index+1]
+	content := render.NewFormatter().Statement(ctx, thing).String()
+	scan := scanner.New(content)
 
-	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, thing).String()), "memory://tmp").Parse()
+	tempDoc, err = parser.New(scan, "memory://tmp/upsert").Parse(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
+		return nil, nil, fmt.Errorf("(upsert) failed to parse assignment: %w", err)
 	}
 
 	existing = tempDoc.Get(existing.Name)
 	existing.Initialize()
+	existing.Literal = input.Quote.Escape(input.Literal)
 
 	if _, ok := existing.Dependencies[existing.Name]; ok {
 		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
@@ -132,7 +135,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Interpolate the Assignment if it is enabled
 	if existing.Enabled {
-		warnings, err = u.document.InterpolateStatement(existing)
+		warnings, err = u.document.InterpolateStatement(ctx, existing)
 		if err != nil {
 			return nil, warnings, err
 		}
@@ -140,7 +143,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors, warns, errs := u.document.ValidateSingleAssignment(existing, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
+		if validationErrors, warns, errs := u.document.ValidateSingleAssignment(ctx, existing, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
 			warnings = multierr.Append(warnings, warns)
 			errs = multierr.Append(errs, validationErrors)
 
@@ -156,20 +159,29 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 	newAssignment := &ast.Assignment{
 		Comments: input.Comments,
 		Enabled:  input.Enabled,
-		Literal:  input.Literal,
 		Name:     input.Name,
 		Quote:    input.Quote,
 	}
 
-	inMemoryDoc, err := parser.New(scanner.New(render.NewFormatter().Statement(ctx, newAssignment).String()), "-").Parse()
+	newAssignment.Literal = newAssignment.Quote.Escape(input.Literal)
+	newAssignment.Interpolated = newAssignment.Literal
+
+	content := render.NewFormatter().Statement(ctx, newAssignment).String()
+	scan := scanner.New(content)
+
+	inMemoryDoc, err := parser.New(scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse assignment: %w", err)
+		return nil, fmt.Errorf("(createAndInsert) failed to parse assignment: %w", err)
 	}
 
 	// Ensure the group exists (may return 'nil' if no group is required)
 	group := u.document.EnsureGroup(u.group)
 
 	newAssignment = inMemoryDoc.Get(newAssignment.Name)
+	if newAssignment == nil {
+		return nil, fmt.Errorf("(createAndInsert) could not read assignment back from in-memory parser for key [ %s ]", input.Name)
+	}
+
 	newAssignment.Group = group
 
 	// Find the statement slice to operate on

@@ -22,7 +22,7 @@ func NewCommand() *cobra.Command {
 
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			env, err := pkg.Load(cmd.Context(), filename)
 			if err != nil {
 				return err
 			}

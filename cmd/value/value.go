@@ -20,7 +20,7 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			document, err := pkg.Load(filename)
+			document, err := pkg.Load(cmd.Context(), filename)
 			if err != nil {
 				return err
 			}
@@ -36,15 +36,13 @@ func NewCommand() *cobra.Command {
 				return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--include-commented] to include it", key)
 			}
 
-			warnings, err := document.InterpolateStatement(assignment)
+			warnings, err := document.InterpolateStatement(cmd.Context(), assignment)
 			tui.MaybePrintWarnings(cmd.Context(), warnings)
 			if err != nil {
 				return err
 			}
 
-			tui.StdoutFromContext(cmd.Context()).
-				NoColor().
-				Println(assignment.Interpolated)
+			fmt.Fprint(cmd.OutOrStdout(), assignment.Quote.Unescape(assignment.Interpolated))
 
 			return nil
 		},

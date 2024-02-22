@@ -3,5 +3,5 @@
 - [fmt]
 --------------------------------------------------------------------------------
 
-Error: unexpected token at line 5: Illegal(@)
+Error: unexpected token at line 5: Illegal(@) - parseRowStatement 2
 Run 'dottie fmt --help' for usage.

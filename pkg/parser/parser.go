@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -30,14 +31,22 @@ func New(scanner Scanner, filename string) *Parser {
 }
 
 // Parse parses the .env file and returns an ast.Statement.
-func (p *Parser) Parse() (*ast.Document, error) {
+func (p *Parser) Parse(_ context.Context) (document *ast.Document, err error) {
+	defer func() {
+		if recoveryErr := recover(); recoveryErr != nil {
+			err = fmt.Errorf("panic from parser: %+v", recoveryErr)
+			document = nil
+		}
+	}()
+
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group
-		document          = ast.NewDocument()
 		previousStatement ast.Statement
 		statementIndex    int
 	)
+
+	document = ast.NewDocument()
 
 	for p.token.Type != token.EOF {
 		stmt, err := p.parseStatement()
@@ -220,7 +229,7 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 		}
 
 	default:
-		panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
+		return p.unexpectedToken("parseGroupStatement 1")
 	}
 
 	p.nextToken()
@@ -233,7 +242,7 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 		return group, nil
 
 	default:
-		return p.unexpectedToken()
+		return p.unexpectedToken("parseGroupStatement 2")
 	}
 }
 
@@ -279,11 +288,11 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 			stmt, err = p.parseCompleteAssign(name)
 
 		default:
-			_, err = p.unexpectedToken()
+			_, err = p.unexpectedToken("parseRowStatement 1")
 		}
 
 	default:
-		_, err = p.unexpectedToken()
+		_, err = p.unexpectedToken("parseRowStatement 2")
 	}
 
 	if err != nil {
@@ -296,7 +305,7 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 		return stmt, err
 	}
 
-	return p.unexpectedToken()
+	return p.unexpectedToken("parseRowStatement 3")
 }
 
 func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
@@ -315,8 +324,7 @@ func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
 }
 
 func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
-	value := p.token.Literal
-	quoted := p.token.Quote
+	assignment := p.token
 
 	p.nextToken()
 
@@ -326,10 +334,10 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 
 		return &ast.Assignment{
 			Name:     name,
-			Literal:  value,
+			Literal:  assignment.Literal,
 			Complete: true,
 			Enabled:  p.token.Commented,
-			Quote:    quoted,
+			Quote:    assignment.Quote,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,
 				Line:      p.token.LineNumber,
@@ -338,7 +346,7 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		}, nil
 
 	default:
-		_, err := p.unexpectedToken()
+		_, err := p.unexpectedToken("parseCompleteAssign 1")
 
 		return nil, err
 	}
@@ -363,6 +371,6 @@ func (p *Parser) skipBlankLine() {
 	}
 }
 
-func (p *Parser) unexpectedToken() (ast.Statement, error) {
-	return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
+func (p *Parser) unexpectedToken(details string) (ast.Statement, error) {
+	return nil, fmt.Errorf("unexpected token at line %d: %s(%s) - %s", p.token.LineNumber, p.token.Type, p.token.Literal, details)
 }

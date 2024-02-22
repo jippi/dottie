@@ -2,6 +2,7 @@
 package ast
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -117,31 +118,31 @@ func (d *Document) Has(name string) bool {
 	return d.Get(name) != nil
 }
 
-func (doc *Document) InterpolateAll() (error, error) {
+func (doc *Document) InterpolateAll(ctx context.Context) (error, error) {
 	defer func() {
 		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
 	for _, assignment := range doc.AllAssignments() {
-		doc.doInterpolation(assignment)
+		doc.doInterpolation(ctx, assignment)
 	}
 
 	return doc.interpolateWarnings, doc.interpolateErrors
 }
 
-func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
+func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment) (error, error) {
 	defer func() {
 		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
-	doc.doInterpolation(target)
+	doc.doInterpolation(ctx, target)
 
 	return doc.interpolateWarnings, doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(target *Assignment) {
+func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
@@ -156,7 +157,14 @@ func (doc *Document) doInterpolation(target *Assignment) {
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, dependency := range target.Dependencies {
-		doc.doInterpolation(doc.Get(dependency.Name))
+		ref := doc.Get(dependency.Name)
+		if ref == nil {
+			doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, fmt.Errorf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
+
+			continue
+		}
+
+		doc.doInterpolation(ctx, doc.Get(dependency.Name))
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -174,7 +182,7 @@ func (doc *Document) doInterpolation(target *Assignment) {
 		return
 	}
 
-	value, warnings, err := template.Substitute(target.Literal, doc.interpolationMapper(target))
+	value, warnings, err := template.Substitute(ctx, target.Quote.Unescape(target.Literal), doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}
@@ -347,7 +355,7 @@ func (document *Document) Replace(assignment *Assignment) error {
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
-func (document *Document) Validate(selectors []Selector, ignoreErrors []string) ([]*ValidationError, error, error) {
+func (document *Document) Validate(ctx context.Context, selectors []Selector, ignoreErrors []string) ([]*ValidationError, error, error) {
 	var (
 		warnings, errors error
 		data             = map[string]any{}
@@ -384,7 +392,7 @@ NEXT:
 			continue
 		}
 
-		warn, err := document.InterpolateStatement(assignment)
+		warn, err := document.InterpolateStatement(ctx, assignment)
 
 		warnings = multierr.Append(warnings, warn)
 		errors = multierr.Append(errors, err)
@@ -437,8 +445,9 @@ func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string
 	return validator.New().ValidateMap(data, rules), nil
 }
 
-func (document *Document) ValidateSingleAssignment(assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
+func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
 	return document.Validate(
+		ctx,
 		append(
 			[]Selector{
 				ExcludeDisabledAssignments,

@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -431,11 +432,11 @@ func TestParser_Parse(t *testing.T) {
 
 				expected := tt.expected
 				expected.Initialize()
-				expected.InterpolateAll()
+				expected.InterpolateAll(context.TODO())
 
-				actual, err := parser.New(scanner.New(tt.input), "-").Parse()
+				actual, err := parser.New(scanner.New(tt.input), "-").Parse(context.TODO())
 				actual.Initialize()
-				actual.InterpolateAll()
+				actual.InterpolateAll(context.TODO())
 
 				require.NoError(t, err)
 				require.EqualExportedValues(t, *expected, *actual)
@@ -448,10 +449,6 @@ func TestParser_Parse(t *testing.T) {
 			name  string
 			input string
 		}{
-			{
-				name:  "escaped double quotes",
-				input: `FOO="escaped\"bar"`,
-			},
 			{
 				name:  "value with space after equal sign",
 				input: `FOO= bar`,
@@ -476,7 +473,7 @@ func TestParser_Parse(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				document, err := parser.New(scanner.New(tt.input), "-").Parse()
+				document, err := parser.New(scanner.New(tt.input), "-").Parse(context.TODO())
 				require.Error(t, err, "expected an error")
 				require.Nil(t, document, "did not expect a document when erroring")
 			})

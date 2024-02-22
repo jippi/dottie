@@ -53,7 +53,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Looking for upstream source")
 
-	oldDocument, err := pkg.Load(filename)
+	oldDocument, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	newDocument, err := pkg.Load(tmp.Name())
+	newDocument, err := pkg.Load(cmd.Context(), tmp.Name())
 	if err != nil {
 		return err
 	}

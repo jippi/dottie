@@ -15,10 +15,12 @@
 package template
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"slices"
+	"strconv"
 	"strings"
 
 	"go.uber.org/multierr"
@@ -63,7 +65,7 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(template string, resolver Resolver) (string, error, error) {
+func Substitute(_ context.Context, template string, resolver Resolver) (string, error, error) {
 	var (
 		combinedWarnings, combinedErrors error
 		missing                          []string
@@ -77,7 +79,9 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 
 			// shouldn't be a lookup for anything that
 			if !ok {
-				panic(fmt.Errorf("unexpected missing() call during template.Substitute() for KEY [%s] - it's not in variable list?!", key))
+				missing = append(missing, key)
+
+				return
 			}
 
 			// Required variables are errors, so we ignore them as warnings
@@ -107,24 +111,32 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 		//       please see https://github.com/mvdan/sh for any issues
 		//
 		// Example:
-		//  - $(date)
-		//  - $(echo hello | tee > something)
-		CmdSubst: func(w io.Writer, i *syntax.CmdSubst) error {
-			p := syntax.NewPrinter()
-			p.Print(w, i)
+		//
+		//  - input : $(echo hello | tee > something)
+		//    output: $(echo hello | tee >something)
+		//
+		//  - input : ``$
+		//    output: $()$
+		CmdSubst: func(writer io.Writer, i *syntax.CmdSubst) error {
+			start := i.Left.Offset() - 1
+			end := i.End().Offset() - 1
+
+			writer.Write([]byte(template[start:end]))
 
 			return nil
 		},
 	}
 
 	// Parse template into Shell words
-	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
+	//
+	// Single quote the input to avoid shell expansions such as "~" => $HOME => env lookup
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(strconv.QuoteToASCII(template)))
 	if err != nil {
 		return "", nil, InvalidTemplateError{Template: template}
 	}
 
 	// Expand variables
-	result, err := expand.Literal(config, words)
+	result, err := expand.Document(config, words)
 	if err != nil {
 		// Inspect error and enrich it
 		target := &expand.UnsetParameterError{}
@@ -141,9 +153,21 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 		}
 	}
 
+	unquoted, err := strconv.Unquote(result)
+	switch err {
+	case nil:
+		result = unquoted
+
+	default:
+		combinedErrors = multierr.Append(combinedErrors, err)
+	}
+
+	// result = strings.TrimPrefix(result, "'")
+	// result = strings.TrimSuffix(result, "'")
+
 	// Emit missing key warnings
 	for _, missingKey := range missing {
-		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", missingKey))
+		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The [ $%s ] key is not set. Defaulting to a blank string.", missingKey))
 	}
 
 	return result, combinedWarnings, combinedErrors
@@ -239,7 +263,7 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 
 				variables = append(variables, variable)
 
-			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.Lit:
+			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob:
 				// Ignore known good-to-ignore-keywords
 
 			default:

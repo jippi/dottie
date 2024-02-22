@@ -64,7 +64,7 @@ func TestFormatter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			env, err := pkg.Load(tt.filename)
+			env, err := pkg.Load(context.TODO(), tt.filename)
 			require.NoError(t, err)
 
 			golden.Assert(t, tt.name, []byte(render.NewFormatter().Statement(context.Background(), env).String()))

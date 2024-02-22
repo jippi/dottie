@@ -1,6 +1,8 @@
 package token
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type Quote uint
 
@@ -27,6 +29,58 @@ func (qt Quote) Valid() bool {
 
 func (qt Quote) Rune() rune {
 	return quotes[qt]
+}
+
+var codeMap = map[rune][]rune{
+	'\n': []rune(`\n`),
+	'\v': []rune(`\v`),
+	'\r': []rune(`\r`),
+	'\t': []rune(`\t`),
+	'\f': []rune(`\f`),
+}
+
+func (qt Quote) Escape(value string) string {
+	outcome := make([]rune, 0)
+
+	for _, runeVal := range value {
+		if runeVal == '\n' || runeVal == '\v' || runeVal == '\r' || runeVal == '\t' || runeVal == '\f' {
+			outcome = append(outcome, codeMap[runeVal]...)
+
+			continue
+		}
+
+		outcome = append(outcome, runeVal)
+	}
+
+	return string(outcome)
+}
+
+func (qt Quote) Unescape(value string) string {
+	return value
+
+	outcome := make([]rune, 0)
+
+	var prev rune
+
+	for i, runeVal := range value {
+		if prev == '\\' && (runeVal == '\n' || runeVal == '\v' || runeVal == '\r' || runeVal == '\t') {
+			outcome = outcome[:i-1]
+			outcome = append(outcome, []rune(string(runeVal))...)
+
+			continue
+		}
+
+		prev = runeVal
+		outcome = append(outcome, runeVal)
+	}
+
+	// value = strings.ReplaceAll(value, `\n`, "\n")
+	// value = strings.ReplaceAll(value, `\r`, "\r")
+	// value = strings.ReplaceAll(value, `\t`, "\t")
+	// value = strings.ReplaceAll(value, `\v`, "\v")
+	// value = strings.ReplaceAll(value, `\`+qt.String(), qt.String())
+
+	return string(outcome)
 }
 
 // String returns the string corresponding to the token.

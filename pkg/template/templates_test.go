@@ -15,10 +15,13 @@
 package template_test
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	templatepkg "github.com/jippi/dottie/pkg/template"
+	"github.com/jippi/dottie/pkg/tui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +50,7 @@ func defaultMapping(name string) (string, bool) {
 func TestSubstituteNoMatch(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("foo", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "foo", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", result)
@@ -64,7 +67,7 @@ func TestUnescaped(t *testing.T) {
 	}
 
 	for _, expected := range templates {
-		actual, warn, err := templatepkg.Substitute(expected, defaultMapping)
+		actual, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), expected, defaultMapping)
 		assert.NoError(t, warn)
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
@@ -89,7 +92,7 @@ func TestInvalid(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			_, _, err := templatepkg.Substitute(tt, defaultMapping)
+			_, _, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt, defaultMapping)
 
 			assert.ErrorContains(t, err, "Invalid template")
 		})
@@ -100,7 +103,7 @@ func TestInvalid(t *testing.T) {
 func TestNonBraced(t *testing.T) {
 	t.Parallel()
 
-	substituted, warn, err := templatepkg.Substitute("$FOO-bar", defaultMapping)
+	substituted, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "$FOO-bar", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "first-bar", substituted)
@@ -111,16 +114,16 @@ func TestNoValueNoDefault(t *testing.T) {
 
 	{
 		template := "This ${missing} var"
-		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+		result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), template, defaultMapping)
 
-		require.ErrorContains(t, warn, `The "missing" variable is not set. Defaulting to a blank string`)
+		require.ErrorContains(t, warn, `The [ $missing ] key is not set. Defaulting to a blank string.`)
 		require.NoError(t, err)
 		assert.Equal(t, "This  var", result)
 	}
 
 	{
 		template := "This ${BAR} var"
-		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+		result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), template, defaultMapping)
 
 		require.NoError(t, warn)
 		require.NoError(t, err)
@@ -132,7 +135,7 @@ func TestValueNoDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, template := range []string{"This $FOO var", "This ${FOO} var"} {
-		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+		result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), template, defaultMapping)
 		assert.NoError(t, warn)
 		assert.NoError(t, err)
 		assert.Equal(t, "This first var", result)
@@ -143,7 +146,7 @@ func TestNoValueWithDefault(t *testing.T) {
 	t.Parallel()
 
 	for _, template := range []string{"ok ${missing:-def}", "ok ${missing-def}"} {
-		result, warn, err := templatepkg.Substitute(template, defaultMapping)
+		result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), template, defaultMapping)
 		assert.NoError(t, warn)
 		assert.NoError(t, err)
 		assert.Equal(t, "ok def", result)
@@ -153,7 +156,7 @@ func TestNoValueWithDefault(t *testing.T) {
 func TestEmptyValueWithSoftDefault(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${BAR:-def}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${BAR:-def}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok def", result)
@@ -162,7 +165,7 @@ func TestEmptyValueWithSoftDefault(t *testing.T) {
 func TestValueWithSoftDefault(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${FOO:-def}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${FOO:-def}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok first", result)
@@ -171,7 +174,7 @@ func TestValueWithSoftDefault(t *testing.T) {
 func TestEmptyValueWithHardDefault(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${BAR-def}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${BAR-def}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok ", result)
@@ -180,7 +183,7 @@ func TestEmptyValueWithHardDefault(t *testing.T) {
 func TestPresentValueWithUnset(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${UNSET_VAR:+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${UNSET_VAR:+presence_value}", defaultMapping)
 	assert.NoError(t, warn, "warning")
 	assert.NoError(t, err, "error")
 	assert.Equal(t, "ok ", result)
@@ -189,7 +192,7 @@ func TestPresentValueWithUnset(t *testing.T) {
 func TestPresentValueWithUnset2(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${UNSET_VAR+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${UNSET_VAR+presence_value}", defaultMapping)
 	assert.NoError(t, warn, "warning")
 	assert.NoError(t, err, "error")
 	assert.Equal(t, "ok ", result)
@@ -198,7 +201,7 @@ func TestPresentValueWithUnset2(t *testing.T) {
 func TestPresentValueWithNonEmpty(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${FOO:+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${FOO:+presence_value}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok presence_value", result)
@@ -207,7 +210,7 @@ func TestPresentValueWithNonEmpty(t *testing.T) {
 func TestPresentValueAndNonEmptyWithNonEmpty(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${FOO+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${FOO+presence_value}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok presence_value", result)
@@ -216,7 +219,7 @@ func TestPresentValueAndNonEmptyWithNonEmpty(t *testing.T) {
 func TestPresentValueWithSet(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${BAR+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${BAR+presence_value}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok presence_value", result)
@@ -225,7 +228,7 @@ func TestPresentValueWithSet(t *testing.T) {
 func TestPresentValueAndNotEmptyWithSet(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${BAR:+presence_value}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${BAR:+presence_value}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok ", result)
@@ -234,7 +237,7 @@ func TestPresentValueAndNotEmptyWithSet(t *testing.T) {
 func TestNonAlphanumericDefault(t *testing.T) {
 	t.Parallel()
 
-	result, warn, err := templatepkg.Substitute("ok ${BAR:-/non:-alphanumeric}", defaultMapping)
+	result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), "ok ${BAR:-/non:-alphanumeric}", defaultMapping)
 	assert.NoError(t, warn)
 	assert.NoError(t, err)
 	assert.Equal(t, "ok /non:-alphanumeric", result)
@@ -296,7 +299,7 @@ func TestInterpolationExternalInterference(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			result, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
+			result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt.template, defaultMapping)
 			assert.NoError(t, warn)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
@@ -351,7 +354,7 @@ func TestDefaultsWithNestedExpansion(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			result, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
+			result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt.template, defaultMapping)
 			assert.NoError(t, warn)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
@@ -394,7 +397,7 @@ func TestMandatoryVariableErrors(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			_, warn, err := templatepkg.Substitute(tt.template, defaultMapping)
+			_, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt.template, defaultMapping)
 			require.NoError(t, warn)
 			require.ErrorContains(t, err, tt.expectedError)
 
@@ -427,7 +430,7 @@ func TestMandatoryVariableErrorsWithNestedExpansion(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			_, _, err := templatepkg.Substitute(tt.template, defaultMapping)
+			_, _, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt.template, defaultMapping)
 			require.ErrorContains(t, err, tt.expectedError)
 
 			missingRequiredError := &templatepkg.MissingRequiredError{}
@@ -459,7 +462,7 @@ func TestDefaultsForMandatoryVariables(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		result, warn, err := templatepkg.Substitute(tc.template, defaultMapping)
+		result, warn, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tc.template, defaultMapping)
 		assert.NoError(t, warn)
 		assert.NoError(t, err)
 		assert.Equal(t, tc.expected, result)
@@ -476,7 +479,7 @@ func TestPrecedence(t *testing.T) {
 		err      error
 	}{
 		{
-			template: "${UNSET_VAR?bar-baz}", // Unexistent variable
+			template: "${UNSET_VAR?bar-baz}", // Nonexistent variable
 			expected: "",
 			err: &templatepkg.MissingRequiredError{
 				Variable: "UNSET_VAR",
@@ -484,7 +487,7 @@ func TestPrecedence(t *testing.T) {
 			},
 		},
 		{
-			template: "${UNSET_VAR-myerror?msg}", // Unexistent variable
+			template: "${UNSET_VAR-myerror?msg}", // Nonexistent variable
 			expected: "myerror?msg",
 			err:      nil,
 		},
@@ -508,9 +511,18 @@ func TestPrecedence(t *testing.T) {
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
-			result, _, err := templatepkg.Substitute(tt.template, defaultMapping)
+			result, _, err := templatepkg.Substitute(tui.NewContext(context.TODO(), nil, nil), tt.template, defaultMapping)
 
-			assert.Equal(t, tt.err, err)
+			var asErr *templatepkg.MissingRequiredError
+
+			switch {
+			case errors.As(err, &asErr):
+				assert.Equal(t, tt.err, asErr)
+
+			default:
+				assert.Equal(t, tt.err, err)
+			}
+
 			assert.Equal(t, tt.expected, result)
 		})
 	}

@@ -94,7 +94,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 				light.Println("(dir) The directory [" + bold.Sprintf(assignment.Interpolated) + "] does not exist.")
 
 				if askToFix {
-					fmt.Fprintln(os.Stderr, buff.String())
+					fmt.Fprintln(tui.StderrFromContext(ctx).NoColor(), buff.String())
 					buff.Reset()
 
 					AskToCreateDirectory(ctx, assignment.Interpolated)

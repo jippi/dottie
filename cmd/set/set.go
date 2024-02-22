@@ -49,7 +49,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	document, err := pkg.Load(filename)
+	document, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return err
 	}
@@ -91,16 +91,52 @@ func runE(cmd *cobra.Command, args []string) error {
 		stdout, stderr = tui.WritersFromContext(cmd.Context())
 	)
 
+	var (
+		i        int
+		skipNext bool
+	)
+
 	for _, stringPair := range args {
-		pairSlice := strings.SplitN(stringPair, "=", 2)
-		if len(pairSlice) != 2 {
-			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
+		if skipNext {
+			skipNext = false
 
 			continue
 		}
 
-		key := pairSlice[0]
-		value := pairSlice[1]
+		var key, value string
+
+		// KEY1=VALUE KEY2=VALUE [...]
+		pairSlice := strings.SplitN(stringPair, "=", 2)
+		if len(pairSlice) == 2 {
+			i++
+
+			key = pairSlice[0]
+			value = pairSlice[1]
+		}
+
+		// KEY1 VALUE1 KEY2 VALUE2
+		if len(key) == 0 {
+			key = args[i]
+			i++
+
+			if i >= len(args) {
+				allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument", stringPair))
+
+				break
+			}
+
+			value = args[i]
+			i++
+
+			skipNext = true
+		}
+
+		// Fail
+		if len(key) == 0 {
+			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
+
+			continue
+		}
 
 		assignment := &ast.Assignment{
 			Name:         key,
@@ -119,17 +155,16 @@ func runE(cmd *cobra.Command, args []string) error {
 		tui.MaybePrintWarnings(cmd.Context(), warnings)
 
 		if err != nil {
-			z := ast.NewError(assignment, err)
-			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, assignment, false, true))
+			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, err, assignment, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)
 
 				continue
 			}
+		} else {
+			stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 		}
-
-		stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 	}
 
 	if allErrors != nil {

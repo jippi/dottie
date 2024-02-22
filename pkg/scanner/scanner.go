@@ -274,7 +274,9 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Tok
 			break
 		}
 
-		if quote.Is(s.rune) {
+		// Break parsing if we hit our quote style,
+		// and the previous token IS NOT an escape sequence
+		if quote.Is(s.rune) && s.prev() != '\\' {
 			break
 		}
 
@@ -409,7 +411,7 @@ func isEOF(r rune) bool {
 }
 
 func isWideSpace(r rune) bool {
-	return unicode.IsSpace(r) || isEOF(r) || isNewLine(r)
+	return unicode.IsSpace(r) || isEOF(r) || isNewLine(r) || r == '\v'
 }
 
 // ------------------------------------------------------------------------

@@ -62,7 +62,7 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 		return shared.StringFlag(flags, name)
 	}
 
-	doc, err := pkg.Load(stringFlag("file"))
+	doc, err := pkg.Load(cmd.Context(), stringFlag("file"))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,7 +89,7 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 				continue
 			}
 
-			warn, err = doc.InterpolateStatement(assignment)
+			warn, err = doc.InterpolateStatement(cmd.Context(), assignment)
 
 			allWarnings = multierr.Append(allWarnings, warn)
 			allErrors = multierr.Append(allErrors, err)
