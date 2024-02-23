@@ -1,6 +1,7 @@
 package tui_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/tui"
@@ -61,6 +62,24 @@ func TestBackAndForth(t *testing.T) {
 			expectedQuoted: `\\\\\\`,
 			expectedRunes:  []rune{'\\', '\\', '\\'},
 		},
+		{
+			name:           "null",
+			input:          "\x00",
+			expectedQuoted: `\x00`,
+			expectedRunes:  []rune{0},
+		},
+		{
+			name:           "slash-zero",
+			input:          "\\0",
+			expectedQuoted: `\\0`,
+			expectedRunes:  []rune{'\\', '0'},
+		},
+		{
+			name:           "weird-1",
+			input:          "\xf5",
+			expectedQuoted: "\\xf5",
+			expectedRunes:  []rune{65533},
+		},
 	}
 
 	for _, tt := range tests {
@@ -69,18 +88,63 @@ func TestBackAndForth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			t.Log("-----------------------")
+			t.Log("tt.input")
+			t.Log("-----------------------")
+
+			for _, line := range tui.DumpSlice(tt.input) {
+				t.Log(line)
+			}
+
+			t.Log("-----------------------")
+			t.Log("strconv.Quote")
+			t.Log("-----------------------")
+
+			qu := strconv.Quote(tt.input)
+
+			for _, line := range tui.DumpSlice(qu) {
+				t.Log(line)
+			}
+
 			// Ensure expected runes match the runes from the input
 			assert.Equal(t, tt.expectedRunes, []rune(tt.input))
+
+			t.Log("-----------------------")
+			t.Log("tui.Quote")
+			t.Log("-----------------------")
 
 			// Quote the string
 			quoted := tui.Quote(tt.input)
 
+			for _, line := range tui.DumpSlice(quoted) {
+				t.Log(line)
+			}
+
 			// Ensure output matches the expected quoted string
 			assert.Equal(t, tt.expectedQuoted, quoted)
+
+			t.Log("-----------------------")
+			t.Log("strconv.Unquote")
+			t.Log("-----------------------")
+
+			s, err := strconv.Unquote(qu)
+			require.NoError(t, err)
+
+			for _, line := range tui.DumpSlice(s) {
+				t.Log(line)
+			}
 
 			// Unquote the string back
 			unquoted, err := tui.Unquote(quoted, '"', true)
 			require.NoError(t, err)
+
+			t.Log("-----------------------")
+			t.Log("tui.unquoted")
+			t.Log("-----------------------")
+
+			for _, line := range tui.DumpSlice(unquoted) {
+				t.Log(line)
+			}
 
 			// The unquoted string must be equal to the original input
 			assert.Equal(t, tt.input, unquoted, "unquoted string does not match original input")

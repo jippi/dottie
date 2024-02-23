@@ -10,14 +10,32 @@ import (
 func Unquote(input string, quote byte, unescape bool) (out string, err error) {
 	input0 := input
 
-	var runes []rune
+	// Handle quoted strings without any escape sequences.
+	if !contains(input, '\\') && !contains(input, '\n') {
+		var valid bool
+
+		switch quote {
+		case '"':
+			valid = utf8.ValidString(input)
+
+		case '\'':
+			r, n := utf8.DecodeRuneInString(input)
+			valid = (r != utf8.RuneError || n != 1)
+		}
+
+		if valid {
+			return input, nil
+		}
+	}
+
+	var buf []byte
 
 	// LOOP
 	for len(input) > 0 {
 		fmt.Println("Unquote.input=", fmt.Sprintf(">%q<", input))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
-		runeVal, _, remaining, err := UnquoteChar(input, quote)
+		runeVal, multibyte, remaining, err := UnquoteChar(input, quote)
 		if err != nil {
 			return input0, err
 		}
@@ -28,11 +46,15 @@ func Unquote(input string, quote byte, unescape bool) (out string, err error) {
 
 		// Append the character if unescaping the input.
 		if unescape {
-			// if runeVal < utf8.RuneSelf || !multibyte {
-			runes = append(runes, runeVal)
-			// } else {
-			// 	runes = append(runes, runeVal)
-			// }
+			if runeVal < utf8.RuneSelf || !multibyte {
+				fmt.Println("==> append")
+
+				buf = append(buf, byte(runeVal))
+			} else {
+				fmt.Println("==> utf8.AppendRune")
+
+				buf = utf8.AppendRune(buf, runeVal)
+			}
 		}
 
 		// Single quoted strings must be a single character.
@@ -42,7 +64,7 @@ func Unquote(input string, quote byte, unescape bool) (out string, err error) {
 	}
 
 	if unescape {
-		return string(runes), nil
+		return string(buf), nil
 	}
 
 	return input, nil
@@ -64,8 +86,6 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 	}
 
 	fmt.Println("UnquoteChar.switch.char", fmt.Sprintf(">%q<", input[0]))
-
-	fmt.Println(">", input[0], "<", "vs", '\\')
 
 	switch char := input[0]; {
 	case char >= utf8.RuneSelf:
@@ -119,6 +139,8 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		value = '\v'
 
 	case 'x', 'u', 'U':
+		fmt.Println("UnquoteChar.char-switch", "xuU")
+
 		n := 0
 
 		switch char {
@@ -154,6 +176,8 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		input = input[n:]
 
 		if char == 'x' {
+			fmt.Println("UnquoteChar.char-switch", "xuU -> x (NOT UTF-8)")
+
 			// single-byte string, possibly not UTF-8
 			value = v
 
@@ -170,6 +194,8 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		multibyte = true
 
 	case '0', '1', '2', '3', '4', '5', '6', '7':
+		fmt.Println("UnquoteChar.char-switch", "numbers")
+
 		v := rune(char) - '0'
 
 		if len(input) < 2 {

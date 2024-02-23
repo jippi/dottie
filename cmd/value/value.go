@@ -3,7 +3,6 @@ package value
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -62,7 +61,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	spew.Dump("value.assignment.Interpolated", assignment.Interpolated)
+	fmt.Println("value.assignment.Interpolated", fmt.Sprintf(">%q<", assignment.Interpolated), fmt.Sprintf(">%U<", []rune(assignment.Interpolated)))
 
 	// fmt.Fprint(cmd.OutOrStdout(), "before print", fmt.Sprintf("%U", []rune(assignment.Interpolated)))
 	fmt.Fprint(cmd.OutOrStdout(), assignment.Interpolated)

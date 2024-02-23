@@ -1,7 +1,6 @@
 package tui
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"unicode/utf8"
@@ -15,27 +14,7 @@ func bleh() {
 // If passed to /bin/sh, the resulting string will be split back into the
 // original arguments.
 func Quote(in string) string {
-	out := bytes.Buffer{}
-
-	// for _, r := range in {
-	quote(in, '"', &out)
-
-	// out.WriteString(thing[1 : len(thing)-1])
-	// }
-
-	return out.String()
-
-	// var buf bytes.Buffer
-
-	// for i, arg := range args {
-	// 	if i != 0 {
-	// 		buf.WriteByte(' ')
-	// 	}
-
-	// 	quote(arg, &buf)
-	// }
-
-	// return buf.String()
+	return string(quote(nil, in, '"'))
 }
 
 const (
@@ -43,7 +22,7 @@ const (
 	upperhex = "0123456789ABCDEF"
 )
 
-func quote(word string, quote byte, buf *bytes.Buffer) {
+func quote(buf []byte, word string, quote byte) []byte {
 	fmt.Println("quote.input.word", fmt.Sprintf(">%q<", word))
 
 	var (
@@ -51,56 +30,42 @@ func quote(word string, quote byte, buf *bytes.Buffer) {
 		graphicOnly = false
 	)
 
-	// We want to try to produce a "nice" output. As such, we will
-	// backslash-escape most characters, but if we encounter a space, or if we
-	// encounter an extra-special char (which doesn't work with
-	// backslash-escaping) we switch over to quoting the whole word. We do this
-	// with a space because it's typically easier for people to read multi-word
-	// arguments when quoted with a space rather than with ugly backslashes
-	// everywhere.
-	// origLen := buf.Len()
-
-	if len(word) == 0 {
-		fmt.Println("quote.input.outcome", "len(word) == 0")
-
-		// oops, no content
-		buf.WriteString("")
-
-		return
-	}
-
 	cur := word
 
-	for len(cur) > 0 {
-		runeValue, width := utf8.DecodeRuneInString(cur)
+	for width := 0; len(cur) > 0; cur = cur[width:] { //nolint
+		runeValue := rune(cur[0])
+		width = 1
 
-		cur = cur[width:]
+		if runeValue >= utf8.RuneSelf {
+			runeValue, width = utf8.DecodeRuneInString(cur)
+		}
 
 		if width == 1 && runeValue == utf8.RuneError {
 			fmt.Println("quote.for-loop.outcome", "width == 1 && runeValue == utf8.RuneError")
 
-			buf.WriteString(`\x`)
-			buf.WriteByte(lowerhex[runeValue>>4])
-			buf.WriteByte(lowerhex[runeValue&0xF])
+			buf = append(buf, `\x`...)
+			buf = append(buf, lowerhex[cur[0]>>4])
+			buf = append(buf, lowerhex[cur[0]&0xF])
 
 			continue
 		}
 
-		buf.Write(appendEscapedRune(nil, runeValue, quote, ASCIIonly, graphicOnly))
+		fmt.Println("quote.for-loop.outcome", "appendEscapedRune")
+
+		buf = appendEscapedRune(buf, runeValue, quote, ASCIIonly, graphicOnly)
 	}
 
-	return
+	return buf
 }
 
-func appendEscapedRune(buf []byte, r rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
-	fmt.Println("appendEscapedRune.input.rune", fmt.Sprintf(">%q<", r))
+func appendEscapedRune(buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
+	fmt.Println("appendEscapedRune.input.rune", fmt.Sprintf(">%q<", runeValue))
 
-	if r == rune(quote) || r == '\\' { // always backslashed
-		// if r == rune(quote) {
+	if runeValue == rune(quote) || runeValue == '\\' { // always backslashed
 		fmt.Println("appendEscapedRune.input.rune", "r == rune(quote)")
 
 		buf = append(buf, '\\')
-		buf = append(buf, byte(r))
+		buf = append(buf, byte(runeValue))
 
 		return buf
 	}
@@ -108,18 +73,18 @@ func appendEscapedRune(buf []byte, r rune, quote byte, ASCIIonly, graphicOnly bo
 	if ASCIIonly {
 		fmt.Println("appendEscapedRune.input.rune", "ASCIIonly!")
 
-		if r < utf8.RuneSelf && strconv.IsPrint(r) {
-			buf = append(buf, byte(r))
+		if runeValue < utf8.RuneSelf && strconv.IsPrint(runeValue) {
+			buf = append(buf, byte(runeValue))
 
 			return buf
 		}
-	} else if strconv.IsPrint(r) || graphicOnly && isInGraphicList(r) {
+	} else if strconv.IsPrint(runeValue) || graphicOnly && isInGraphicList(runeValue) {
 		fmt.Println("appendEscapedRune.input.rune", "IsPrint/isInGraphicList!")
 
-		return utf8.AppendRune(buf, r)
+		return utf8.AppendRune(buf, runeValue)
 	}
 
-	switch r {
+	switch runeValue {
 	case '\a':
 		buf = append(buf, `\a`...)
 	case '\b':
@@ -136,23 +101,23 @@ func appendEscapedRune(buf []byte, r rune, quote byte, ASCIIonly, graphicOnly bo
 		buf = append(buf, `\v`...)
 	default:
 		switch {
-		case r < ' ' || r == 0x7f:
+		case runeValue < ' ' || runeValue == 0x7f:
 			buf = append(buf, `\x`...)
-			buf = append(buf, lowerhex[byte(r)>>4])
-			buf = append(buf, lowerhex[byte(r)&0xF])
-		case !utf8.ValidRune(r):
-			r = 0xFFFD
+			buf = append(buf, lowerhex[byte(runeValue)>>4])
+			buf = append(buf, lowerhex[byte(runeValue)&0xF])
+		case !utf8.ValidRune(runeValue):
+			runeValue = 0xFFFD
 
 			fallthrough
-		case r < 0x10000:
+		case runeValue < 0x10000:
 			buf = append(buf, `\u`...)
 			for s := 12; s >= 0; s -= 4 {
-				buf = append(buf, lowerhex[r>>uint(s)&0xF])
+				buf = append(buf, lowerhex[runeValue>>uint(s)&0xF])
 			}
 		default:
 			buf = append(buf, `\U`...)
 			for s := 28; s >= 0; s -= 4 {
-				buf = append(buf, lowerhex[r>>uint(s)&0xF])
+				buf = append(buf, lowerhex[runeValue>>uint(s)&0xF])
 			}
 		}
 	}

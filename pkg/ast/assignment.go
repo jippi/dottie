@@ -137,8 +137,8 @@ func (a *Assignment) CommentsSlice() []string {
 }
 
 func (a *Assignment) SetLiteral(in string) {
-	fmt.Printf("EscapeString: in string >%s<\n", in)
-	fmt.Printf("EscapeString: in unicode >%U<\n", []rune(in))
+	fmt.Printf("SetLiteral.input.string  >%s<\n", in)
+	fmt.Printf("SetLiteral.input.unicode >%U<\n", []rune(in))
 
 	a.Literal = tui.Quote(a.Literal)
 

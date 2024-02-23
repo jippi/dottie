@@ -2,7 +2,6 @@ package set
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -97,7 +96,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		skipNext bool
 	)
 
-	fmt.Printf("%q\n", os.Args)
+	// fmt.Printf("%q\n", os.Args)
 
 	for _, arg := range args {
 		fmt.Printf("==> [%s] - %U\n", arg, []rune(arg))
@@ -145,10 +144,10 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		value, err = tui.Unquote(value, '`', true)
-		if err != nil {
-			panic(err)
-		}
+		// value, err = tui.Unquote(value, '`', true)
+		// if err != nil {
+		// 	panic(err)
+		// }
 
 		assignment := &ast.Assignment{
 			Name:         key,
