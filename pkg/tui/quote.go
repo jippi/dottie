@@ -2,6 +2,7 @@ package tui
 
 import (
 	"bytes"
+	"fmt"
 	"strconv"
 	"unicode/utf8"
 )
@@ -43,6 +44,8 @@ const (
 )
 
 func quote(word string, quote byte, buf *bytes.Buffer) {
+	fmt.Println("quote.input.word", fmt.Sprintf(">%q<", word))
+
 	var (
 		ASCIIonly   = false
 		graphicOnly = false
@@ -58,6 +61,8 @@ func quote(word string, quote byte, buf *bytes.Buffer) {
 	// origLen := buf.Len()
 
 	if len(word) == 0 {
+		fmt.Println("quote.input.outcome", "len(word) == 0")
+
 		// oops, no content
 		buf.WriteString("")
 
@@ -72,6 +77,8 @@ func quote(word string, quote byte, buf *bytes.Buffer) {
 		cur = cur[width:]
 
 		if width == 1 && runeValue == utf8.RuneError {
+			fmt.Println("quote.for-loop.outcome", "width == 1 && runeValue == utf8.RuneError")
+
 			buf.WriteString(`\x`)
 			buf.WriteByte(lowerhex[runeValue>>4])
 			buf.WriteByte(lowerhex[runeValue&0xF])
@@ -86,8 +93,12 @@ func quote(word string, quote byte, buf *bytes.Buffer) {
 }
 
 func appendEscapedRune(buf []byte, r rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
-	// if r == rune(quote) || r == '\\' { // always backslashed
-	if r == rune(quote) { // always backslashed
+	fmt.Println("appendEscapedRune.input.rune", fmt.Sprintf(">%q<", r))
+
+	if r == rune(quote) || r == '\\' { // always backslashed
+		// if r == rune(quote) {
+		fmt.Println("appendEscapedRune.input.rune", "r == rune(quote)")
+
 		buf = append(buf, '\\')
 		buf = append(buf, byte(r))
 
@@ -95,12 +106,16 @@ func appendEscapedRune(buf []byte, r rune, quote byte, ASCIIonly, graphicOnly bo
 	}
 
 	if ASCIIonly {
+		fmt.Println("appendEscapedRune.input.rune", "ASCIIonly!")
+
 		if r < utf8.RuneSelf && strconv.IsPrint(r) {
 			buf = append(buf, byte(r))
 
 			return buf
 		}
 	} else if strconv.IsPrint(r) || graphicOnly && isInGraphicList(r) {
+		fmt.Println("appendEscapedRune.input.rune", "IsPrint/isInGraphicList!")
+
 		return utf8.AppendRune(buf, r)
 	}
 

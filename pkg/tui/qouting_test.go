@@ -45,20 +45,20 @@ func TestBackAndForth(t *testing.T) {
 		},
 		{
 			name:           "slash",
-			input:          "\\",
-			expectedQuoted: `\`,
+			input:          `\`,
+			expectedQuoted: `\\`,
 			expectedRunes:  []rune{'\\'},
 		},
 		{
 			name:           "double-slash",
-			input:          "\\\\",
-			expectedQuoted: `\\`,
+			input:          `\\`,
+			expectedQuoted: `\\\\`,
 			expectedRunes:  []rune{'\\', '\\'},
 		},
 		{
 			name:           "triple-slash",
-			input:          "\\\\\\",
-			expectedQuoted: `\\\`,
+			input:          `\\\`,
+			expectedQuoted: `\\\\\\`,
 			expectedRunes:  []rune{'\\', '\\', '\\'},
 		},
 	}

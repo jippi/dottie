@@ -69,11 +69,6 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 	_, err := os.Create(dotEnvFile)
 	require.NoErrorf(t, err, "failed to create empty .env file [ %s ] in TempDir", dotEnvFile)
 
-	// expected = Clean(expected)
-	// if x, err := strconv.Unquote(expected); err == nil {
-	// 	expected = x
-	// }
-
 	t.Log("-----------------------")
 	t.Log("EXPECTED VALUE")
 	t.Log("-----------------------")

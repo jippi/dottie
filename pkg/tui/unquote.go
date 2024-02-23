@@ -79,17 +79,16 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		fmt.Println("UnquoteChar.switch.outcome", "char != '\\'")
 
 		return rune(input[0]), false, input[1:], nil
-	}
 
-	fmt.Println("UnquoteChar.switch.miss", "yep")
-
-	if len(input) <= 1 {
+	case char == '\\' && len(input) <= 1:
 		fmt.Println("UnquoteChar.switch.len <= 1", fmt.Sprintf(">%q<", input[0]), fmt.Sprintf(">%q<", input[1:]))
 
 		return rune(input[0]), false, input[1:], nil
 	}
 
-	initial := input[0]
+	fmt.Println("UnquoteChar.switch.miss", "yep")
+
+	// initial := input[0]
 
 	char := input[1]
 	input = input[2:]
@@ -207,9 +206,9 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 
 		// If we're unquoting another "\" the make sure to include it
 		// in the "input" so we don't convert "\\\\" into "\\"
-		if initial == '\\' {
-			input = "\\" + input
-		}
+		// if initial == '\\' {
+		// 	input = "\\" + input
+		// }
 
 	case '\'':
 		if char != quote {
