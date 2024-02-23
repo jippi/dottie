@@ -143,6 +143,8 @@ func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignmen
 }
 
 func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
+	fmt.Println("doInterpolation!!!")
+
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
@@ -177,12 +179,14 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		target.Interpolated = target.Literal
+		target.Interpolated = target.Unquote()
+
+		fmt.Println("doInterpolation.target.Interpolated", fmt.Sprintf(">%q<", target.Interpolated))
 
 		return
 	}
 
-	value, warnings, err := template.Substitute(ctx, target.Quote.Unescape(target.Literal), doc.interpolationMapper(target))
+	value, warnings, err := template.Substitute(ctx, target.Unquote(), doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}

@@ -98,8 +98,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	}
 
 	existing.Enabled = input.Enabled
-	existing.Literal = input.Quote.Escape(input.Literal)
-	existing.Interpolated = input.Literal
+	existing.Literal = input.Literal
 	existing.Quote = input.Quote
 
 	var (
@@ -112,14 +111,16 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	content := render.NewFormatter().Statement(ctx, thing).String()
 	scan := scanner.New(content)
 
+	fmt.Println("memory://tmp/upsert >", content, "<")
+
 	tempDoc, err = parser.New(scan, "memory://tmp/upsert").Parse(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("(upsert) failed to parse assignment: %w", err)
 	}
 
 	existing = tempDoc.Get(existing.Name)
+	existing.Literal = input.Literal
 	existing.Initialize()
-	existing.Literal = input.Quote.Escape(input.Literal)
 
 	if _, ok := existing.Dependencies[existing.Name]; ok {
 		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
@@ -163,15 +164,18 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 		Quote:    input.Quote,
 	}
 
-	newAssignment.Literal = newAssignment.Quote.Escape(input.Literal)
-	newAssignment.Interpolated = newAssignment.Literal
+	newAssignment.Literal = input.Literal
+
+	fmt.Println("createAndInsert: input.Literal >", newAssignment.Literal, "<")
 
 	content := render.NewFormatter().Statement(ctx, newAssignment).String()
 	scan := scanner.New(content)
 
+	fmt.Println("HELLO WORLD >", content, "<")
+
 	inMemoryDoc, err := parser.New(scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("(createAndInsert) failed to parse assignment: %w", err)
+		return nil, fmt.Errorf("(createAndInsert 1) failed to parse assignment: %w", err)
 	}
 
 	// Ensure the group exists (may return 'nil' if no group is required)
@@ -179,7 +183,7 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 
 	newAssignment = inMemoryDoc.Get(newAssignment.Name)
 	if newAssignment == nil {
-		return nil, fmt.Errorf("(createAndInsert) could not read assignment back from in-memory parser for key [ %s ]", input.Name)
+		return nil, fmt.Errorf("(createAndInsert 2) could not read assignment back from in-memory parser for key [ %s ]", input.Name)
 	}
 
 	newAssignment.Group = group

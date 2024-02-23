@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -56,6 +57,8 @@ func New(input string) *Scanner {
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
 func (s *Scanner) NextToken() token.Token {
+	fmt.Println("Scanner working on rune:", s.rune, string(s.rune))
+
 	switch s.rune {
 	case eof:
 		return token.New(
@@ -262,13 +265,23 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 }
 
 func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Token {
+	fmt.Println("scanQuotedValue!")
 	// opening quote already consumed
 	s.next()
 
 	start := s.offset
 
+	fmt.Println("scanQuotedValue: s.input", fmt.Sprintf(">%q<", s.input))
+
+	escapes := 0
+
 	for {
+		escapingPrevious := escapes == 1
+
+		fmt.Println("scanQuotedValue -->", fmt.Sprintf("%q", s.rune), fmt.Sprintf("%q", quote.Rune()), s.rune, "inEscape?", escapingPrevious, escapes)
+
 		if isEOF(s.rune) || isNewLine(s.rune) {
+			// panic("nein")
 			tType = token.Illegal
 
 			break
@@ -276,8 +289,19 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Tok
 
 		// Break parsing if we hit our quote style,
 		// and the previous token IS NOT an escape sequence
-		if quote.Is(s.rune) && s.prev() != '\\' {
+		if quote.Is(s.rune) && !escapingPrevious {
+			// panic("oh no")
 			break
+		}
+
+		if s.rune == '\\' {
+			escapes++
+		} else {
+			escapes = 0
+		}
+
+		if escapes == 2 {
+			escapes = 0
 		}
 
 		s.next()
@@ -286,9 +310,13 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Tok
 	offset := s.offset
 	lit := s.input[start:offset]
 
+	fmt.Println("scanQuotedValue lit (before):", tType, lit)
+
 	if tType == token.Value {
 		lit = escape(lit)
 	}
+
+	fmt.Println("scanQuotedValue lit (after):", tType, lit)
 
 	if quote.Is(s.rune) {
 		s.next()

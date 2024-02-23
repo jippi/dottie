@@ -2,6 +2,7 @@ package set
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -96,6 +97,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		skipNext bool
 	)
 
+	fmt.Printf("%q\n", os.Args)
+
+	for _, arg := range args {
+		fmt.Printf("==> [%s] - %U\n", arg, []rune(arg))
+	}
+
 	for _, stringPair := range args {
 		if skipNext {
 			skipNext = false
@@ -138,14 +145,21 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		value, err = tui.Unquote(value, '`', true)
+		if err != nil {
+			panic(err)
+		}
+
 		assignment := &ast.Assignment{
 			Name:         key,
+			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Literal:      value,
 			Interpolated: value,
-			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
 			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
 		}
+
+		assignment.SetLiteral(value)
 
 		//
 		// Upsert the assignment

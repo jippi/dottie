@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/multierr"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
@@ -66,6 +66,9 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
 func Substitute(_ context.Context, template string, resolver Resolver) (string, error, error) {
+	spew.Dump("Substitute", template)
+	// return template, nil, nil
+
 	var (
 		combinedWarnings, combinedErrors error
 		missing                          []string
@@ -127,16 +130,19 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 		},
 	}
 
+	inputToReader := template
+	// fmt.Println(inputToReader)
+
 	// Parse template into Shell words
 	//
 	// Single quote the input to avoid shell expansions such as "~" => $HOME => env lookup
-	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(strconv.QuoteToASCII(template)))
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(inputToReader))
 	if err != nil {
 		return "", nil, InvalidTemplateError{Template: template}
 	}
 
 	// Expand variables
-	result, err := expand.Document(config, words)
+	result, err := expand.Literal(config, words)
 	if err != nil {
 		// Inspect error and enrich it
 		target := &expand.UnsetParameterError{}
@@ -152,18 +158,6 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: template, Wrapped: err})
 		}
 	}
-
-	unquoted, err := strconv.Unquote(result)
-	switch err {
-	case nil:
-		result = unquoted
-
-	default:
-		combinedErrors = multierr.Append(combinedErrors, err)
-	}
-
-	// result = strings.TrimPrefix(result, "'")
-	// result = strings.TrimSuffix(result, "'")
 
 	// Emit missing key warnings
 	for _, missingKey := range missing {

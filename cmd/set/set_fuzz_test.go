@@ -13,148 +13,191 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd"
-	"github.com/jippi/dottie/pkg/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func FuzzMultipleInputs(f *testing.F) {
+func FuzzSetCommand(f *testing.F) {
 	f.Add("@@\v\"@23")
 
-	f.Fuzz(func(t *testing.T, expected string) {
-		dotEnvFile := t.TempDir() + "/tmp.env"
+	f.Fuzz(doTest)
+}
 
-		_, err := os.Create(dotEnvFile)
-		require.NoErrorf(t, err, "failed to create empty .env file [ %s ] in TempDir", dotEnvFile)
+func TestSpecificInputs(t *testing.T) {
+	t.Parallel()
 
-		expected = token.DoubleQuotes.Escape(expected)
-		// expected = Clean(expected)
-		// if x, err := strconv.Unquote(expected); err == nil {
-		// 	expected = x
-		// }
+	t.Run("newline", func(t *testing.T) {
+		t.Parallel()
 
-		t.Log("-----------------------")
-		t.Log("EXPECTED VALUE")
-		t.Log("-----------------------")
-		dump(t, expected)
-
-		// Set the KEY/VALUE pair
-		setFailed := false
-
-		{
-			var (
-				stdout bytes.Buffer
-				stderr bytes.Buffer
-				args   = []string{
-					"--file", dotEnvFile,
-					"set",
-					"--",
-					"my_key", expected,
-				}
-			)
-
-			t.Log("-----------------------")
-			t.Log("ARGS:")
-			t.Log("-----------------------")
-			t.Log(spew.Sdump(args))
-			t.Log()
-
-			// Run command
-			_, err := cmd.RunCommand(context.Background(), args, &stdout, &stderr)
-
-			if stdout.Len() == 0 {
-				stdout.WriteString("(empty)")
-			}
-
-			if stderr.Len() == 0 {
-				stderr.WriteString("(empty)")
-			}
-
-			t.Log("-----------------------")
-			t.Log("STDOUT:")
-			t.Log("-----------------------")
-			t.Log(stdout.String())
-			t.Log()
-
-			t.Log("-----------------------")
-			t.Log("STDERR:")
-			t.Log("-----------------------")
-			t.Log(stderr.String())
-			t.Log()
-
-			out := stdout.String()
-			if err == nil {
-				assert.Contains(t, out, "Key [ my_key ] was successfully upserted")
-				assert.Contains(t, out, "File was successfully saved")
-			}
-
-			if err != nil {
-				setFailed = true
-
-				assert.Regexp(t, "(illegal UTF-8 encoding|unexpected token|Invalid template)", stderr.String())
-			}
-		}
-
-		// Half-way checkpoint for some checks
-
-		{
-			if setFailed {
-				return
-			}
-
-			out, err := os.ReadFile(dotEnvFile)
-			require.NoError(t, err)
-
-			disk := strings.TrimRight(string(out), "\n")
-
-			t.Log("-----------------------")
-			t.Log("FILE ON DISK")
-			t.Log("-----------------------")
-			dump(t, disk)
-		}
-
-		// Read back from disk
-		{
-			var (
-				stdout      bytes.Buffer
-				stderr      bytes.Buffer
-				commandArgs = []string{
-					"--file", dotEnvFile,
-					"value",
-					"my_key",
-				}
-			)
-
-			// Run command
-			cmd.RunCommand(context.Background(), commandArgs, &stdout, &stderr)
-
-			t.Log("-----------------------")
-			t.Log("STDOUT:")
-			t.Log("-----------------------")
-			t.Log(stdout.String())
-
-			t.Log("-----------------------")
-			t.Log("STDERR:")
-			t.Log("-----------------------")
-			t.Log(stderr.String())
-
-			// In cases where we get "$0" and similar, the actual interpolated output will be different than the input
-			if strings.Contains(stderr.String(), "Defaulting to a blank string") {
-				return
-			}
-
-			actual := stdout.String()
-			actual = token.DoubleQuotes.Escape(actual)
-			// actual = Clean(actual)
-
-			t.Log("-----------------------")
-			t.Log("Actual")
-			t.Log("-----------------------")
-			dump(t, actual)
-
-			assert.Equal(t, fmt.Sprintf("%U", []rune(expected)), fmt.Sprintf("%U", []rune(actual)))
-		}
+		doTest(t, "\n")
 	})
+
+	t.Run("tab", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "\t")
+	})
+
+	t.Run("slash", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "\\")
+	})
+
+	t.Run("null", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "\x00")
+	})
+
+	t.Run("weird", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "@@\v\"@23")
+	})
+
+	t.Run("weird_2", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "\"\n")
+	})
+}
+
+func doTest(t *testing.T, expected string) { //nolint thelper
+	dotEnvFile := t.TempDir() + "/tmp.env"
+
+	_, err := os.Create(dotEnvFile)
+	require.NoErrorf(t, err, "failed to create empty .env file [ %s ] in TempDir", dotEnvFile)
+
+	// expected = Clean(expected)
+	// if x, err := strconv.Unquote(expected); err == nil {
+	// 	expected = x
+	// }
+
+	t.Log("-----------------------")
+	t.Log("EXPECTED VALUE")
+	t.Log("-----------------------")
+	dump(t, expected)
+
+	// Set the KEY/VALUE pair
+	setFailed := false
+
+	{
+		var (
+			stdout bytes.Buffer
+			stderr bytes.Buffer
+			args   = []string{
+				"--file", dotEnvFile,
+				"set",
+				"--",
+				"my_key", expected,
+			}
+		)
+
+		t.Log("-----------------------")
+		t.Log("ARGS:")
+		t.Log("-----------------------")
+		t.Log(spew.Sdump(args))
+		t.Log()
+
+		// Run command
+		_, err := cmd.RunCommand(context.Background(), args, &stdout, &stderr)
+
+		if stdout.Len() == 0 {
+			stdout.WriteString("(empty)")
+		}
+
+		if stderr.Len() == 0 {
+			stderr.WriteString("(empty)")
+		}
+
+		t.Log("-----------------------")
+		t.Log("STDOUT:")
+		t.Log("-----------------------")
+		t.Log(stdout.String())
+		t.Log()
+
+		t.Log("-----------------------")
+		t.Log("STDERR:")
+		t.Log("-----------------------")
+		t.Log(stderr.String())
+		t.Log()
+
+		switch err {
+		case nil:
+			out := stdout.String()
+
+			assert.Contains(t, out, "Key [ my_key ] was successfully upserted")
+			assert.Contains(t, out, "File was successfully saved")
+
+		default:
+			setFailed = true
+
+			assert.Regexp(t, "(illegal UTF-8 encoding|Invalid template)", stderr.String())
+		}
+	}
+
+	// Half-way checkpoint for some checks
+
+	{
+		if setFailed {
+			return
+		}
+
+		out, err := os.ReadFile(dotEnvFile)
+		require.NoError(t, err)
+
+		disk := strings.TrimRight(string(out), "\n")
+
+		t.Log("-----------------------")
+		t.Log("FILE ON DISK")
+		t.Log("-----------------------")
+		dump(t, disk)
+	}
+
+	// Read back from disk
+	{
+		var (
+			stdout      bytes.Buffer
+			stderr      bytes.Buffer
+			commandArgs = []string{
+				"--file", dotEnvFile,
+				"value",
+				// "--literal",
+				"my_key",
+			}
+		)
+
+		// Run command
+		cmd.RunCommand(context.Background(), commandArgs, &stdout, &stderr)
+
+		t.Log("-----------------------")
+		t.Log("STDOUT:")
+		t.Log("-----------------------")
+		t.Log(stdout.String())
+
+		t.Log("-----------------------")
+		t.Log("STDERR:")
+		t.Log("-----------------------")
+		t.Log(stderr.String())
+
+		// In cases where we get "$0" and similar, the actual interpolated output will be different than the input
+		if strings.Contains(stderr.String(), "Defaulting to a blank string") {
+			return
+		}
+
+		actual := stdout.String()
+		// actual = token.DoubleQuotes.Escape(actual)
+		// actual = Clean(actual)
+
+		t.Log("-----------------------")
+		t.Log("Actual")
+		t.Log("-----------------------")
+		dump(t, actual)
+
+		assert.Equal(t, fmt.Sprintf("%U", []rune(expected)), fmt.Sprintf("%U", []rune(actual)))
+		// assert.True(t, false, "fail")
+	}
 }
 
 func Clean(str string) string {
@@ -175,8 +218,6 @@ func dump(t *testing.T, value string) {
 	t.Helper()
 
 	t.Log("Raw .....  :", value)
-	t.Log("Escaped .  :", token.DoubleQuotes.Escape(value))
-	t.Log("Unescaped  :", token.DoubleQuotes.Unescape(value))
 	t.Log("Glyph ...  :", fmt.Sprintf("%q", value))
 	t.Log("UTF-8 ...  :", fmt.Sprintf("% x", []rune(value)))
 	t.Log("Unicode .  :", fmt.Sprintf("%U", []rune(value)))

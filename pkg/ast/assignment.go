@@ -2,11 +2,14 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
 )
 
 type Assignment struct {
@@ -131,4 +134,40 @@ func (a *Assignment) CommentsSlice() []string {
 	}
 
 	return res
+}
+
+func (a *Assignment) SetLiteral(in string) {
+	fmt.Printf("EscapeString: in string >%s<\n", in)
+	fmt.Printf("EscapeString: in unicode >%U<\n", []rune(in))
+
+	a.Literal = tui.Quote(a.Literal)
+
+	// val, err := tui.Unquote(in, '"', true)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// a.Literal = val
+
+	fmt.Printf("EscapeString: out string >%s<\n", a.Literal)
+	fmt.Printf("EscapeString: out unicode >%U<\n", []rune(a.Literal))
+
+	a.Interpolated = a.Literal
+}
+
+func (a *Assignment) Unquote() string {
+	fmt.Println("Unquote.input", fmt.Sprintf(">%q<", a.Literal))
+
+	// str := tui.Quote(a.Literal)
+	str, err := tui.Unquote(a.Literal, '"', true)
+	if err != nil {
+		panic(err)
+	}
+
+	newstr, err := strconv.Unquote("\"" + a.Literal + "\"")
+	fmt.Println("Unquote.strconv.Unquote", fmt.Sprintf(">%q<", newstr), err)
+
+	fmt.Println("Unquote.output", fmt.Sprintf(">%q<", str))
+
+	return str
 }

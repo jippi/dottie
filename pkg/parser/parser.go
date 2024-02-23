@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
 )
@@ -49,10 +50,14 @@ func (p *Parser) Parse(_ context.Context) (document *ast.Document, err error) {
 	document = ast.NewDocument()
 
 	for p.token.Type != token.EOF {
+		fmt.Println("WORKING ON THIS TOKEN", spew.Sdump(p.token))
+
 		stmt, err := p.parseStatement()
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Println("STMT", spew.Sdump(stmt))
 
 		switch val := stmt.(type) {
 		case *ast.Group:
@@ -273,12 +278,16 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 
 	p.nextToken()
 
+	fmt.Println("parseRowStatement, next token", spew.Sdump(p.token))
+
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
 		stmt = p.parseNakedAssign(name)
 
 	case token.Assign:
 		p.nextToken()
+
+		fmt.Println("parseRowStatement, after assign", spew.Sdump(p.token))
 
 		switch p.token.Type {
 		case token.NewLine, token.EOF:
