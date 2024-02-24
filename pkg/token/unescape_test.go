@@ -58,13 +58,11 @@ func TestUnescape(t *testing.T) {
 	}
 }
 
-type unescapeTest struct {
+var unescapeTests = []struct {
 	in    string
 	out   string
 	quote token.Quote
-}
-
-var unescapeTests = []unescapeTest{
+}{
 	{``, "", token.DoubleQuote},                                     // 0
 	{`a`, "a", token.DoubleQuote},                                   // 1
 	{`abc`, "abc", token.DoubleQuote},                               // 2
@@ -108,7 +106,7 @@ func TestUnquote(t *testing.T) {
 		t.Run(fmt.Sprintf("unquote-tests-%d", idx), func(t *testing.T) {
 			t.Parallel()
 
-			testUnescape(t, tt.in, tt.out, tt.quote)
+			testUnescapeHelper(t, tt.in, tt.out, tt.quote)
 		})
 	}
 
@@ -118,21 +116,13 @@ func TestUnquote(t *testing.T) {
 		t.Run(fmt.Sprintf("quote-tests-%d", idx), func(t *testing.T) {
 			t.Parallel()
 
-			testUnescape(t, tt.out, tt.in, token.DoubleQuote)
+			testUnescapeHelper(t, tt.out, tt.in, token.DoubleQuote)
 		})
 	}
 }
 
-func testUnescape(t *testing.T, in, want string, quote token.Quote) {
-	t.Helper()
-
-	got, err := token.Unescape(context.TODO(), in, quote)
-	require.NoError(t, err)
-	require.Equal(t, want, got)
-}
-
 // Issue 23685: invalid UTF-8 should not go through the fast path.
-func TestUnquoteInvalidUTF8(t *testing.T) {
+func TestUnescapeInvalidUTF8(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -146,6 +136,14 @@ func TestUnquoteInvalidUTF8(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		testUnescape(t, tt.in, tt.want, token.DoubleQuote)
+		testUnescapeHelper(t, tt.in, tt.want, token.DoubleQuote)
 	}
+}
+
+func testUnescapeHelper(t *testing.T, in, want string, quote token.Quote) {
+	t.Helper()
+
+	got, err := token.Unescape(context.TODO(), in, quote)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
 }
