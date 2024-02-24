@@ -158,7 +158,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 		return
 	}
 
-	target.Initialize()
+	target.Initialize(ctx)
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, dependency := range target.Dependencies {
@@ -313,9 +313,9 @@ func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 	return -1, nil
 }
 
-func (document *Document) Initialize() {
+func (document *Document) Initialize(ctx context.Context) {
 	for _, assignment := range document.AllAssignments() {
-		assignment.Initialize()
+		assignment.Initialize(ctx)
 
 		// Add current assignment as dependent on its own dependencies
 		for _, dependency := range assignment.Dependencies {

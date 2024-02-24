@@ -431,11 +431,11 @@ func TestParser_Parse(t *testing.T) {
 				t.Parallel()
 
 				expected := tt.expected
-				expected.Initialize()
+				expected.Initialize(context.TODO())
 				expected.InterpolateAll(context.TODO())
 
 				actual, err := parser.New(context.TODO(), scanner.New(tt.input), "-").Parse(context.TODO())
-				actual.Initialize()
+				actual.Initialize(context.TODO())
 				actual.InterpolateAll(context.TODO())
 
 				require.NoError(t, err)

@@ -42,7 +42,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	stdout, stderr := tui.WritersFromContext(cmd.Context())
 
-	dark := stdout.NoColor()
+	noColor := stdout.NoColor()
 	info := stdout.Info()
 	danger := stdout.Danger()
 	success := stdout.Success()
@@ -51,7 +51,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	info.Box("Starting update of " + filename + " from upstream")
 	info.Println()
 
-	dark.Println("Looking for upstream source")
+	noColor.Println("Looking for upstream source")
 
 	oldDocument, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
@@ -70,9 +70,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		success.Println("  Found source via CLI flag")
 	}
 
-	dark.Println()
+	noColor.Println()
 
-	dark.Println("Copying source from", primary.Sprint(source))
+	noColor.Println("Copying source from", primary.Sprint(source))
 
 	tmp, err := os.CreateTemp(os.TempDir(), ".dottie.source")
 	if err != nil {
@@ -103,7 +103,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println()
 
 	// Load the soon-to-be-merged file
-	dark.Println("Loading and parsing source")
+	noColor.Println("Loading and parsing source")
 
 	newDocument, err := pkg.Load(cmd.Context(), tmp.Name())
 	if err != nil {
@@ -114,8 +114,8 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println()
 
 	// Take current assignments and set them in the new doc
-	dark.Println("Updating upstream with key/value pairs from", primary.Sprint(filename))
-	dark.Println()
+	noColor.Println("Updating upstream with key/value pairs from", primary.Sprint(filename))
+	noColor.Println()
 
 	sawError := false
 	lastWasError := false
@@ -213,18 +213,27 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case errors.As(err, &skippedStatementWarning):
-			stderr.Warning().Print("WARNING: Key [ ", oldStatement.Name, " ] was skipped: ")
-			stderr.Warning().Println(skippedStatementWarning.Reason)
+			lastWasError = skippedStatementWarning.IsError
+
+			color := stderr.Warning()
+
+			if skippedStatementWarning.IsError {
+				color = stderr.Danger()
+
+				sawError = true
+				lastWasError = true
+				counter++
+			}
+
+			color.Print("  ", oldStatement.Name)
+			stderr.NoColor().Print(" was skipped: ")
+			color.Println(skippedStatementWarning.Reason)
 
 		case err != nil:
 			sawError = true
 			lastWasError = true
 
-			if counter > 0 {
-				dark.Println()
-			}
-
-			danger.Print(validation.Explain(cmd.Context(), newDocument, err, changed, false, true))
+			danger.Println(indent(validation.Explain(cmd.Context(), newDocument, err, changed, false, false), 2))
 
 			counter++
 
@@ -241,7 +250,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			lastWasError = false
 
 			success.Print("  ", oldStatement.Name)
-			dark.Print(" was successfully set to ")
+			noColor.Print(" was successfully set to ")
 			primary.Println(oldStatement.Literal)
 		}
 	}
@@ -260,9 +269,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	dark.Print("Backing up ")
+	noColor.Print("Backing up ")
 	primary.Print(filename)
-	dark.Print(" to ")
+	noColor.Print(" to ")
 	primary.Print(filename, ".dottie-backup")
 	primary.Println()
 
@@ -275,7 +284,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println("  OK")
 	success.Println()
 
-	dark.Println("Saving the new", primary.Sprint(filename))
+	noColor.Println("Saving the new", primary.Sprint(filename))
 
 	if err := pkg.Save(cmd.Context(), filename, newDocument); err != nil {
 		danger.Println("  ERROR", err.Error())

@@ -28,8 +28,8 @@ type Assignment struct {
 
 func (a *Assignment) statementNode() {}
 
-func (a *Assignment) Initialize() {
-	if dependencies := template.ExtractVariables(a.Literal); len(dependencies) > 0 {
+func (a *Assignment) Initialize(ctx context.Context) {
+	if dependencies := template.ExtractVariables(ctx, a.Literal); len(dependencies) > 0 {
 		a.Dependencies = dependencies
 	}
 }

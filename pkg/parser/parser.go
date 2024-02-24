@@ -187,7 +187,7 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 
 	// Make sure to initialize the document so dependencies and such are
 	// computed immediately
-	document.Initialize()
+	document.Initialize(ctx)
 
 	return document, nil
 }

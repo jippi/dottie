@@ -74,7 +74,7 @@ func Substitute(ctx context.Context, input string, resolver Resolver) (string, e
 
 	var (
 		combinedErrors error
-		variables      = ExtractVariables(input)
+		variables      = ExtractVariables(ctx, input)
 	)
 
 	environment := EnvironmentHelper{
@@ -163,16 +163,16 @@ func Substitute(ctx context.Context, input string, resolver Resolver) (string, e
 
 // ExtractVariables returns a map of all the variables defined in the specified
 // composefile (dict representation) and their default value if any.
-func ExtractVariables(configDict any) map[string]Variable {
-	return recurseExtract(configDict)
+func ExtractVariables(ctx context.Context, configDict any) map[string]Variable {
+	return recurseExtract(ctx, configDict)
 }
 
-func recurseExtract(value interface{}) map[string]Variable {
+func recurseExtract(ctx context.Context, value interface{}) map[string]Variable {
 	results := map[string]Variable{}
 
 	switch value := value.(type) {
 	case string:
-		if values, is := extractVariable(value); is {
+		if values, is := extractVariable(ctx, value); is {
 			for _, v := range values {
 				results[v.Name] = v
 			}
@@ -180,7 +180,7 @@ func recurseExtract(value interface{}) map[string]Variable {
 
 	case map[string]interface{}:
 		for _, elem := range value {
-			submap := recurseExtract(elem)
+			submap := recurseExtract(ctx, elem)
 			for key, value := range submap {
 				results[key] = value
 			}
@@ -188,7 +188,7 @@ func recurseExtract(value interface{}) map[string]Variable {
 
 	case []interface{}:
 		for _, elem := range value {
-			if values, is := extractVariable(elem); is {
+			if values, is := extractVariable(ctx, elem); is {
 				for _, v := range values {
 					results[v.Name] = v
 				}
@@ -206,7 +206,7 @@ type Variable struct {
 	Required      bool
 }
 
-func extractVariable(value interface{}) ([]Variable, bool) {
+func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) {
 	sValue, ok := value.(string)
 	if !ok {
 		return []Variable{}, false
@@ -227,6 +227,8 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 		}
 	}
 
+	slogctx.Debug(ctx, "template.extractVariable()", slog.String("sValue", sValue))
+
 	syntax.NewParser(syntax.Variant(syntax.LangBash)).Words(strings.NewReader(sValue), func(w *syntax.Word) bool {
 		for _, partInterface := range w.Parts {
 			switch part := partInterface.(type) {
@@ -241,7 +243,9 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 					}
 
 					if slices.Contains([]syntax.ParExpOperator{syntax.DefaultUnsetOrNull, syntax.DefaultUnset}, part.Exp.Op) {
-						variable.DefaultValue = grab(part.Exp.Word.Parts[0])
+						if part.Exp.Word != nil && len(part.Exp.Word.Parts) > 0 {
+							variable.DefaultValue = grab(part.Exp.Word.Parts[0])
+						}
 					}
 
 					if slices.Contains([]syntax.ParExpOperator{syntax.AlternateUnset, syntax.AlternateUnsetOrNull}, part.Exp.Op) {

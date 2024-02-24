@@ -37,9 +37,19 @@ func pkgLogLevel(name string, fallback slog.Level) slog.Level {
 }
 
 func packageLogLevels() map[string]slog.Level {
+	logLevel := ParseLogLevel(os.Getenv("LOG_LEVEL"), slog.LevelInfo)
+
+	lowestOf := func(in slog.Level) slog.Level {
+		if in < logLevel {
+			return in
+		}
+
+		return logLevel
+	}
+
 	return map[string]slog.Level{
-		pkgPrefix + "/pkg/parser":  pkgLogLevel("PARSER", slog.LevelWarn),
-		pkgPrefix + "/pkg/scanner": pkgLogLevel("SCANNER", slog.LevelWarn),
+		pkgPrefix + "/pkg/parser":  pkgLogLevel("PARSER", lowestOf(slog.LevelWarn)),
+		pkgPrefix + "/pkg/scanner": pkgLogLevel("SCANNER", lowestOf(slog.LevelWarn)),
 	}
 }
 

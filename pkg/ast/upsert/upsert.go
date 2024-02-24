@@ -69,7 +69,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// The assignment does *NOT* exists, and we require it to
 	case !exists && u.settings.Has(ErrorIfMissing):
-		return nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
+		return nil, SkippedStatementError{Key: input.Name, IsError: true, Reason: "the key does not exists in the document (ErrorIfMissing)"}
 
 		// The assignment does not have any VALUE
 	case exists && u.settings.Has(SkipIfEmpty) && len(input.Literal) == 0:
@@ -94,7 +94,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 		}
 
 		// Make sure to reindex the document
-		u.document.Initialize()
+		u.document.Initialize(ctx)
 	}
 
 	// Replace comments on the assignment if the Setting is on
@@ -126,7 +126,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	existing = tempDoc.Get(existing.Name)
 	existing.Literal = input.Literal
-	existing.Initialize()
+	existing.Initialize(ctx)
 
 	if _, ok := existing.Dependencies[existing.Name]; ok {
 		return nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
@@ -138,7 +138,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	u.document.Replace(existing)
 
 	// Reinitialize the document so all indices and such are correct
-	u.document.Initialize()
+	u.document.Initialize(ctx)
 
 	// Interpolate the Assignment if it is enabled
 	if existing.Enabled {

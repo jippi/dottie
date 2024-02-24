@@ -3,8 +3,9 @@ package upsert
 import "fmt"
 
 type SkippedStatementError struct {
-	Key    string
-	Reason string
+	Key     string
+	Reason  string
+	IsError bool
 }
 
 func (e SkippedStatementError) Error() string {
