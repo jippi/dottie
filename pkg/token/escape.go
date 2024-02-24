@@ -1,70 +1,60 @@
-package tui
+// nolint:varnamelen
+package token
 
 import (
 	"context"
 	"strconv"
 	"unicode/utf8"
 
+	"github.com/jippi/dottie/pkg/tui"
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func bleh() {
-	strconv.Quote("")
+func Escape(ctx context.Context, in string) string {
+	return string(escape(ctx, nil, in, '"'))
 }
 
-// Quote quotes each argument and joins them with a space.
-// If passed to /bin/sh, the resulting string will be split back into the
-// original arguments.
-func Quote(ctx context.Context, in string) string {
-	return string(quote(ctx, nil, in, '"'))
-}
+const lowerhex = "0123456789abcdef"
 
-const (
-	lowerhex = "0123456789abcdef"
-	upperhex = "0123456789ABCDEF"
-)
-
-func quote(ctx context.Context, buf []byte, word string, quote byte) []byte {
-	slogctx.Debug(ctx, "quote.input.word", StringDump(word))
+func escape(ctx context.Context, buf []byte, word string, quote byte) []byte {
+	slogctx.Debug(ctx, "escape.input.word", tui.StringDump(word))
 
 	var (
 		ASCIIonly   = false
 		graphicOnly = false
 	)
 
-	cur := word
-
-	for width := 0; len(cur) > 0; cur = cur[width:] { //nolint
-		runeValue := rune(cur[0])
+	for width := 0; len(word) > 0; word = word[width:] { //nolint:wastedassign
+		runeValue := rune(word[0])
 		width = 1
 
 		if runeValue >= utf8.RuneSelf {
-			runeValue, width = utf8.DecodeRuneInString(cur)
+			runeValue, width = utf8.DecodeRuneInString(word)
 		}
 
 		if width == 1 && runeValue == utf8.RuneError {
-			slogctx.Debug(ctx, "quote.for-loop.outcome: width == 1 && runeValue == utf8.RuneError")
+			slogctx.Debug(ctx, "escape.for-loop.outcome: width == 1 && runeValue == utf8.RuneError")
 
 			buf = append(buf, `\x`...)
-			buf = append(buf, lowerhex[cur[0]>>4])
-			buf = append(buf, lowerhex[cur[0]&0xF])
+			buf = append(buf, lowerhex[word[0]>>4])
+			buf = append(buf, lowerhex[word[0]&0xF])
 
 			continue
 		}
 
-		slogctx.Debug(ctx, "quote.for-loop.outcome: appendEscapedRune")
+		slogctx.Debug(ctx, "escape.for-loop.outcome: escapeRune")
 
-		buf = appendEscapedRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
+		buf = escapeRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
 	}
 
 	return buf
 }
 
-func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
-	slogctx.Debug(ctx, "appendEscapedRune.input.rune", StringDump(string(runeValue)))
+func escapeRune(ctx context.Context, buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
+	slogctx.Debug(ctx, "escapeRune.input.rune", tui.StringDump(string(runeValue)))
 
 	if runeValue == rune(quote) || runeValue == '\\' { // always backslashed
-		slogctx.Debug(ctx, "appendEscapedRune.input.rune: r == rune(quote)")
+		slogctx.Debug(ctx, "escapeRune.input.rune: r == rune(quote)")
 
 		buf = append(buf, '\\')
 		buf = append(buf, byte(runeValue))
@@ -73,7 +63,7 @@ func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote by
 	}
 
 	if ASCIIonly {
-		slogctx.Debug(ctx, "appendEscapedRune.input.rune: ASCIIonly")
+		slogctx.Debug(ctx, "escapeRune.input.rune: ASCIIonly")
 
 		if runeValue < utf8.RuneSelf && strconv.IsPrint(runeValue) {
 			buf = append(buf, byte(runeValue))
@@ -81,7 +71,7 @@ func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote by
 			return buf
 		}
 	} else if strconv.IsPrint(runeValue) || graphicOnly && isInGraphicList(runeValue) {
-		slogctx.Debug(ctx, "appendEscapedRune.input.rune: IsPrint/isInGraphicList")
+		slogctx.Debug(ctx, "escapeRune.input.rune: IsPrint/isInGraphicList")
 
 		return utf8.AppendRune(buf, runeValue)
 	}
@@ -89,33 +79,43 @@ func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote by
 	switch runeValue {
 	case '\a':
 		buf = append(buf, `\a`...)
+
 	case '\b':
 		buf = append(buf, `\b`...)
+
 	case '\f':
 		buf = append(buf, `\f`...)
+
 	case '\n':
 		buf = append(buf, `\n`...)
+
 	case '\r':
 		buf = append(buf, `\r`...)
+
 	case '\t':
 		buf = append(buf, `\t`...)
+
 	case '\v':
 		buf = append(buf, `\v`...)
+
 	default:
 		switch {
 		case runeValue < ' ' || runeValue == 0x7f:
 			buf = append(buf, `\x`...)
 			buf = append(buf, lowerhex[byte(runeValue)>>4])
 			buf = append(buf, lowerhex[byte(runeValue)&0xF])
+
 		case !utf8.ValidRune(runeValue):
 			runeValue = 0xFFFD
 
 			fallthrough
+
 		case runeValue < 0x10000:
 			buf = append(buf, `\u`...)
 			for s := 12; s >= 0; s -= 4 {
 				buf = append(buf, lowerhex[runeValue>>uint(s)&0xF])
 			}
+
 		default:
 			buf = append(buf, `\U`...)
 			for s := 28; s >= 0; s -= 4 {

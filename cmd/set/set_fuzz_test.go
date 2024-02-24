@@ -13,7 +13,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd"
 	"github.com/jippi/dottie/pkg/test_helpers"
-	"github.com/jippi/dottie/pkg/tui"
+	"github.com/jippi/dottie/pkg/token"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -249,7 +249,7 @@ func Clean(str string) string {
 func dump(t *testing.T, ctx context.Context, value string) {
 	t.Helper()
 
-	for _, line := range tui.DumpSlice(ctx, value) {
+	for _, line := range token.DebugStringSlice(ctx, value) {
 		t.Log(line)
 	}
 }

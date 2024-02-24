@@ -231,11 +231,6 @@ linters-settings:
       - tt
       - err
       - i
-      - j
-      - x
-      - n
-      - v
-      - c
 
   tagalign:
     # Align and sort can be used together or separately.

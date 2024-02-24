@@ -1,4 +1,5 @@
-package tui
+// nolint varnamelen
+package token
 
 import (
 	"context"
@@ -7,10 +8,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/jippi/dottie/pkg/tui"
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func Unquote(ctx context.Context, input string, quote byte, unescape bool) (out string, err error) {
+func Unescape(ctx context.Context, input string, quote byte, unescape bool) (out string, err error) {
 	input0 := input
 
 	// Handle quoted strings without any escape sequences.
@@ -35,15 +37,15 @@ func Unquote(ctx context.Context, input string, quote byte, unescape bool) (out 
 
 	// LOOP
 	for len(input) > 0 {
-		slogctx.Debug(ctx, "Unquote.input", StringDump(input))
+		slogctx.Debug(ctx, "Unescape.input", tui.StringDump(input))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
-		runeVal, multibyte, remaining, err := UnquoteChar(ctx, input, quote)
+		runeVal, multibyte, remaining, err := UnescapeChar(ctx, input, quote)
 		if err != nil {
 			return input0, err
 		}
 
-		slogctx.Debug(ctx, "Unquote.remaining", StringDump(remaining))
+		slogctx.Debug(ctx, "Unescape.remaining", tui.StringDump(remaining))
 
 		input = remaining
 
@@ -81,41 +83,41 @@ func index(s string, c byte) int {
 	return strings.IndexByte(s, c)
 }
 
-func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, multibyte bool, tail string, err error) {
-	slogctx.Debug(ctx, "UnquoteChar.start.input", StringDump(input))
+func UnescapeChar(ctx context.Context, input string, quote byte) (value rune, multibyte bool, tail string, err error) {
+	slogctx.Debug(ctx, "UnescapeChar.start.input", tui.StringDump(input))
 
 	if len(input) == 0 {
 		return
 	}
 
-	slogctx.Debug(ctx, "UnquoteChar.switch.char", StringDump(string(input[0])))
+	slogctx.Debug(ctx, "UnescapeChar.switch.char", tui.StringDump(string(input[0])))
 
 	switch char := input[0]; {
 	case char >= utf8.RuneSelf:
-		slogctx.Debug(ctx, "UnquoteChar.switch.outcome: char >= utf8.RuneSelf")
+		slogctx.Debug(ctx, "UnescapeChar.switch.outcome: char >= utf8.RuneSelf")
 
 		r, size := utf8.DecodeRuneInString(input)
 
 		return r, true, input[size:], nil
 
 	case char != '\\':
-		slogctx.Debug(ctx, "UnquoteChar.switch.outcome: char != '\\'")
+		slogctx.Debug(ctx, "UnescapeChar.switch.outcome: char != '\\'")
 
 		return rune(input[0]), false, input[1:], nil
 
 	case char == '\\' && len(input) <= 1:
-		slogctx.Debug(ctx, "UnquoteChar.switch.len <= 1", StringDump(string(input[0])), StringDump(input[1:]))
+		slogctx.Debug(ctx, "UnescapeChar.switch.len <= 1", tui.StringDump(string(input[0])), tui.StringDump(input[1:]))
 
 		return rune(input[0]), false, input[1:], nil
 	}
 
-	slogctx.Debug(ctx, "UnquoteChar.switch.miss: yup")
+	slogctx.Debug(ctx, "UnescapeChar.switch.miss: yup")
 
 	char := input[1]
 	input = input[2:]
 
-	slogctx.Debug(ctx, "UnquoteChar.char", StringDump(string(char)))
-	slogctx.Debug(ctx, "UnquoteChar.input", StringDump(input))
+	slogctx.Debug(ctx, "UnescapeChar.char", tui.StringDump(string(char)))
+	slogctx.Debug(ctx, "UnescapeChar.input", tui.StringDump(input))
 
 	switch char {
 	case 'a':
@@ -140,7 +142,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		value = '\v'
 
 	case 'x', 'u', 'U':
-		slogctx.Debug(ctx, "UnquoteChar.char-switch: xuU")
+		slogctx.Debug(ctx, "UnescapeChar.char-switch: xuU")
 
 		n := 0
 
@@ -158,7 +160,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		var v rune
 
 		if len(input) < n {
-			slogctx.Debug(ctx, "UnquoteChar: len(s) < n")
+			slogctx.Debug(ctx, "UnescapeChar: len(s) < n")
 
 			return
 		}
@@ -166,7 +168,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		for j := 0; j < n; j++ {
 			x, ok := unhex(input[j])
 			if !ok {
-				err = errors.New("UnquoteChar: unhex error")
+				err = errors.New("UnescapeChar: unhex error")
 
 				return
 			}
@@ -177,7 +179,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		input = input[n:]
 
 		if char == 'x' {
-			slogctx.Debug(ctx, "UnquoteChar.char-switch: xuU -> x (NOT UTF-8)")
+			slogctx.Debug(ctx, "UnescapeChar.char-switch: xuU -> x (NOT UTF-8)")
 
 			// single-byte string, possibly not UTF-8
 			value = v
@@ -186,7 +188,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		}
 
 		if !utf8.ValidRune(v) {
-			err = errors.New("UnquoteChar: invalid rune")
+			err = errors.New("UnescapeChar: invalid rune")
 
 			return
 		}
@@ -195,14 +197,14 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		multibyte = true
 
 	case '0', '1', '2', '3', '4', '5', '6', '7':
-		slogctx.Debug(ctx, "UnquoteChar.char-switch: numbers")
+		slogctx.Debug(ctx, "UnescapeChar.char-switch: numbers")
 
 		v := rune(char) - '0'
 
 		if len(input) < 2 {
 			value = v
 
-			// err = errors.New("UnquoteChar: len(s) < 2")
+			// err = errors.New("UnescapeChar: len(s) < 2")
 
 			return
 		}
@@ -210,7 +212,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		for j := 0; j < 2; j++ { // one digit already; two more
 			x := rune(input[j]) - '0'
 			if x < 0 || x > 7 {
-				err = errors.New("UnquoteChar: x < 0 || x > 7")
+				err = errors.New("UnescapeChar: x < 0 || x > 7")
 
 				return
 			}
@@ -221,7 +223,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		input = input[2:]
 
 		if v > 255 {
-			err = errors.New("UnquoteChar: v > 255")
+			err = errors.New("UnescapeChar: v > 255")
 
 			return
 		}
@@ -235,12 +237,12 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		if char != quote {
 			value = rune(char)
 		} else {
-			err = errors.New("UnquoteChar single: c != quote")
+			err = errors.New("UnescapeChar single: c != quote")
 		}
 
 	case '"':
 		if char != quote {
-			err = errors.New("UnquoteChar double: c != quote")
+			err = errors.New("UnescapeChar double: c != quote")
 
 			return
 		}
@@ -248,7 +250,7 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 		value = rune(char)
 
 	default:
-		err = errors.New("UnquoteChar: default: >" + fmt.Sprintf("%U", []rune(string(char))) + "< aka >" + fmt.Sprintf("%q", char) + "<")
+		err = errors.New("UnescapeChar: default: >" + fmt.Sprintf("%U", []rune(string(char))) + "< aka >" + fmt.Sprintf("%q", char) + "<")
 
 		return
 	}
