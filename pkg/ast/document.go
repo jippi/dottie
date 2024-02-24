@@ -13,6 +13,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -143,7 +145,7 @@ func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignmen
 }
 
 func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
-	fmt.Println("doInterpolation!!!")
+	slogctx.Debug(ctx, "Starting interpolation")
 
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
@@ -179,14 +181,14 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		target.Interpolated = target.Unquote()
+		target.Interpolated = target.Unquote(ctx)
 
-		fmt.Println("doInterpolation.target.Interpolated", fmt.Sprintf(">%q<", target.Interpolated))
+		slogctx.Debug(ctx, "doInterpolation.target.Interpolated", tui.StringDump(target.Interpolated))
 
 		return
 	}
 
-	value, warnings, err := template.Substitute(ctx, target.Unquote(), doc.interpolationMapper(target))
+	value, warnings, err := template.Substitute(ctx, target.Unquote(ctx), doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}

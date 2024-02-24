@@ -434,7 +434,7 @@ func TestParser_Parse(t *testing.T) {
 				expected.Initialize()
 				expected.InterpolateAll(context.TODO())
 
-				actual, err := parser.New(scanner.New(tt.input), "-").Parse(context.TODO())
+				actual, err := parser.New(context.TODO(), scanner.New(tt.input), "-").Parse(context.TODO())
 				actual.Initialize()
 				actual.InterpolateAll(context.TODO())
 
@@ -473,7 +473,7 @@ func TestParser_Parse(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				document, err := parser.New(scanner.New(tt.input), "-").Parse(context.TODO())
+				document, err := parser.New(context.TODO(), scanner.New(tt.input), "-").Parse(context.TODO())
 				require.Error(t, err, "expected an error")
 				require.Nil(t, document, "did not expect a document when erroring")
 			})

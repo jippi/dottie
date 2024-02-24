@@ -9,6 +9,8 @@ import (
 	"github.com/jippi/dottie/pkg/parser"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -111,9 +113,9 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	content := render.NewFormatter().Statement(ctx, thing).String()
 	scan := scanner.New(content)
 
-	fmt.Println("memory://tmp/upsert >", content, "<")
+	slogctx.Debug(ctx, "memory://tmp/upsert", tui.StringDump(content))
 
-	tempDoc, err = parser.New(scan, "memory://tmp/upsert").Parse(ctx)
+	tempDoc, err = parser.New(ctx, scan, "memory://tmp/upsert").Parse(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("(upsert) failed to parse assignment: %w", err)
 	}
@@ -166,14 +168,14 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 
 	newAssignment.Literal = input.Literal
 
-	fmt.Println("createAndInsert: input.Literal >", newAssignment.Literal, "<")
+	slogctx.Debug(ctx, "createAndInsert: input.Literal", tui.StringDump(newAssignment.Literal))
 
 	content := render.NewFormatter().Statement(ctx, newAssignment).String()
 	scan := scanner.New(content)
 
-	fmt.Println("HELLO WORLD >", content, "<")
+	slogctx.Debug(ctx, "createAndInsert: content", tui.StringDump(content))
 
-	inMemoryDoc, err := parser.New(scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
+	inMemoryDoc, err := parser.New(ctx, scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("(createAndInsert 1) failed to parse assignment: %w", err)
 	}

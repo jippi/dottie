@@ -54,8 +54,6 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 
 	root.SetVersionTemplate(`{{ .Version }}`)
 
-	ctx = tui.NewContext(ctx, stdout, stderr)
-
 	root.SetArgs(args)
 	root.SetContext(ctx)
 	root.SetErr(stderr)

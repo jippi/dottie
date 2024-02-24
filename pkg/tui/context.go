@@ -3,9 +3,11 @@ package tui
 import (
 	"context"
 	"io"
+	"log/slog"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 type fileDescriptorKey int
@@ -23,6 +25,13 @@ const (
 )
 
 func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
+	ctx = NewContextWithoutLogger(ctx, stdout, stderr)
+	ctx = slogctx.NewCtx(ctx, slog.New(logHandler(stderr)))
+
+	return ctx
+}
+
+func NewContextWithoutLogger(ctx context.Context, stdout, stderr io.Writer) context.Context {
 	theme := NewTheme()
 
 	stdoutOutput := lipgloss.NewRenderer(stdout, termenv.WithColorCache(true))

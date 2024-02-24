@@ -8,6 +8,7 @@ import (
 	"github.com/jippi/dottie/pkg/cli/shared"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 func NewCommand() *cobra.Command {
@@ -26,10 +27,6 @@ func NewCommand() *cobra.Command {
 }
 
 func runE(cmd *cobra.Command, args []string) error {
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 	filename := cmd.Flag("file").Value.String()
 
 	document, err := pkg.Load(cmd.Context(), filename)
@@ -49,8 +46,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if ok, _ := cmd.Flags().GetBool("literal"); ok {
-		fmt.Fprint(cmd.OutOrStdout(), assignment.Unquote())
-		// fmt.Fprint(cmd.OutOrStdout(), fmt.Sprintf("%U", []rune(assignment.Unquote())))
+		fmt.Fprint(cmd.OutOrStdout(), assignment.Unquote(cmd.Context()))
 
 		return nil
 	}
@@ -61,7 +57,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Println("value.assignment.Interpolated", fmt.Sprintf(">%q<", assignment.Interpolated), fmt.Sprintf(">%U<", []rune(assignment.Interpolated)))
+	slogctx.Info(cmd.Context(), "value.assignment.Interpolated", tui.StringDump(assignment.Interpolated))
 
 	fmt.Fprint(cmd.OutOrStdout(), assignment.Interpolated)
 

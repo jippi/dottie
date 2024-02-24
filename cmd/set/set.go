@@ -12,6 +12,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -99,7 +100,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// fmt.Printf("%q\n", os.Args)
 
 	for _, arg := range args {
-		fmt.Printf("==> [%s] - %U\n", arg, []rune(arg))
+		slogctx.Debug(cmd.Context(), "arg", tui.StringDump(arg))
 	}
 
 	for _, stringPair := range args {
@@ -158,7 +159,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
 		}
 
-		assignment.SetLiteral(value)
+		assignment.SetLiteral(cmd.Context(), value)
 
 		//
 		// Upsert the assignment

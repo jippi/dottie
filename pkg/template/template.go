@@ -22,6 +22,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
@@ -64,8 +66,8 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(_ context.Context, template string, resolver Resolver) (string, error, error) {
-	fmt.Println("template.Substitute input:", fmt.Sprintf(">%q<", template))
+func Substitute(ctx context.Context, template string, resolver Resolver) (string, error, error) {
+	slogctx.Debug(ctx, "template.Substitute input", tui.StringDump(template))
 
 	var (
 		combinedWarnings, combinedErrors error
@@ -119,7 +121,11 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 		//  - input : ``$
 		//    output: $()$
 		CmdSubst: func(writer io.Writer, i *syntax.CmdSubst) error {
-			start := i.Left.Offset() - 1
+			// spew.Dump(i)
+			// spew.Dump(i.Left)
+			// spew.Dump(i.Left.Offset())
+
+			start := i.Left.Offset()
 			end := i.End().Offset() - 1
 
 			writer.Write([]byte(template[start:end]))
@@ -159,7 +165,7 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The [ $%s ] key is not set. Defaulting to a blank string.", missingKey))
 	}
 
-	fmt.Println("template.Substitute output:", fmt.Sprintf(">%q<", result))
+	slogctx.Debug(ctx, "template.Substitute output", tui.StringDump(result))
 
 	return result, combinedWarnings, combinedErrors
 }

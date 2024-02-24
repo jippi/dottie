@@ -238,7 +238,7 @@ func AskToSetValue(ctx context.Context, doc *ast.Document, assignment *ast.Assig
 		return
 	}
 
-	assignment.SetLiteral(value)
+	assignment.SetLiteral(ctx, value)
 
 	if err := pkg.Save(ctx, assignment.Position.File, doc); err != nil {
 		stderr.Danger().Println("    Could not update key with value [" + value + "]: " + err.Error())

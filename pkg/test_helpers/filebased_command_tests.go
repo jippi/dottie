@@ -2,7 +2,6 @@ package test_helpers
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -144,8 +143,6 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 			combinedStdout := bytes.Buffer{}
 			combinedStderr := bytes.Buffer{}
 
-			ctx := context.Background()
-
 			for idx, command := range tt.commands {
 				// Point args to the copied temp env file
 				args := []string{}
@@ -167,6 +164,9 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				// Run command
 				stdout := bytes.Buffer{}
 				stderr := bytes.Buffer{}
+
+				ctx := CreateContext(t, &stdout, &stderr)
+
 				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
 
 				if stdout.Len() == 0 {

@@ -12,6 +12,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd"
+	"github.com/jippi/dottie/pkg/test_helpers"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,19 +70,30 @@ func TestSpecificInputs(t *testing.T) {
 
 		doTest(t, "\"\n")
 	})
+
 	t.Run("weird-3", func(t *testing.T) {
 		t.Parallel()
 
 		doTest(t, "\x00$")
 	})
+
+	t.Run("weird-4", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "`0|$`")
+	})
 }
 
 func doTest(t *testing.T, expected string) { //nolint thelper
+	// NULL bytes are acting weird when reading stdout/stderr
+	// They work fine in in-memory testing, so ignoring them for now :)
 	if strings.Contains(expected, "\x00") {
 		t.Skip()
 
 		return
 	}
+
+	ctx := context.TODO()
 
 	dotEnvFile := t.TempDir() + "/tmp.env"
 
@@ -91,7 +103,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 	t.Log("-----------------------")
 	t.Log("EXPECTED VALUE")
 	t.Log("-----------------------")
-	dump(t, expected)
+	dump(t, ctx, expected)
 
 	// Set the KEY/VALUE pair
 	setFailed := false
@@ -100,6 +112,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		var (
 			stdout bytes.Buffer
 			stderr bytes.Buffer
+			ctx    = test_helpers.CreateContext(t, &stdout, &stderr)
 			args   = []string{
 				"--file", dotEnvFile,
 				"set",
@@ -115,7 +128,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		t.Log()
 
 		// Run command
-		_, err := cmd.RunCommand(context.Background(), args, &stdout, &stderr)
+		_, err := cmd.RunCommand(ctx, args, &stdout, &stderr)
 
 		if stdout.Len() == 0 {
 			stdout.WriteString("(empty)")
@@ -166,7 +179,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		t.Log("----------------------------------------------")
 		t.Log("FILE ON DISK")
 		t.Log("----------------------------------------------")
-		dump(t, disk)
+		dump(t, ctx, disk)
 	}
 
 	// Read back from disk
@@ -174,10 +187,11 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		var (
 			stdout bytes.Buffer
 			stderr bytes.Buffer
+			ctx    = test_helpers.CreateContext(t, &stdout, &stderr)
 			args   = []string{
 				"--file", dotEnvFile,
 				"value",
-				// "--literal",
+				"--literal",
 				"my_key",
 			}
 		)
@@ -189,7 +203,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		t.Log()
 
 		// Run command
-		_, err := cmd.RunCommand(context.Background(), args, &stdout, &stderr)
+		_, err := cmd.RunCommand(ctx, args, &stdout, &stderr)
 		require.NoError(t, err)
 
 		t.Log("-----------------------")
@@ -214,7 +228,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		t.Log("-----------------------")
 		t.Log("Actual")
 		t.Log("-----------------------")
-		dump(t, actual)
+		dump(t, ctx, actual)
 
 		assert.Equal(t, fmt.Sprintf("%U", []rune(expected)), fmt.Sprintf("%U", []rune(actual)))
 		// assert.True(t, false, "fail")
@@ -235,10 +249,10 @@ func Clean(str string) string {
 	}, str)
 }
 
-func dump(t *testing.T, value string) {
+func dump(t *testing.T, ctx context.Context, value string) {
 	t.Helper()
 
-	for _, line := range tui.DumpSlice(value) {
+	for _, line := range tui.DumpSlice(ctx, value) {
 		t.Log(line)
 	}
 }

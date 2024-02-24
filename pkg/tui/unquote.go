@@ -1,13 +1,16 @@
 package tui
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"unicode/utf8"
+
+	slogctx "github.com/veqryn/slog-context"
 )
 
-func Unquote(input string, quote byte, unescape bool) (out string, err error) {
+func Unquote(ctx context.Context, input string, quote byte, unescape bool) (out string, err error) {
 	input0 := input
 
 	// Handle quoted strings without any escape sequences.
@@ -32,26 +35,26 @@ func Unquote(input string, quote byte, unescape bool) (out string, err error) {
 
 	// LOOP
 	for len(input) > 0 {
-		fmt.Println("Unquote.input=", fmt.Sprintf(">%q<", input))
+		slogctx.Debug(ctx, "Unquote.input", StringDump(input))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
-		runeVal, multibyte, remaining, err := UnquoteChar(input, quote)
+		runeVal, multibyte, remaining, err := UnquoteChar(ctx, input, quote)
 		if err != nil {
 			return input0, err
 		}
 
-		fmt.Println("Unquote.remaining=", fmt.Sprintf(">%q<", remaining))
+		slogctx.Debug(ctx, "Unquote.remaining", StringDump(remaining))
 
 		input = remaining
 
 		// Append the character if unescaping the input.
 		if unescape {
 			if runeVal < utf8.RuneSelf || !multibyte {
-				fmt.Println("==> append")
+				slogctx.Debug(ctx, "-- append")
 
 				buf = append(buf, byte(runeVal))
 			} else {
-				fmt.Println("==> utf8.AppendRune")
+				slogctx.Debug(ctx, "-- utf8.AppendRune")
 
 				buf = utf8.AppendRune(buf, runeVal)
 			}
@@ -78,43 +81,43 @@ func index(s string, c byte) int {
 	return strings.IndexByte(s, c)
 }
 
-func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail string, err error) {
-	fmt.Println("UnquoteChar.start.input", fmt.Sprintf(">%q<", input))
+func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, multibyte bool, tail string, err error) {
+	slogctx.Debug(ctx, "UnquoteChar.start.input", StringDump(input))
 
 	if len(input) == 0 {
 		return
 	}
 
-	fmt.Println("UnquoteChar.switch.char", fmt.Sprintf(">%q<", input[0]))
+	slogctx.Debug(ctx, "UnquoteChar.switch.char", StringDump(string(input[0])))
 
 	switch char := input[0]; {
 	case char >= utf8.RuneSelf:
-		fmt.Println("UnquoteChar.switch.outcome", "char >= utf8.RuneSelf")
+		slogctx.Debug(ctx, "UnquoteChar.switch.outcome: char >= utf8.RuneSelf")
 
 		r, size := utf8.DecodeRuneInString(input)
 
 		return r, true, input[size:], nil
 
 	case char != '\\':
-		fmt.Println("UnquoteChar.switch.outcome", "char != '\\'")
+		slogctx.Debug(ctx, "UnquoteChar.switch.outcome: char != '\\'")
 
 		return rune(input[0]), false, input[1:], nil
 
 	case char == '\\' && len(input) <= 1:
-		fmt.Println("UnquoteChar.switch.len <= 1", fmt.Sprintf(">%q<", input[0]), fmt.Sprintf(">%q<", input[1:]))
+		slogctx.Debug(ctx, "UnquoteChar.switch.len <= 1", StringDump(string(input[0])), StringDump(input[1:]))
 
 		return rune(input[0]), false, input[1:], nil
 	}
 
-	fmt.Println("UnquoteChar.switch.miss", "yep")
+	slogctx.Debug(ctx, "UnquoteChar.switch.miss: yup")
 
 	// initial := input[0]
 
 	char := input[1]
 	input = input[2:]
 
-	fmt.Println("UnquoteChar.char=", fmt.Sprintf(">%q<", char))
-	fmt.Println("UnquoteChar.input=", fmt.Sprintf(">%q<", input))
+	slogctx.Debug(ctx, "UnquoteChar.char", StringDump(string(char)))
+	slogctx.Debug(ctx, "UnquoteChar.input", StringDump(input))
 
 	switch char {
 	case 'a':
@@ -139,7 +142,7 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		value = '\v'
 
 	case 'x', 'u', 'U':
-		fmt.Println("UnquoteChar.char-switch", "xuU")
+		slogctx.Debug(ctx, "UnquoteChar.char-switch: xuU")
 
 		n := 0
 
@@ -157,7 +160,7 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		var v rune
 
 		if len(input) < n {
-			err = errors.New("UnquoteChar: len(s) < n")
+			slogctx.Debug(ctx, "UnquoteChar: len(s) < n")
 
 			return
 		}
@@ -176,7 +179,7 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		input = input[n:]
 
 		if char == 'x' {
-			fmt.Println("UnquoteChar.char-switch", "xuU -> x (NOT UTF-8)")
+			slogctx.Debug(ctx, "UnquoteChar.char-switch: xuU -> x (NOT UTF-8)")
 
 			// single-byte string, possibly not UTF-8
 			value = v
@@ -194,7 +197,7 @@ func UnquoteChar(input string, quote byte) (value rune, multibyte bool, tail str
 		multibyte = true
 
 	case '0', '1', '2', '3', '4', '5', '6', '7':
-		fmt.Println("UnquoteChar.char-switch", "numbers")
+		slogctx.Debug(ctx, "UnquoteChar.char-switch: numbers")
 
 		v := rune(char) - '0'
 

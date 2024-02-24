@@ -1,13 +1,15 @@
 package scanner
 
 import (
-	"fmt"
+	"context"
 	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 var escaper = strings.NewReplacer(
@@ -56,8 +58,8 @@ func New(input string) *Scanner {
 // the literal string has the corresponding value.
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
-func (s *Scanner) NextToken() token.Token {
-	fmt.Println("Scanner working on rune:", s.rune, string(s.rune))
+func (s *Scanner) NextToken(ctx context.Context) token.Token {
+	slogctx.Debug(ctx, "Scanner working on rune", tui.StringDump(string(s.rune)))
 
 	switch s.rune {
 	case eof:
@@ -93,10 +95,10 @@ func (s *Scanner) NextToken() token.Token {
 		return s.scanComment()
 
 	case '"':
-		return s.scanQuotedValue(token.Value, token.DoubleQuotes)
+		return s.scanQuotedValue(ctx, token.Value, token.DoubleQuotes)
 
 	case '\'':
-		return s.scanQuotedValue(token.RawValue, token.SingleQuotes)
+		return s.scanQuotedValue(ctx, token.RawValue, token.SingleQuotes)
 
 	default:
 		switch prev := s.prev(); prev {
@@ -264,21 +266,23 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	)
 }
 
-func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Token {
-	fmt.Println("scanQuotedValue!")
+func (s *Scanner) scanQuotedValue(ctx context.Context, tType token.Type, quote token.Quote) token.Token {
+	slogctx.Debug(ctx, "scanQuotedValue")
+
 	// opening quote already consumed
 	s.next()
 
 	start := s.offset
 
-	fmt.Println("scanQuotedValue: s.input", fmt.Sprintf(">%q<", s.input))
+	slogctx.Debug(ctx, "scanQuotedValue: s.input", tui.StringDump(s.input))
 
 	escapes := 0
 
 	for {
 		escapingPrevious := escapes == 1
 
-		fmt.Println("scanQuotedValue -->", fmt.Sprintf("%q", s.rune), fmt.Sprintf("%q", quote.Rune()), s.rune, "inEscape?", escapingPrevious, escapes)
+		slogctx.Debug(ctx, "scanQuotedValue: loop", tui.StringDump(string(s.rune)))
+		// fmt.Println("scanQuotedValue -->", fmt.Sprintf("%q", s.rune), fmt.Sprintf("%q", quote.Rune()), s.rune, "inEscape?", escapingPrevious, escapes)
 
 		if isEOF(s.rune) || isNewLine(s.rune) {
 			// panic("nein")
@@ -310,13 +314,13 @@ func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Tok
 	offset := s.offset
 	lit := s.input[start:offset]
 
-	fmt.Println("scanQuotedValue lit (before):", tType, lit)
+	slogctx.Debug(ctx, "scanQuotedValue lit (before)", tui.StringDump(lit))
 
 	if tType == token.Value {
 		lit = escape(lit)
 	}
 
-	fmt.Println("scanQuotedValue lit (after):", tType, lit)
+	slogctx.Debug(ctx, "scanQuotedValue lit (after)", tui.StringDump(lit))
 
 	if quote.Is(s.rune) {
 		s.next()

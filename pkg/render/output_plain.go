@@ -35,7 +35,6 @@ func (PlainOutput) Assignment(ctx context.Context, assignment *ast.Assignment, s
 		val = assignment.Interpolated
 	}
 
-	fmt.Println("YOOO >", fmt.Sprintf("%s=%s%s%s", assignment.Name, assignment.Quote, val, assignment.Quote), "<")
 	buf.WriteString(fmt.Sprintf("%s=%s%s%s", assignment.Name, assignment.Quote, val, assignment.Quote))
 
 	return NewLinesCollection().Add(buf.String())

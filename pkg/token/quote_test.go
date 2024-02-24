@@ -1,6 +1,7 @@
 package token_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/token"
@@ -100,7 +101,7 @@ func TestQuote_Escape(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := tui.Quote(tt.input)
+			actual := tui.Quote(context.TODO(), tt.input)
 
 			require.EqualValues(t, tt.expected, actual)
 		})

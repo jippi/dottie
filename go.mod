@@ -10,15 +10,18 @@ require (
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.17.0
+	github.com/golang-cz/devslog v0.0.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.13.1
 	github.com/hashicorp/go-getter v1.7.3
+	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/teacat/noire v1.1.0
+	github.com/veqryn/slog-context v0.5.0
 	go.uber.org/multierr v1.11.0
 	mvdan.cc/sh/v3 v3.8.0
 )
@@ -38,6 +41,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.25.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -64,6 +68,7 @@ require (
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
+	github.com/neilotoole/slogt v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect

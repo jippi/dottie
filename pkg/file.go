@@ -48,6 +48,7 @@ func Parse(ctx context.Context, r io.Reader, filename string) (*ast.Document, er
 
 	return parser.
 		New(
+			ctx,
 			scanner.New(string(input)),
 			filename,
 		).

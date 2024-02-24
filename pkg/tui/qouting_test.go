@@ -1,6 +1,7 @@
 package tui_test
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -14,7 +15,7 @@ func TestQuote(t *testing.T) {
 
 	input := "\n"
 
-	actual := tui.Quote(input)
+	actual := tui.Quote(context.TODO(), input)
 
 	assert.Equal(t, "\\n", actual)
 }
@@ -24,7 +25,7 @@ func TestUnquote(t *testing.T) {
 
 	newlineRune := '\n'
 
-	out, err := tui.Unquote(`\n`, '"', true)
+	out, err := tui.Unquote(context.TODO(), `\n`, '"', true)
 	require.NoError(t, err)
 	assert.Equal(t, []rune{newlineRune}, []rune(out))
 }
@@ -98,7 +99,7 @@ func TestBackAndForth(t *testing.T) {
 			t.Log("tt.input")
 			t.Log("-----------------------")
 
-			for _, line := range tui.DumpSlice(tt.input) {
+			for _, line := range tui.DumpSlice(context.TODO(), tt.input) {
 				t.Log(line)
 			}
 
@@ -111,7 +112,7 @@ func TestBackAndForth(t *testing.T) {
 
 			qu := strconv.Quote(tt.input)
 
-			for _, line := range tui.DumpSlice(qu[1 : len(qu)-1]) {
+			for _, line := range tui.DumpSlice(context.TODO(), qu[1:len(qu)-1]) {
 				t.Log(line)
 			}
 
@@ -120,9 +121,9 @@ func TestBackAndForth(t *testing.T) {
 			t.Log("-----------------------")
 
 			// Quote the string
-			quoted := tui.Quote(tt.input)
+			quoted := tui.Quote(context.TODO(), tt.input)
 
-			for _, line := range tui.DumpSlice(quoted) {
+			for _, line := range tui.DumpSlice(context.TODO(), quoted) {
 				t.Log(line)
 			}
 
@@ -136,19 +137,19 @@ func TestBackAndForth(t *testing.T) {
 			s, err := strconv.Unquote(qu)
 			require.NoError(t, err)
 
-			for _, line := range tui.DumpSlice(s) {
+			for _, line := range tui.DumpSlice(context.TODO(), s) {
 				t.Log(line)
 			}
 
 			// Unquote the string back
-			unquoted, err := tui.Unquote(quoted, '"', true)
+			unquoted, err := tui.Unquote(context.TODO(), quoted, '"', true)
 			require.NoError(t, err)
 
 			t.Log("-----------------------")
 			t.Log("tui.unquoted")
 			t.Log("-----------------------")
 
-			for _, line := range tui.DumpSlice(unquoted) {
+			for _, line := range tui.DumpSlice(context.TODO(), unquoted) {
 				t.Log(line)
 			}
 

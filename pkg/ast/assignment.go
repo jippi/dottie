@@ -2,14 +2,14 @@ package ast
 
 import (
 	"bytes"
-	"fmt"
+	"context"
 	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 type Assignment struct {
@@ -136,38 +136,25 @@ func (a *Assignment) CommentsSlice() []string {
 	return res
 }
 
-func (a *Assignment) SetLiteral(in string) {
-	fmt.Printf("SetLiteral.input.string  >%s<\n", in)
-	fmt.Printf("SetLiteral.input.unicode >%U<\n", []rune(in))
+func (a *Assignment) SetLiteral(ctx context.Context, in string) {
+	slogctx.Debug(ctx, "SetLiteral.input", tui.StringDump(in))
 
-	a.Literal = tui.Quote(a.Literal)
-
-	// val, err := tui.Unquote(in, '"', true)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// a.Literal = val
-
-	fmt.Printf("EscapeString: out string >%s<\n", a.Literal)
-	fmt.Printf("EscapeString: out unicode >%U<\n", []rune(a.Literal))
-
+	a.Literal = tui.Quote(ctx, a.Literal)
 	a.Interpolated = a.Literal
+
+	slogctx.Debug(ctx, "SetLiteral.output", tui.StringDump(a.Literal))
 }
 
-func (a *Assignment) Unquote() string {
-	fmt.Println("Unquote.input", fmt.Sprintf(">%q<", a.Literal))
+func (a *Assignment) Unquote(ctx context.Context) string {
+	slogctx.Debug(ctx, "Unquote.input", tui.StringDump(a.Literal))
 
 	// str := tui.Quote(a.Literal)
-	str, err := tui.Unquote(a.Literal, '"', true)
+	str, err := tui.Unquote(ctx, a.Literal, '"', true)
 	if err != nil {
 		panic(err)
 	}
 
-	newstr, err := strconv.Unquote("\"" + a.Literal + "\"")
-	fmt.Println("Unquote.strconv.Unquote", fmt.Sprintf(">%q<", newstr), err)
-
-	fmt.Println("Unquote.output", fmt.Sprintf(">%q<", str))
+	slogctx.Debug(ctx, "Unquote.output", tui.StringDump(str))
 
 	return str
 }

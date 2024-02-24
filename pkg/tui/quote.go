@@ -1,9 +1,11 @@
 package tui
 
 import (
-	"fmt"
+	"context"
 	"strconv"
 	"unicode/utf8"
+
+	slogctx "github.com/veqryn/slog-context"
 )
 
 func bleh() {
@@ -13,8 +15,8 @@ func bleh() {
 // Quote quotes each argument and joins them with a space.
 // If passed to /bin/sh, the resulting string will be split back into the
 // original arguments.
-func Quote(in string) string {
-	return string(quote(nil, in, '"'))
+func Quote(ctx context.Context, in string) string {
+	return string(quote(ctx, nil, in, '"'))
 }
 
 const (
@@ -22,8 +24,8 @@ const (
 	upperhex = "0123456789ABCDEF"
 )
 
-func quote(buf []byte, word string, quote byte) []byte {
-	fmt.Println("quote.input.word", fmt.Sprintf(">%q<", word))
+func quote(ctx context.Context, buf []byte, word string, quote byte) []byte {
+	slogctx.Debug(ctx, "quote.input.word", StringDump(word))
 
 	var (
 		ASCIIonly   = false
@@ -41,7 +43,7 @@ func quote(buf []byte, word string, quote byte) []byte {
 		}
 
 		if width == 1 && runeValue == utf8.RuneError {
-			fmt.Println("quote.for-loop.outcome", "width == 1 && runeValue == utf8.RuneError")
+			slogctx.Debug(ctx, "quote.for-loop.outcome: width == 1 && runeValue == utf8.RuneError")
 
 			buf = append(buf, `\x`...)
 			buf = append(buf, lowerhex[cur[0]>>4])
@@ -50,19 +52,19 @@ func quote(buf []byte, word string, quote byte) []byte {
 			continue
 		}
 
-		fmt.Println("quote.for-loop.outcome", "appendEscapedRune")
+		slogctx.Debug(ctx, "quote.for-loop.outcome: appendEscapedRune")
 
-		buf = appendEscapedRune(buf, runeValue, quote, ASCIIonly, graphicOnly)
+		buf = appendEscapedRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
 	}
 
 	return buf
 }
 
-func appendEscapedRune(buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
-	fmt.Println("appendEscapedRune.input.rune", fmt.Sprintf(">%q<", runeValue))
+func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
+	slogctx.Debug(ctx, "appendEscapedRune.input.rune", StringDump(string(runeValue)))
 
 	if runeValue == rune(quote) || runeValue == '\\' { // always backslashed
-		fmt.Println("appendEscapedRune.input.rune", "r == rune(quote)")
+		slogctx.Debug(ctx, "appendEscapedRune.input.rune: r == rune(quote)")
 
 		buf = append(buf, '\\')
 		buf = append(buf, byte(runeValue))
@@ -71,7 +73,7 @@ func appendEscapedRune(buf []byte, runeValue rune, quote byte, ASCIIonly, graphi
 	}
 
 	if ASCIIonly {
-		fmt.Println("appendEscapedRune.input.rune", "ASCIIonly!")
+		slogctx.Debug(ctx, "appendEscapedRune.input.rune: ASCIIonly")
 
 		if runeValue < utf8.RuneSelf && strconv.IsPrint(runeValue) {
 			buf = append(buf, byte(runeValue))
@@ -79,7 +81,7 @@ func appendEscapedRune(buf []byte, runeValue rune, quote byte, ASCIIonly, graphi
 			return buf
 		}
 	} else if strconv.IsPrint(runeValue) || graphicOnly && isInGraphicList(runeValue) {
-		fmt.Println("appendEscapedRune.input.rune", "IsPrint/isInGraphicList!")
+		slogctx.Debug(ctx, "appendEscapedRune.input.rune: IsPrint/isInGraphicList")
 
 		return utf8.AppendRune(buf, runeValue)
 	}
