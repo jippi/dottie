@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # See https://hub.docker.com/r/docker/dockerfile
 
-FROM scratch
+FROM ubuntu
 
-ENTRYPOINT ["/dottie"]
+ENTRYPOINT ["/usr/local/bin/dottie"]
 
-COPY dottie /
+COPY ["dottie", "/usr/local/bin/dottie"]
