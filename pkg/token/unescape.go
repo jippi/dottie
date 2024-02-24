@@ -225,14 +225,14 @@ func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, m
 	case '\\':
 		value = '\\'
 
-	case '\'':
+	case SingleQuote.Byte():
 		if char != quote.Byte() {
 			value = rune(char)
 		} else {
 			err = errors.New("UnescapeChar single: c != quote")
 		}
 
-	case '"':
+	case DoubleQuote.Byte():
 		if char != quote.Byte() {
 			err = errors.New("UnescapeChar double: c != quote")
 

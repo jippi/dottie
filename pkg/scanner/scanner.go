@@ -103,10 +103,10 @@ func (s *Scanner) NextToken(ctx context.Context) token.Token {
 	case '#':
 		return s.scanComment()
 
-	case '"':
+	case token.DoubleQuote.Rune():
 		return s.scanQuotedValue(ctx, token.Value, token.DoubleQuote)
 
-	case '\'':
+	case token.SingleQuote.Rune():
 		return s.scanQuotedValue(ctx, token.RawValue, token.SingleQuote)
 
 	default:
