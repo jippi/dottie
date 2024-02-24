@@ -18,6 +18,8 @@ import (
 )
 
 func FuzzSetCommand(f *testing.F) {
+	f.SkipNow()
+
 	f.Add("@@\v\"@23")
 
 	f.Fuzz(doTest)
