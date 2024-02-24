@@ -37,7 +37,7 @@ func (qt Quote) Rune() rune {
 }
 
 func (qt Quote) Byte() byte {
-	return byte(quotes[qt])
+	return byte(qt.Rune())
 }
 
 func (qt Quote) Name() string {

@@ -13,17 +13,17 @@ import (
 const lowerhex = "0123456789abcdef"
 
 func Escape(ctx context.Context, input string, quote Quote) string {
+	return EscapeFull(ctx, input, quote, false, false)
+}
+
+func EscapeFull(ctx context.Context, input string, quote Quote, ASCIIonly, graphicOnly bool) string {
 	if !quote.Valid() {
 		panic(ErrInvalidQuoteStyle)
 	}
 
 	slogctx.Debug(ctx, "Escape", tui.StringDump("input", input))
 
-	var (
-		buf         []byte
-		ASCIIonly   = false
-		graphicOnly = false
-	)
+	var buf []byte
 
 	for width := 0; len(input) > 0; input = input[width:] { //nolint:wastedassign
 		runeValue := rune(input[0])
@@ -45,13 +45,17 @@ func Escape(ctx context.Context, input string, quote Quote) string {
 
 		slogctx.Debug(ctx, "Escape.for-loop.outcome: escapeRune")
 
-		buf = escapeRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
+		buf = EscapeRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
 	}
 
 	return string(buf)
 }
 
-func escapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, ASCIIonly, graphicOnly bool) []byte {
+func EscapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, ASCIIonly, graphicOnly bool) []byte {
+	if !utf8.ValidRune(runeValue) {
+		runeValue = utf8.RuneError
+	}
+
 	slogctx.Debug(ctx, "escapeRune.input.rune", tui.StringDump("rune", string(runeValue)))
 
 	if runeValue == quote.Rune() || runeValue == '\\' { // always backslashed

@@ -31,10 +31,10 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 		var valid bool
 
 		switch quote {
-		case '"':
+		case DoubleQuote:
 			valid = utf8.ValidString(input)
 
-		case '\'':
+		case SingleQuote:
 			r, n := utf8.DecodeRuneInString(input)
 			valid = (r != utf8.RuneError || n != 1)
 		}
@@ -67,7 +67,7 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 		}
 
 		// Single quoted strings must be a single character.
-		if quote == '\'' {
+		if quote == SingleQuote {
 			break
 		}
 	}
