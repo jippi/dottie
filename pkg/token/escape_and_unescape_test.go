@@ -101,7 +101,7 @@ func TestEscapeAndUnescape(t *testing.T) {
 			t.Log("-----------------------")
 
 			// Quote the string
-			tuiQuoted := token.Escape(context.TODO(), tt.input)
+			tuiQuoted := token.Escape(context.TODO(), tt.input, token.DoubleQuote)
 
 			for _, line := range token.DebugStringSlice(context.TODO(), tuiQuoted) {
 				t.Log(line)
@@ -122,7 +122,7 @@ func TestEscapeAndUnescape(t *testing.T) {
 			}
 
 			// Unquote the string back
-			unquoted, err := token.Unescape(context.TODO(), tuiQuoted, '"', true)
+			unquoted, err := token.Unescape(context.TODO(), tuiQuoted, token.DoubleQuote)
 			require.NoError(t, err)
 
 			t.Log("-----------------------")

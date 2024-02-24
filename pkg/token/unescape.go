@@ -12,7 +12,11 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func Unescape(ctx context.Context, input string, quote byte, unescape bool) (out string, err error) {
+func Unescape(ctx context.Context, input string, quote Quote) (out string, err error) {
+	if !quote.Valid() {
+		panic(ErrInvalidQuoteStyle)
+	}
+
 	input0 := input
 
 	// Handle quoted strings without any escape sequences.
@@ -40,7 +44,7 @@ func Unescape(ctx context.Context, input string, quote byte, unescape bool) (out
 		slogctx.Debug(ctx, "Unescape.input", tui.StringDump(input))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
-		runeVal, multibyte, remaining, err := UnescapeChar(ctx, input, quote)
+		runeVal, multibyte, remaining, err := unescapeChar(ctx, input, quote)
 		if err != nil {
 			return input0, err
 		}
@@ -49,17 +53,14 @@ func Unescape(ctx context.Context, input string, quote byte, unescape bool) (out
 
 		input = remaining
 
-		// Append the character if unescaping the input.
-		if unescape {
-			if runeVal < utf8.RuneSelf || !multibyte {
-				slogctx.Debug(ctx, "-- append")
+		if runeVal < utf8.RuneSelf || !multibyte {
+			slogctx.Debug(ctx, "-- append")
 
-				buf = append(buf, byte(runeVal))
-			} else {
-				slogctx.Debug(ctx, "-- utf8.AppendRune")
+			buf = append(buf, byte(runeVal))
+		} else {
+			slogctx.Debug(ctx, "-- utf8.AppendRune")
 
-				buf = utf8.AppendRune(buf, runeVal)
-			}
+			buf = utf8.AppendRune(buf, runeVal)
 		}
 
 		// Single quoted strings must be a single character.
@@ -68,11 +69,7 @@ func Unescape(ctx context.Context, input string, quote byte, unescape bool) (out
 		}
 	}
 
-	if unescape {
-		return string(buf), nil
-	}
-
-	return input, nil
+	return string(buf), nil
 }
 
 func contains(s string, c byte) bool {
@@ -83,7 +80,7 @@ func index(s string, c byte) int {
 	return strings.IndexByte(s, c)
 }
 
-func UnescapeChar(ctx context.Context, input string, quote byte) (value rune, multibyte bool, tail string, err error) {
+func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, multibyte bool, tail string, err error) {
 	slogctx.Debug(ctx, "UnescapeChar.start.input", tui.StringDump(input))
 
 	if len(input) == 0 {
@@ -234,14 +231,14 @@ func UnescapeChar(ctx context.Context, input string, quote byte) (value rune, mu
 		value = '\\'
 
 	case '\'':
-		if char != quote {
+		if char != quote.Byte() {
 			value = rune(char)
 		} else {
 			err = errors.New("UnescapeChar single: c != quote")
 		}
 
 	case '"':
-		if char != quote {
+		if char != quote.Byte() {
 			err = errors.New("UnescapeChar double: c != quote")
 
 			return

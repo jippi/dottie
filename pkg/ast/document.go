@@ -169,7 +169,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
-	if target.Quote.Is(token.SingleQuotes.Rune()) {
+	if target.Quote.Is(token.SingleQuote.Rune()) {
 		target.Interpolated = target.Literal
 
 		return

@@ -19,25 +19,25 @@ func TestUnescape(t *testing.T) {
 	}{
 		{
 			name:     "flat string",
-			quote:    token.DoubleQuotes,
+			quote:    token.DoubleQuote,
 			input:    "hello world",
 			expected: "hello world",
 		},
 		{
 			name:     "tab",
-			quote:    token.DoubleQuotes,
+			quote:    token.DoubleQuote,
 			input:    "\\t",
 			expected: "\t",
 		},
 		{
 			name:     "newline",
-			quote:    token.DoubleQuotes,
+			quote:    token.DoubleQuote,
 			input:    `\n`,
 			expected: "\n",
 		},
 		{
 			name:     "many chars",
-			quote:    token.DoubleQuotes,
+			quote:    token.DoubleQuote,
 			input:    `my_key="\t"`,
 			expected: "my_key=\"\t\"",
 		},
@@ -49,7 +49,7 @@ func TestUnescape(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual, err := token.Unescape(context.TODO(), tt.input, '"', true)
+			actual, err := token.Unescape(context.TODO(), tt.input, token.DoubleQuote)
 			require.NoError(t, err)
 
 			require.Equal(t, tt.expected, actual)

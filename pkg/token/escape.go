@@ -10,50 +10,51 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func Escape(ctx context.Context, in string) string {
-	return string(escape(ctx, nil, in, '"'))
-}
-
 const lowerhex = "0123456789abcdef"
 
-func escape(ctx context.Context, buf []byte, word string, quote byte) []byte {
-	slogctx.Debug(ctx, "escape.input.word", tui.StringDump(word))
+func Escape(ctx context.Context, input string, quote Quote) string {
+	if !quote.Valid() {
+		panic(ErrInvalidQuoteStyle)
+	}
+
+	slogctx.Debug(ctx, "Escape.input.word", tui.StringDump(input))
 
 	var (
+		buf         []byte
 		ASCIIonly   = false
 		graphicOnly = false
 	)
 
-	for width := 0; len(word) > 0; word = word[width:] { //nolint:wastedassign
-		runeValue := rune(word[0])
+	for width := 0; len(input) > 0; input = input[width:] { //nolint:wastedassign
+		runeValue := rune(input[0])
 		width = 1
 
 		if runeValue >= utf8.RuneSelf {
-			runeValue, width = utf8.DecodeRuneInString(word)
+			runeValue, width = utf8.DecodeRuneInString(input)
 		}
 
 		if width == 1 && runeValue == utf8.RuneError {
-			slogctx.Debug(ctx, "escape.for-loop.outcome: width == 1 && runeValue == utf8.RuneError")
+			slogctx.Debug(ctx, "Escape.for-loop.outcome: width == 1 && runeValue == utf8.RuneError")
 
 			buf = append(buf, `\x`...)
-			buf = append(buf, lowerhex[word[0]>>4])
-			buf = append(buf, lowerhex[word[0]&0xF])
+			buf = append(buf, lowerhex[input[0]>>4])
+			buf = append(buf, lowerhex[input[0]&0xF])
 
 			continue
 		}
 
-		slogctx.Debug(ctx, "escape.for-loop.outcome: escapeRune")
+		slogctx.Debug(ctx, "Escape.for-loop.outcome: escapeRune")
 
 		buf = escapeRune(ctx, buf, runeValue, quote, ASCIIonly, graphicOnly)
 	}
 
-	return buf
+	return string(buf)
 }
 
-func escapeRune(ctx context.Context, buf []byte, runeValue rune, quote byte, ASCIIonly, graphicOnly bool) []byte {
+func escapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, ASCIIonly, graphicOnly bool) []byte {
 	slogctx.Debug(ctx, "escapeRune.input.rune", tui.StringDump(string(runeValue)))
 
-	if runeValue == rune(quote) || runeValue == '\\' { // always backslashed
+	if runeValue == quote.Rune() || runeValue == '\\' { // always backslashed
 		slogctx.Debug(ctx, "escapeRune.input.rune: r == rune(quote)")
 
 		buf = append(buf, '\\')

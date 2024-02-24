@@ -317,7 +317,7 @@ func (p *Parser) parseNakedAssign(ctx context.Context, name string) *ast.Assignm
 	return &ast.Assignment{
 		Name:    name,
 		Enabled: p.token.Commented,
-		Quote:   token.NoQuotes,
+		Quote:   token.NoQuote,
 		Position: ast.Position{
 			FirstLine: p.token.LineNumber,
 			Line:      p.token.LineNumber,

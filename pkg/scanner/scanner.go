@@ -95,10 +95,10 @@ func (s *Scanner) NextToken(ctx context.Context) token.Token {
 		return s.scanComment()
 
 	case '"':
-		return s.scanQuotedValue(ctx, token.Value, token.DoubleQuotes)
+		return s.scanQuotedValue(ctx, token.Value, token.DoubleQuote)
 
 	case '\'':
-		return s.scanQuotedValue(ctx, token.RawValue, token.SingleQuotes)
+		return s.scanQuotedValue(ctx, token.RawValue, token.SingleQuote)
 
 	default:
 		switch prev := s.prev(); prev {
@@ -260,7 +260,7 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	return token.New(
 		token.Value,
 		token.WithLiteral(lit),
-		token.WithQuoteType(token.NoQuotes),
+		token.WithQuoteType(token.NoQuote),
 		token.WithOffset(s.offset),
 		token.WithLineNumber(s.lineNumber),
 	)

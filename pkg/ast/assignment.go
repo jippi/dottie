@@ -139,7 +139,7 @@ func (a *Assignment) CommentsSlice() []string {
 func (a *Assignment) SetLiteral(ctx context.Context, in string) {
 	slogctx.Debug(ctx, "SetLiteral.input", tui.StringDump(in))
 
-	a.Literal = token.Escape(ctx, a.Literal)
+	a.Literal = token.Escape(ctx, a.Literal, a.Quote)
 	a.Interpolated = a.Literal
 
 	slogctx.Debug(ctx, "SetLiteral.output", tui.StringDump(a.Literal))
@@ -148,7 +148,7 @@ func (a *Assignment) SetLiteral(ctx context.Context, in string) {
 func (a *Assignment) Unquote(ctx context.Context) (string, error) {
 	slogctx.Debug(ctx, "Unquote.input", tui.StringDump(a.Literal))
 
-	str, err := token.Unescape(ctx, a.Literal, '"', true)
+	str, err := token.Unescape(ctx, a.Literal, a.Quote)
 	if err != nil {
 		slogctx.Error(ctx, "failed to unquote string", tui.StringDump(a.Literal))
 

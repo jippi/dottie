@@ -2,21 +2,26 @@ package token
 
 import (
 	"encoding/json"
+	"errors"
 )
+
+var ErrInvalidQuoteStyle = errors.New("Invalid quote style")
 
 type Quote uint
 
 const (
-	InvalidQuotes Quote = iota
-	DoubleQuotes
-	SingleQuotes
-	NoQuotes
+	InvalidQuote Quote = iota
+	DoubleQuote
+	SingleQuote
+	NoQuote
+
+	maxQuote
 )
 
 var quotes = []rune{
-	SingleQuotes: '\'',
-	DoubleQuotes: '"',
-	NoQuotes:     0,
+	SingleQuote: '\'',
+	DoubleQuote: '"',
+	NoQuote:     0,
 }
 
 func (qt Quote) Is(in rune) bool {
@@ -24,17 +29,21 @@ func (qt Quote) Is(in rune) bool {
 }
 
 func (qt Quote) Valid() bool {
-	return qt > 0
+	return qt > InvalidQuote && qt < maxQuote
 }
 
 func (qt Quote) Rune() rune {
 	return quotes[qt]
 }
 
+func (qt Quote) Byte() byte {
+	return byte(quotes[qt])
+}
+
 // String returns the string corresponding to the token.
 func (qt Quote) String() string {
 	// the NoQuotes rune (0) are *not* the same as an empty string, so we handle it specially here
-	if qt == NoQuotes {
+	if qt == NoQuote {
 		return ""
 	}
 
@@ -53,13 +62,13 @@ func (qt Quote) String() string {
 
 func (qt Quote) MarshalJSON() ([]byte, error) {
 	switch qt {
-	case NoQuotes:
+	case NoQuote:
 		return json.Marshal(nil)
 
-	case SingleQuotes:
+	case SingleQuote:
 		return json.Marshal("single")
 
-	case DoubleQuotes:
+	case DoubleQuote:
 		return json.Marshal("double")
 
 	default:
@@ -70,15 +79,15 @@ func (qt Quote) MarshalJSON() ([]byte, error) {
 func QuoteFromString(in string) Quote {
 	switch in {
 	case "\"", "double":
-		return DoubleQuotes
+		return DoubleQuote
 
 	case "'", "single":
-		return SingleQuotes
+		return SingleQuote
 
 	case "none":
-		return NoQuotes
+		return NoQuote
 
 	default:
-		return InvalidQuotes
+		return InvalidQuote
 	}
 }
