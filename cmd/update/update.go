@@ -30,7 +30,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
 	cmd.Flags().StringSlice("exclude-key-prefix", []string{}, "Ignore these KEY prefixes")
 
-	shared.BoolWithInverse(cmd, "error-on-missing-key", true, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
+	shared.BoolWithInverse(cmd, "error-on-missing-key", false, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
 	shared.BoolWithInverse(cmd, "save", true, "Save the document after processing", "Do not save the document after processing")
 
