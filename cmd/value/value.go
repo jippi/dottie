@@ -56,9 +56,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	warnings, err := document.InterpolateStatement(cmd.Context(), assignment)
-	tui.MaybePrintWarnings(cmd.Context(), warnings)
-	if err != nil {
+	if err := document.InterpolateStatement(cmd.Context(), assignment); err != nil {
 		return err
 	}
 

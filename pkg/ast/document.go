@@ -24,8 +24,7 @@ type Document struct {
 	Groups      []*Group    `json:"groups"`     // Groups within the document
 	Annotations []*Comment  `json:"-"`          // Global annotations for configuration of dottie
 
-	interpolateWarnings error
-	interpolateErrors   error
+	interpolateErrors error
 }
 
 func NewDocument() *Document {
@@ -120,9 +119,8 @@ func (d *Document) Has(name string) bool {
 	return d.Get(name) != nil
 }
 
-func (doc *Document) InterpolateAll(ctx context.Context) (error, error) {
+func (doc *Document) InterpolateAll(ctx context.Context) error {
 	defer func() {
-		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
@@ -130,18 +128,17 @@ func (doc *Document) InterpolateAll(ctx context.Context) (error, error) {
 		doc.doInterpolation(ctx, assignment)
 	}
 
-	return doc.interpolateWarnings, doc.interpolateErrors
+	return doc.interpolateErrors
 }
 
-func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment) (error, error) {
+func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment) error {
 	defer func() {
-		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
 	doc.doInterpolation(ctx, target)
 
-	return doc.interpolateWarnings, doc.interpolateErrors
+	return doc.interpolateErrors
 }
 
 func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
@@ -163,7 +160,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	for _, dependency := range target.Dependencies {
 		ref := doc.Get(dependency.Name)
 		if ref == nil {
-			doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, fmt.Errorf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
+			slogctx.Warn(ctx, fmt.Sprintf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
 
 			continue
 		}
@@ -196,14 +193,13 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 		return
 	}
 
-	value, warnings, err := template.Substitute(ctx, unquotedLiteral, doc.interpolationMapper(target))
+	value, err := template.Substitute(ctx, unquotedLiteral, doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}
 
 	target.Interpolated = value
 
-	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 }
 
@@ -369,11 +365,11 @@ func (document *Document) Replace(assignment *Assignment) error {
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
-func (document *Document) Validate(ctx context.Context, selectors []Selector, ignoreErrors []string) ([]*ValidationError, error, error) {
+func (document *Document) Validate(ctx context.Context, selectors []Selector, ignoreErrors []string) ([]*ValidationError, error) {
 	var (
-		warnings, errors error
-		data             = map[string]any{}
-		rules            = map[string]any{}
+		errors error
+		data   = map[string]any{}
+		rules  = map[string]any{}
 
 		// The validation library uses a map[string]any as return value
 		// which causes random ordering of keys. We would like them
@@ -406,10 +402,9 @@ NEXT:
 			continue
 		}
 
-		warn, err := document.InterpolateStatement(ctx, assignment)
-
-		warnings = multierr.Append(warnings, warn)
-		errors = multierr.Append(errors, err)
+		if err := document.InterpolateStatement(ctx, assignment); err != nil {
+			errors = multierr.Append(errors, err)
+		}
 
 		data[assignment.Name] = assignment.Interpolated
 		rules[assignment.Name] = validationRules
@@ -419,7 +414,7 @@ NEXT:
 
 	validationErrors, err := document.doValidationAndRecoverFromPanic(data, rules)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var result []*ValidationError
@@ -446,7 +441,7 @@ NEXT_FIELD:
 		})
 	}
 
-	return result, warnings, errors
+	return result, errors
 }
 
 func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string]any) (res map[string]any, err error) {
@@ -459,7 +454,7 @@ func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string
 	return validator.New().ValidateMap(data, rules), nil
 }
 
-func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
+func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error) {
 	return document.Validate(
 		ctx,
 		append(

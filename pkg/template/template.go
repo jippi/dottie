@@ -66,13 +66,12 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(ctx context.Context, template string, resolver Resolver) (string, error, error) {
+func Substitute(ctx context.Context, template string, resolver Resolver) (string, error) {
 	slogctx.Debug(ctx, "template.Substitute input", tui.StringDump(template))
 
 	var (
-		combinedWarnings, combinedErrors error
-		missing                          []string
-		variables                        = ExtractVariables(template)
+		combinedErrors error
+		variables      = ExtractVariables(template)
 	)
 
 	environment := EnvironmentHelper{
@@ -82,7 +81,7 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 
 			// shouldn't be a lookup for anything that
 			if !ok {
-				missing = append(missing, key)
+				slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
 
 				return
 			}
@@ -102,7 +101,7 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 				return
 			}
 
-			missing = append(missing, key)
+			slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
 		},
 	}
 
@@ -133,7 +132,7 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 	// Parse template into Shell words
 	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
 	if err != nil {
-		return "", nil, InvalidTemplateError{Template: template}
+		return "", InvalidTemplateError{Template: template}
 	}
 
 	// Expand variables
@@ -154,14 +153,9 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 		}
 	}
 
-	// Emit missing key warnings
-	for _, missingKey := range missing {
-		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The [ $%s ] key is not set. Defaulting to a blank string.", missingKey))
-	}
-
 	slogctx.Debug(ctx, "template.Substitute output", tui.StringDump(result))
 
-	return result, combinedWarnings, combinedErrors
+	return result, combinedErrors
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified

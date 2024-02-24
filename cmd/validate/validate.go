@@ -41,11 +41,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Interpolate
 	//
 
-	warnings, err := document.InterpolateAll(cmd.Context())
-
-	tui.MaybePrintWarnings(cmd.Context(), warnings)
-
-	if err != nil {
+	if err = document.InterpolateAll(cmd.Context()); err != nil {
 		return fmt.Errorf("failed to interpolate file: %w", err)
 	}
 
@@ -66,9 +62,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		selectors = append(selectors, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors, warnings, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
-	tui.MaybePrintWarnings(cmd.Context(), warnings)
-
+	validationErrors, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
 	if errs != nil {
 		return errs
 	}
@@ -106,9 +100,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes, warns, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
-	tui.MaybePrintWarnings(cmd.Context(), warns)
-
+	newRes, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
 	if errs != nil {
 		return errs
 	}

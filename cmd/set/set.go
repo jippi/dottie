@@ -158,9 +158,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Upsert the assignment
 		//
 
-		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
-		tui.MaybePrintWarnings(cmd.Context(), warnings)
-
+		assignment, err := upserter.Upsert(cmd.Context(), assignment)
 		if err != nil {
 			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, err, assignment, false, true))
 

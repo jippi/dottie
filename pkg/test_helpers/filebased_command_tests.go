@@ -162,10 +162,11 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				commandArgs := append(args, "--file", dotEnvFile)
 
 				// Run command
-				stdout := bytes.Buffer{}
-				stderr := bytes.Buffer{}
-
-				ctx := CreateContext(t, &stdout, &stderr)
+				var (
+					stdout = bytes.Buffer{}
+					stderr = bytes.Buffer{}
+					ctx    = CreateContext(t, &stdout, &stderr)
+				)
 
 				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
 

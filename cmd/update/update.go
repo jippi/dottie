@@ -207,20 +207,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		var skippedStatementWarning upsert.SkippedStatementError
-
-		changed, warnings, err := upserter.Upsert(cmd.Context(), oldStatement)
-
-		switch {
-		case errors.As(warnings, &skippedStatementWarning):
-			stdout.Warning().Print("  ", oldStatement.Name)
-			dark.Print(" was skipped: ")
-			dark.Println(skippedStatementWarning.Reason)
-
-		default:
-			tui.MaybePrintWarnings(cmd.Context(), warnings)
-		}
-
+		changed, err := upserter.Upsert(cmd.Context(), oldStatement)
 		if err != nil {
 			sawError = true
 			lastWasError = true

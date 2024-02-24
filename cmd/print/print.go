@@ -79,19 +79,18 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
 	)
 
-	var allErrors, allWarnings error
+	var allErrors error
 
 	if settings.InterpolatedValues {
-		var warn, err error
+		var err error
 
 		for _, assignment := range doc.AllAssignments() {
 			if !assignment.Enabled {
 				continue
 			}
 
-			warn, err = doc.InterpolateStatement(cmd.Context(), assignment)
+			err = doc.InterpolateStatement(cmd.Context(), assignment)
 
-			allWarnings = multierr.Append(allWarnings, warn)
 			allErrors = multierr.Append(allErrors, err)
 		}
 	}
@@ -99,8 +98,6 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
-
-	tui.MaybePrintWarnings(cmd.Context(), allWarnings)
 
 	return doc, settings, allErrors
 }
