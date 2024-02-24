@@ -63,7 +63,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("value.assignment.Interpolated", fmt.Sprintf(">%q<", assignment.Interpolated), fmt.Sprintf(">%U<", []rune(assignment.Interpolated)))
 
-	// fmt.Fprint(cmd.OutOrStdout(), "before print", fmt.Sprintf("%U", []rune(assignment.Interpolated)))
 	fmt.Fprint(cmd.OutOrStdout(), assignment.Interpolated)
 
 	return nil

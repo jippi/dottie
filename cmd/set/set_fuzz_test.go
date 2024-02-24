@@ -56,20 +56,31 @@ func TestSpecificInputs(t *testing.T) {
 		doTest(t, "\\0")
 	})
 
-	t.Run("weird", func(t *testing.T) {
+	t.Run("weird-1", func(t *testing.T) {
 		t.Parallel()
 
 		doTest(t, "@@\v\"@23")
 	})
 
-	t.Run("weird_2", func(t *testing.T) {
+	t.Run("weird-2", func(t *testing.T) {
 		t.Parallel()
 
 		doTest(t, "\"\n")
 	})
+	t.Run("weird-3", func(t *testing.T) {
+		t.Parallel()
+
+		doTest(t, "\x00$")
+	})
 }
 
 func doTest(t *testing.T, expected string) { //nolint thelper
+	if strings.Contains(expected, "\x00") {
+		t.Skip()
+
+		return
+	}
+
 	dotEnvFile := t.TempDir() + "/tmp.env"
 
 	_, err := os.Create(dotEnvFile)
@@ -95,9 +106,9 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 			}
 		)
 
-		t.Log("-----------------------")
-		t.Log("ARGS:")
-		t.Log("-----------------------")
+		t.Log("----------------------------------------------")
+		t.Log("[dottie set] COMMAND")
+		t.Log("----------------------------------------------")
 		t.Log(spew.Sdump(args))
 		t.Log()
 
@@ -150,18 +161,18 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 
 		disk := strings.TrimRight(string(out), "\n")
 
-		t.Log("-----------------------")
+		t.Log("----------------------------------------------")
 		t.Log("FILE ON DISK")
-		t.Log("-----------------------")
+		t.Log("----------------------------------------------")
 		dump(t, disk)
 	}
 
 	// Read back from disk
 	{
 		var (
-			stdout      bytes.Buffer
-			stderr      bytes.Buffer
-			commandArgs = []string{
+			stdout bytes.Buffer
+			stderr bytes.Buffer
+			args   = []string{
 				"--file", dotEnvFile,
 				"value",
 				// "--literal",
@@ -169,8 +180,15 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 			}
 		)
 
+		t.Log("----------------------------------------------")
+		t.Log("[dottie value] COMMAND")
+		t.Log("---------------------------------------------")
+		t.Log(spew.Sdump(args))
+		t.Log()
+
 		// Run command
-		cmd.RunCommand(context.Background(), commandArgs, &stdout, &stderr)
+		_, err := cmd.RunCommand(context.Background(), args, &stdout, &stderr)
+		require.NoError(t, err)
 
 		t.Log("-----------------------")
 		t.Log("STDOUT:")

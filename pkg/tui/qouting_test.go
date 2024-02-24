@@ -80,6 +80,12 @@ func TestBackAndForth(t *testing.T) {
 			expectedQuoted: "\\xf5",
 			expectedRunes:  []rune{65533},
 		},
+		{
+			name:           "weird-2",
+			input:          "\x00$",
+			expectedQuoted: "\\x00$",
+			expectedRunes:  []rune{0, 36},
+		},
 	}
 
 	for _, tt := range tests {
@@ -96,18 +102,18 @@ func TestBackAndForth(t *testing.T) {
 				t.Log(line)
 			}
 
+			// Ensure expected runes match the runes from the input
+			assert.Equal(t, tt.expectedRunes, []rune(tt.input))
+
 			t.Log("-----------------------")
 			t.Log("strconv.Quote")
 			t.Log("-----------------------")
 
 			qu := strconv.Quote(tt.input)
 
-			for _, line := range tui.DumpSlice(qu) {
+			for _, line := range tui.DumpSlice(qu[1 : len(qu)-1]) {
 				t.Log(line)
 			}
-
-			// Ensure expected runes match the runes from the input
-			assert.Equal(t, tt.expectedRunes, []rune(tt.input))
 
 			t.Log("-----------------------")
 			t.Log("tui.Quote")

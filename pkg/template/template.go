@@ -22,7 +22,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/multierr"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
@@ -66,8 +65,7 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
 func Substitute(_ context.Context, template string, resolver Resolver) (string, error, error) {
-	spew.Dump("Substitute", template)
-	// return template, nil, nil
+	fmt.Println("template.Substitute input:", fmt.Sprintf(">%q<", template))
 
 	var (
 		combinedWarnings, combinedErrors error
@@ -130,13 +128,10 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 		},
 	}
 
-	inputToReader := template
-	// fmt.Println(inputToReader)
-
 	// Parse template into Shell words
 	//
 	// Single quote the input to avoid shell expansions such as "~" => $HOME => env lookup
-	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(inputToReader))
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
 	if err != nil {
 		return "", nil, InvalidTemplateError{Template: template}
 	}
@@ -163,6 +158,8 @@ func Substitute(_ context.Context, template string, resolver Resolver) (string, 
 	for _, missingKey := range missing {
 		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The [ $%s ] key is not set. Defaulting to a blank string.", missingKey))
 	}
+
+	fmt.Println("template.Substitute output:", fmt.Sprintf(">%q<", result))
 
 	return result, combinedWarnings, combinedErrors
 }
