@@ -222,8 +222,6 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		}
 
 		actual := stdout.String()
-		// actual = token.DoubleQuotes.Escape(actual)
-		// actual = Clean(actual)
 
 		t.Log("-----------------------")
 		t.Log("Actual")
@@ -231,7 +229,6 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		dump(t, ctx, actual)
 
 		assert.Equal(t, fmt.Sprintf("%U", []rune(expected)), fmt.Sprintf("%U", []rune(actual)))
-		// assert.True(t, false, "fail")
 	}
 }
 
