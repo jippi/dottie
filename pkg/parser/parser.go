@@ -25,6 +25,14 @@ type Parser struct {
 
 // New returns new Parser.
 func New(ctx context.Context, scanner Scanner, filename string) *Parser {
+	ctx = slogctx.With(
+		ctx,
+		slog.Group(
+			"parser_state",
+			slog.String("filename", filename),
+		),
+	)
+
 	return &Parser{
 		filename: filename,
 		scanner:  scanner,
@@ -44,14 +52,21 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 	document = ast.NewDocument()
 
 	for p.token.Type != token.EOF {
-		slogctx.Debug(ctx, "Processing token", slog.Any("token", p.token))
+		ctx := slogctx.With(
+			ctx,
+			slog.Group("parser_state",
+				slog.String("filename", p.filename),
+				slog.Any("token", p.token),
+			),
+			slog.String("source", "parser"),
+		)
 
 		stmt, err := p.parseStatement(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		slogctx.Debug(ctx, "Processing statement", slog.Any("statement", stmt))
+		slogctx.Debug(ctx, "Parser.Parse() processing statement", slog.Any("statement", stmt))
 
 		switch val := stmt.(type) {
 		case *ast.Group:
@@ -178,6 +193,8 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 }
 
 func (p *Parser) parseStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseStatement()")
+
 	switch p.token.Type {
 	case token.Identifier:
 		return p.parseRowStatement(ctx)
@@ -211,6 +228,8 @@ func (p *Parser) parseStatement(ctx context.Context) (ast.Statement, error) {
 }
 
 func (p *Parser) parseGroupStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseGroupStatement()")
+
 	var group *ast.Group
 
 	p.nextToken(ctx)
@@ -246,6 +265,8 @@ func (p *Parser) parseGroupStatement(ctx context.Context) (ast.Statement, error)
 }
 
 func (p *Parser) parseCommentStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseCommentStatement()")
+
 	stm := &ast.Comment{
 		Value:      p.token.Literal,
 		Annotation: p.token.Annotation,
@@ -262,6 +283,8 @@ func (p *Parser) parseCommentStatement(ctx context.Context) (ast.Statement, erro
 }
 
 func (p *Parser) parseRowStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseRowStatement()")
+
 	var (
 		err  error
 		stmt *ast.Assignment
@@ -272,16 +295,12 @@ func (p *Parser) parseRowStatement(ctx context.Context) (ast.Statement, error) {
 
 	p.nextToken(ctx)
 
-	slogctx.Debug(ctx, "parseRowStatement, next token", slog.Any("token", p.token))
-
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
 		stmt = p.parseNakedAssign(ctx, name)
 
 	case token.Assign:
 		p.nextToken(ctx)
-
-		slogctx.Debug(ctx, "parseRowStatement, after assign", slog.Any("token", p.token))
 
 		switch p.token.Type {
 		case token.NewLine, token.EOF:
@@ -312,6 +331,8 @@ func (p *Parser) parseRowStatement(ctx context.Context) (ast.Statement, error) {
 }
 
 func (p *Parser) parseNakedAssign(ctx context.Context, name string) *ast.Assignment {
+	slogctx.Debug(ctx, "Parser.parseNakedAssign()")
+
 	defer p.nextToken(ctx)
 
 	return &ast.Assignment{
@@ -327,6 +348,8 @@ func (p *Parser) parseNakedAssign(ctx context.Context, name string) *ast.Assignm
 }
 
 func (p *Parser) parseCompleteAssign(ctx context.Context, name string) (*ast.Assignment, error) {
+	slogctx.Debug(ctx, "Parser.parseCompleteAssign()")
+
 	assignment := p.token
 
 	p.nextToken(ctx)
@@ -369,6 +392,8 @@ func (p *Parser) wasEmptyLine() bool {
 }
 
 func (p *Parser) skipBlankLine(ctx context.Context) {
+	slogctx.Debug(ctx, "Parser.skipBlankLine()")
+
 	for p.token.Type == token.NewLine || p.token.Type == token.Space {
 		p.nextToken(ctx)
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"reflect"
 	"slices"
@@ -13,7 +14,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
-	"github.com/jippi/dottie/pkg/tui"
 	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
@@ -142,13 +142,17 @@ func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignmen
 }
 
 func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
-	slogctx.Debug(ctx, "Starting interpolation")
+	ctx = slogctx.With(ctx, slog.String("source", "ast.Document"))
+
+	slogctx.Debug(ctx, "Starting interpolation", slog.Any("assignment", target))
 
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
 		return
 	}
+
+	ctx = slogctx.With(ctx, slog.String("interpolation_key", target.Name))
 
 	if !target.Enabled {
 		return
@@ -164,6 +168,8 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 
 			continue
 		}
+
+		ctx := slogctx.With(ctx, slog.String("dependent_key", target.Name))
 
 		doc.doInterpolation(ctx, doc.Get(dependency.Name))
 	}
@@ -186,8 +192,6 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		slogctx.Debug(ctx, "doInterpolation.target.Interpolated", tui.StringDump(target.Interpolated))
-
 		target.Interpolated = unquotedLiteral
 
 		return

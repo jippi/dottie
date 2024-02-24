@@ -2,6 +2,7 @@ package scanner
 
 import (
 	"context"
+	"log/slog"
 	"strconv"
 	"strings"
 	"unicode"
@@ -59,7 +60,15 @@ func New(input string) *Scanner {
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
 func (s *Scanner) NextToken(ctx context.Context) token.Token {
-	slogctx.Debug(ctx, "Scanner working on rune", tui.StringDump(string(s.rune)))
+	ctx = slogctx.With(
+		ctx,
+		slog.Group("scanner_state",
+			tui.StringDump("rune", string(s.rune)),
+		),
+		slog.String("source", "scanner"),
+	)
+
+	slogctx.Debug(ctx, "Scanner.NextToken()")
 
 	switch s.rune {
 	case eof:
@@ -266,22 +275,16 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	)
 }
 
-func (s *Scanner) scanQuotedValue(ctx context.Context, tType token.Type, quote token.Quote) token.Token {
-	slogctx.Debug(ctx, "scanQuotedValue")
-
+func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote token.Quote) token.Token {
 	// opening quote already consumed
 	s.next()
 
 	start := s.offset
 
-	slogctx.Debug(ctx, "scanQuotedValue: s.input", tui.StringDump(s.input))
-
 	escapes := 0
 
 	for {
 		escapingPrevious := escapes == 1
-
-		slogctx.Debug(ctx, "scanQuotedValue: loop", tui.StringDump(string(s.rune)))
 
 		if isEOF(s.rune) || isNewLine(s.rune) {
 			tType = token.Illegal
@@ -311,13 +314,9 @@ func (s *Scanner) scanQuotedValue(ctx context.Context, tType token.Type, quote t
 	offset := s.offset
 	lit := s.input[start:offset]
 
-	slogctx.Debug(ctx, "scanQuotedValue lit (before)", tui.StringDump(lit))
-
 	if tType == token.Value {
 		lit = escape(lit)
 	}
-
-	slogctx.Debug(ctx, "scanQuotedValue lit (after)", tui.StringDump(lit))
 
 	if quote.Is(s.rune) {
 		s.next()

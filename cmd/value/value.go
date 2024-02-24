@@ -60,7 +60,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	slogctx.Info(cmd.Context(), "value.assignment.Interpolated", tui.StringDump(assignment.Interpolated))
+	slogctx.Info(cmd.Context(), "value.assignment.Interpolated", tui.StringDump("assignment.Interpolated", assignment.Interpolated))
 
 	fmt.Fprint(cmd.OutOrStdout(), assignment.Interpolated)
 

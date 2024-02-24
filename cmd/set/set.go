@@ -99,7 +99,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	)
 
 	for _, arg := range args {
-		slogctx.Debug(cmd.Context(), "arg", tui.StringDump(arg))
+		slogctx.Debug(cmd.Context(), "arg", tui.StringDump("arg", arg))
 	}
 
 	for _, stringPair := range args {

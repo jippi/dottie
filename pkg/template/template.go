@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"slices"
 	"strings"
 
@@ -66,12 +67,14 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(ctx context.Context, template string, resolver Resolver) (string, error) {
-	slogctx.Debug(ctx, "template.Substitute input", tui.StringDump(template))
+func Substitute(ctx context.Context, input string, resolver Resolver) (string, error) {
+	ctx = slogctx.With(ctx, slog.String("source", "template.Substitute"))
+
+	slogctx.Debug(ctx, "template.Substitute.input", tui.StringDump("input", input))
 
 	var (
 		combinedErrors error
-		variables      = ExtractVariables(template)
+		variables      = ExtractVariables(input)
 	)
 
 	environment := EnvironmentHelper{
@@ -123,16 +126,16 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 			start := i.Left.Offset()
 			end := i.End().Offset() - 1
 
-			writer.Write([]byte(template[start:end]))
+			writer.Write([]byte(input[start:end]))
 
 			return nil
 		},
 	}
 
 	// Parse template into Shell words
-	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(input))
 	if err != nil {
-		return "", InvalidTemplateError{Template: template}
+		return "", InvalidTemplateError{Template: input}
 	}
 
 	// Expand variables
@@ -149,11 +152,11 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 			})
 
 		default:
-			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: template, Wrapped: err})
+			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: input, Wrapped: err})
 		}
 	}
 
-	slogctx.Debug(ctx, "template.Substitute output", tui.StringDump(result))
+	slogctx.Debug(ctx, "template.Substitute output", tui.StringDump("output", result))
 
 	return result, combinedErrors
 }

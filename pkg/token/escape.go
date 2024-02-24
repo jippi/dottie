@@ -17,7 +17,7 @@ func Escape(ctx context.Context, input string, quote Quote) string {
 		panic(ErrInvalidQuoteStyle)
 	}
 
-	slogctx.Debug(ctx, "Escape.input.word", tui.StringDump(input))
+	slogctx.Debug(ctx, "Escape", tui.StringDump("input", input))
 
 	var (
 		buf         []byte
@@ -52,7 +52,7 @@ func Escape(ctx context.Context, input string, quote Quote) string {
 }
 
 func escapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, ASCIIonly, graphicOnly bool) []byte {
-	slogctx.Debug(ctx, "escapeRune.input.rune", tui.StringDump(string(runeValue)))
+	slogctx.Debug(ctx, "escapeRune.input.rune", tui.StringDump("rune", string(runeValue)))
 
 	if runeValue == quote.Rune() || runeValue == '\\' { // always backslashed
 		slogctx.Debug(ctx, "escapeRune.input.rune: r == rune(quote)")

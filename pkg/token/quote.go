@@ -40,6 +40,22 @@ func (qt Quote) Byte() byte {
 	return byte(quotes[qt])
 }
 
+func (qt Quote) Name() string {
+	switch qt {
+	case NoQuote:
+		return "NoQuote"
+
+	case DoubleQuote:
+		return "DoubleQuote"
+
+	case SingleQuote:
+		return "SingleQuote"
+
+	default:
+		return "InvalidQuote"
+	}
+}
+
 // String returns the string corresponding to the token.
 func (qt Quote) String() string {
 	// the NoQuotes rune (0) are *not* the same as an empty string, so we handle it specially here

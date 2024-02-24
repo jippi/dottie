@@ -7,7 +7,10 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
+	"github.com/reugn/pkgslog"
+	slogmulti "github.com/samber/slog-multi"
 	slogctx "github.com/veqryn/slog-context"
+	slogdedup "github.com/veqryn/slog-dedup"
 )
 
 type fileDescriptorKey int
@@ -26,7 +29,28 @@ const (
 
 func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 	ctx = NewContextWithoutLogger(ctx, stdout, stderr)
-	ctx = slogctx.NewCtx(ctx, slog.New(logHandler(stderr)))
+	ctx = slogctx.NewCtx(
+		ctx,
+		slog.New(
+			slogmulti.
+				Pipe(
+					func(next slog.Handler) slog.Handler {
+						return pkgslog.NewPackageHandler(next, packageLogLevels())
+					},
+				).
+				Pipe(
+					slogctx.NewMiddleware(&slogctx.HandlerOptions{}),
+				).
+				Pipe(
+					slogdedup.NewOverwriteMiddleware(&slogdedup.OverwriteHandlerOptions{
+						ResolveBuiltinKeyConflict: slogdedup.KeepIfBuiltinKeyConflict,
+					}),
+				).
+				Handler(
+					logHandler(stderr),
+				),
+		),
+	)
 
 	return ctx
 }

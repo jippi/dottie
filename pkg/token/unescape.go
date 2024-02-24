@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"unicode/utf8"
 
@@ -16,6 +17,12 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 	if !quote.Valid() {
 		panic(ErrInvalidQuoteStyle)
 	}
+
+	ctx = slogctx.With(
+		ctx,
+		slog.String("source", "token.Unescape()"),
+		slog.String("quote", quote.Name()),
+	)
 
 	input0 := input
 
@@ -41,7 +48,7 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 
 	// LOOP
 	for len(input) > 0 {
-		slogctx.Debug(ctx, "Unescape.input", tui.StringDump(input))
+		slogctx.Debug(ctx, "Unescape :: loop :: input", tui.StringDump("input", input))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
 		runeVal, multibyte, remaining, err := unescapeChar(ctx, input, quote)
@@ -49,17 +56,13 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 			return input0, err
 		}
 
-		slogctx.Debug(ctx, "Unescape.remaining", tui.StringDump(remaining))
+		slogctx.Debug(ctx, "Unescape :: loop :: remaining", tui.StringDump("remaining", remaining))
 
 		input = remaining
 
 		if runeVal < utf8.RuneSelf || !multibyte {
-			slogctx.Debug(ctx, "-- append")
-
 			buf = append(buf, byte(runeVal))
 		} else {
-			slogctx.Debug(ctx, "-- utf8.AppendRune")
-
 			buf = utf8.AppendRune(buf, runeVal)
 		}
 
@@ -81,40 +84,36 @@ func index(s string, c byte) int {
 }
 
 func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, multibyte bool, tail string, err error) {
-	slogctx.Debug(ctx, "UnescapeChar.start.input", tui.StringDump(input))
+	ctx = slogctx.With(ctx, tui.StringDump("input", input))
+	slogctx.Debug(ctx, "token.unescapeChar()")
 
 	if len(input) == 0 {
 		return
 	}
 
-	slogctx.Debug(ctx, "UnescapeChar.switch.char", tui.StringDump(string(input[0])))
-
 	switch char := input[0]; {
 	case char >= utf8.RuneSelf:
-		slogctx.Debug(ctx, "UnescapeChar.switch.outcome: char >= utf8.RuneSelf")
-
 		r, size := utf8.DecodeRuneInString(input)
 
 		return r, true, input[size:], nil
 
 	case char != '\\':
-		slogctx.Debug(ctx, "UnescapeChar.switch.outcome: char != '\\'")
-
 		return rune(input[0]), false, input[1:], nil
 
 	case char == '\\' && len(input) <= 1:
-		slogctx.Debug(ctx, "UnescapeChar.switch.len <= 1", tui.StringDump(string(input[0])), tui.StringDump(input[1:]))
-
 		return rune(input[0]), false, input[1:], nil
 	}
-
-	slogctx.Debug(ctx, "UnescapeChar.switch.miss: yup")
 
 	char := input[1]
 	input = input[2:]
 
-	slogctx.Debug(ctx, "UnescapeChar.char", tui.StringDump(string(char)))
-	slogctx.Debug(ctx, "UnescapeChar.input", tui.StringDump(input))
+	ctx = slogctx.With(
+		ctx,
+		tui.StringDump("char", string(char)),
+		tui.StringDump("input", input),
+	)
+
+	slogctx.Debug(ctx, "token.unescapeChar() complex unescape path")
 
 	switch char {
 	case 'a':
@@ -139,8 +138,6 @@ func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, m
 		value = '\v'
 
 	case 'x', 'u', 'U':
-		slogctx.Debug(ctx, "UnescapeChar.char-switch: xuU")
-
 		n := 0
 
 		switch char {
@@ -194,8 +191,6 @@ func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, m
 		multibyte = true
 
 	case '0', '1', '2', '3', '4', '5', '6', '7':
-		slogctx.Debug(ctx, "UnescapeChar.char-switch: numbers")
-
 		v := rune(char) - '0'
 
 		if len(input) < 2 {

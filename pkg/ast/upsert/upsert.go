@@ -3,6 +3,7 @@ package upsert
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -54,6 +55,8 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
 func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error) {
+	ctx = slogctx.With(ctx, slog.String("source", "upserter"), slog.String("assignment_key", input.Name))
+
 	existing := u.document.Get(input.Name)
 	exists := existing != nil
 
@@ -113,7 +116,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	content := render.NewFormatter().Statement(ctx, thing).String()
 	scan := scanner.New(content)
 
-	slogctx.Debug(ctx, "memory://tmp/upsert", tui.StringDump(content))
+	slogctx.Debug(ctx, "memory://tmp/upsert", tui.StringDump("rendered_content", content))
 
 	tempDoc, err = parser.New(ctx, scan, "memory://tmp/upsert").Parse(ctx)
 	if err != nil {
@@ -166,12 +169,12 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 
 	newAssignment.Literal = input.Literal
 
-	slogctx.Debug(ctx, "createAndInsert: input.Literal", tui.StringDump(newAssignment.Literal))
+	slogctx.Debug(ctx, "createAndInsert: input.Literal", tui.StringDump("literal", newAssignment.Literal))
 
 	content := render.NewFormatter().Statement(ctx, newAssignment).String()
 	scan := scanner.New(content)
 
-	slogctx.Debug(ctx, "createAndInsert: content", tui.StringDump(content))
+	slogctx.Debug(ctx, "createAndInsert: content", tui.StringDump("rendered_content", content))
 
 	inMemoryDoc, err := parser.New(ctx, scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
 	if err != nil {
