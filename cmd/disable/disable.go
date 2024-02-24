@@ -22,7 +22,7 @@ func NewCommand() *cobra.Command {
 
 			filename := cmd.Flag("file").Value.String()
 
-			env, err := pkg.Load(filename)
+			env, err := pkg.Load(cmd.Context(), filename)
 			if err != nil {
 				return err
 			}
@@ -33,7 +33,9 @@ func NewCommand() *cobra.Command {
 			}
 
 			if !assignment.Enabled {
-				tui.MaybePrintWarnings(cmd.Context(), fmt.Errorf("The key [ %s ] is already disabled", key))
+				tui.StderrFromContext(cmd.Context()).
+					Warning().
+					Println(fmt.Errorf("WARNING: The key [ %s ] is already disabled", key))
 
 				return nil
 			}

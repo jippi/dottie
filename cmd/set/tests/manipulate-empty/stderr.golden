@@ -52,7 +52,7 @@
 - [set NOT_A_NUMBER=abc --comment @dottie/validate number]
 --------------------------------------------------------------------------------
 
-  NOT_A_NUMBER ( memory://tmp:13 )
+  NOT_A_NUMBER ( memory://tmp/upsert:13 )
     * (number) The value [abc] is not a valid number.
 
 Error: validation error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag

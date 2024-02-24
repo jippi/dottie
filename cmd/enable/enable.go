@@ -20,7 +20,7 @@ func NewCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 
-			document, err := pkg.Load(filename)
+			document, err := pkg.Load(cmd.Context(), filename)
 			if err != nil {
 				return err
 			}
@@ -33,7 +33,9 @@ func NewCommand() *cobra.Command {
 			}
 
 			if assignment.Enabled {
-				tui.MaybePrintWarnings(cmd.Context(), fmt.Errorf("The key [ %s ] is already enabled", key))
+				tui.StderrFromContext(cmd.Context()).
+					Warning().
+					Println(fmt.Errorf("WARNING: The key [ %s ] is already enabled", key))
 			}
 
 			assignment.Enable()

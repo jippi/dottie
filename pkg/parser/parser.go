@@ -1,15 +1,18 @@
 package parser
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
 type Scanner interface {
-	NextToken() token.Token
+	NextToken(ctx context.Context) token.Token
 }
 
 // Parser takes a Scanner and builds an abstract syntax tree.
@@ -21,29 +24,49 @@ type Parser struct {
 }
 
 // New returns new Parser.
-func New(scanner Scanner, filename string) *Parser {
+func New(ctx context.Context, scanner Scanner, filename string) *Parser {
+	ctx = slogctx.With(
+		ctx,
+		slog.Group(
+			"parser_state",
+			slog.String("filename", filename),
+		),
+	)
+
 	return &Parser{
 		filename: filename,
 		scanner:  scanner,
-		token:    scanner.NextToken(),
+		token:    scanner.NextToken(ctx),
 	}
 }
 
 // Parse parses the .env file and returns an ast.Statement.
-func (p *Parser) Parse() (*ast.Document, error) {
+func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) {
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group
-		document          = ast.NewDocument()
 		previousStatement ast.Statement
 		statementIndex    int
 	)
 
+	document = ast.NewDocument()
+
 	for p.token.Type != token.EOF {
-		stmt, err := p.parseStatement()
+		ctx := slogctx.With(
+			ctx,
+			slog.Group("parser_state",
+				slog.String("filename", p.filename),
+				slog.Any("token", p.token),
+			),
+			slog.String("source", "parser"),
+		)
+
+		stmt, err := p.parseStatement(ctx)
 		if err != nil {
 			return nil, err
 		}
+
+		slogctx.Debug(ctx, "Parser.Parse() processing statement", slog.Any("statement", stmt))
 
 		switch val := stmt.(type) {
 		case *ast.Group:
@@ -169,16 +192,18 @@ func (p *Parser) Parse() (*ast.Document, error) {
 	return document, nil
 }
 
-func (p *Parser) parseStatement() (ast.Statement, error) {
+func (p *Parser) parseStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseStatement()")
+
 	switch p.token.Type {
 	case token.Identifier:
-		return p.parseRowStatement()
+		return p.parseRowStatement(ctx)
 
 	case token.Comment, token.CommentAnnotation:
-		return p.parseCommentStatement()
+		return p.parseCommentStatement(ctx)
 
 	case token.GroupBanner:
-		return p.parseGroupStatement()
+		return p.parseGroupStatement(ctx)
 
 	case token.EOF:
 		return nil, nil
@@ -193,7 +218,7 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 			},
 		}
 
-		p.nextToken()
+		p.nextToken(ctx)
 
 		return res, nil
 
@@ -202,11 +227,13 @@ func (p *Parser) parseStatement() (ast.Statement, error) {
 	}
 }
 
-func (p *Parser) parseGroupStatement() (ast.Statement, error) {
+func (p *Parser) parseGroupStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseGroupStatement()")
+
 	var group *ast.Group
 
-	p.nextToken()
-	p.skipBlankLine()
+	p.nextToken(ctx)
+	p.skipBlankLine(ctx)
 
 	switch p.token.Type {
 	case token.Comment:
@@ -220,24 +247,26 @@ func (p *Parser) parseGroupStatement() (ast.Statement, error) {
 		}
 
 	default:
-		panic(fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal))
+		return p.unexpectedToken("parseGroupStatement 1")
 	}
 
-	p.nextToken()
-	p.skipBlankLine()
+	p.nextToken(ctx)
+	p.skipBlankLine(ctx)
 
 	switch p.token.Type {
 	case token.GroupBanner:
-		p.nextToken()
+		p.nextToken(ctx)
 
 		return group, nil
 
 	default:
-		return p.unexpectedToken()
+		return p.unexpectedToken("parseGroupStatement 2")
 	}
 }
 
-func (p *Parser) parseCommentStatement() (ast.Statement, error) {
+func (p *Parser) parseCommentStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseCommentStatement()")
+
 	stm := &ast.Comment{
 		Value:      p.token.Literal,
 		Annotation: p.token.Annotation,
@@ -248,12 +277,14 @@ func (p *Parser) parseCommentStatement() (ast.Statement, error) {
 		},
 	}
 
-	p.nextToken()
+	p.nextToken(ctx)
 
 	return stm, nil
 }
 
-func (p *Parser) parseRowStatement() (ast.Statement, error) {
+func (p *Parser) parseRowStatement(ctx context.Context) (ast.Statement, error) {
+	slogctx.Debug(ctx, "Parser.parseRowStatement()")
+
 	var (
 		err  error
 		stmt *ast.Assignment
@@ -262,28 +293,28 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 	name := p.token.Literal
 	active := !p.token.Commented
 
-	p.nextToken()
+	p.nextToken(ctx)
 
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
-		stmt = p.parseNakedAssign(name)
+		stmt = p.parseNakedAssign(ctx, name)
 
 	case token.Assign:
-		p.nextToken()
+		p.nextToken(ctx)
 
 		switch p.token.Type {
 		case token.NewLine, token.EOF:
-			stmt = p.parseNakedAssign(name)
+			stmt = p.parseNakedAssign(ctx, name)
 
 		case token.Value, token.RawValue:
-			stmt, err = p.parseCompleteAssign(name)
+			stmt, err = p.parseCompleteAssign(ctx, name)
 
 		default:
-			_, err = p.unexpectedToken()
+			_, err = p.unexpectedToken("parseRowStatement 1")
 		}
 
 	default:
-		_, err = p.unexpectedToken()
+		_, err = p.unexpectedToken("parseRowStatement 2")
 	}
 
 	if err != nil {
@@ -296,16 +327,18 @@ func (p *Parser) parseRowStatement() (ast.Statement, error) {
 		return stmt, err
 	}
 
-	return p.unexpectedToken()
+	return p.unexpectedToken("parseRowStatement 3")
 }
 
-func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
-	defer p.nextToken()
+func (p *Parser) parseNakedAssign(ctx context.Context, name string) *ast.Assignment {
+	slogctx.Debug(ctx, "Parser.parseNakedAssign()")
+
+	defer p.nextToken(ctx)
 
 	return &ast.Assignment{
 		Name:    name,
 		Enabled: p.token.Commented,
-		Quote:   token.NoQuotes,
+		Quote:   token.NoQuote,
 		Position: ast.Position{
 			FirstLine: p.token.LineNumber,
 			Line:      p.token.LineNumber,
@@ -314,22 +347,23 @@ func (p *Parser) parseNakedAssign(name string) *ast.Assignment {
 	}
 }
 
-func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
-	value := p.token.Literal
-	quoted := p.token.Quote
+func (p *Parser) parseCompleteAssign(ctx context.Context, name string) (*ast.Assignment, error) {
+	slogctx.Debug(ctx, "Parser.parseCompleteAssign()")
 
-	p.nextToken()
+	assignment := p.token
+
+	p.nextToken(ctx)
 
 	switch p.token.Type {
 	case token.NewLine, token.EOF:
-		defer p.nextToken()
+		defer p.nextToken(ctx)
 
 		return &ast.Assignment{
 			Name:     name,
-			Literal:  value,
+			Literal:  assignment.Literal,
 			Complete: true,
 			Enabled:  p.token.Commented,
-			Quote:    quoted,
+			Quote:    assignment.Quote,
 			Position: ast.Position{
 				FirstLine: p.token.LineNumber,
 				Line:      p.token.LineNumber,
@@ -338,15 +372,15 @@ func (p *Parser) parseCompleteAssign(name string) (*ast.Assignment, error) {
 		}, nil
 
 	default:
-		_, err := p.unexpectedToken()
+		_, err := p.unexpectedToken("parseCompleteAssign 1")
 
 		return nil, err
 	}
 }
 
-func (p *Parser) nextToken() {
+func (p *Parser) nextToken(ctx context.Context) {
 	p.previousToken = p.token
-	p.token = p.scanner.NextToken()
+	p.token = p.scanner.NextToken(ctx)
 }
 
 func (p *Parser) wasEmptyLine() bool {
@@ -357,12 +391,14 @@ func (p *Parser) wasEmptyLine() bool {
 	return p.token.LineNumber != p.previousToken.LineNumber
 }
 
-func (p *Parser) skipBlankLine() {
+func (p *Parser) skipBlankLine(ctx context.Context) {
+	slogctx.Debug(ctx, "Parser.skipBlankLine()")
+
 	for p.token.Type == token.NewLine || p.token.Type == token.Space {
-		p.nextToken()
+		p.nextToken(ctx)
 	}
 }
 
-func (p *Parser) unexpectedToken() (ast.Statement, error) {
-	return nil, fmt.Errorf("unexpected token at line %d: %s(%s)", p.token.LineNumber, p.token.Type, p.token.Literal)
+func (p *Parser) unexpectedToken(details string) (ast.Statement, error) {
+	return nil, fmt.Errorf("unexpected token at line %d: %s(%s) - %s", p.token.LineNumber, p.token.Type, p.token.Literal, details)
 }

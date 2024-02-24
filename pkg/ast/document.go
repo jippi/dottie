@@ -2,8 +2,10 @@
 package ast
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"reflect"
 	"slices"
@@ -12,6 +14,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -21,8 +24,7 @@ type Document struct {
 	Groups      []*Group    `json:"groups"`     // Groups within the document
 	Annotations []*Comment  `json:"-"`          // Global annotations for configuration of dottie
 
-	interpolateWarnings error
-	interpolateErrors   error
+	interpolateErrors error
 }
 
 func NewDocument() *Document {
@@ -117,36 +119,40 @@ func (d *Document) Has(name string) bool {
 	return d.Get(name) != nil
 }
 
-func (doc *Document) InterpolateAll() (error, error) {
+func (doc *Document) InterpolateAll(ctx context.Context) error {
 	defer func() {
-		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
 	for _, assignment := range doc.AllAssignments() {
-		doc.doInterpolation(assignment)
+		doc.doInterpolation(ctx, assignment)
 	}
 
-	return doc.interpolateWarnings, doc.interpolateErrors
+	return doc.interpolateErrors
 }
 
-func (doc *Document) InterpolateStatement(target *Assignment) (error, error) {
+func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment) error {
 	defer func() {
-		doc.interpolateWarnings = nil
 		doc.interpolateErrors = nil
 	}()
 
-	doc.doInterpolation(target)
+	doc.doInterpolation(ctx, target)
 
-	return doc.interpolateWarnings, doc.interpolateErrors
+	return doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(target *Assignment) {
+func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
+	ctx = slogctx.With(ctx, slog.String("source", "ast.Document"))
+
+	slogctx.Debug(ctx, "Starting interpolation", slog.Any("assignment", target))
+
 	if target == nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, errors.New("can't interpolate a nil assignment"))
 
 		return
 	}
+
+	ctx = slogctx.With(ctx, slog.String("interpolation_key", target.Name))
 
 	if !target.Enabled {
 		return
@@ -156,12 +162,29 @@ func (doc *Document) doInterpolation(target *Assignment) {
 
 	// Interpolate dependencies of the assignment before the assignment itself
 	for _, dependency := range target.Dependencies {
-		doc.doInterpolation(doc.Get(dependency.Name))
+		ref := doc.Get(dependency.Name)
+		if ref == nil {
+			slogctx.Warn(ctx, fmt.Sprintf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
+
+			continue
+		}
+
+		ctx := slogctx.With(ctx, slog.String("dependent_key", target.Name))
+
+		doc.doInterpolation(ctx, doc.Get(dependency.Name))
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
-	if target.Quote.Is(token.SingleQuotes.Rune()) {
+	if target.Quote.Is(token.SingleQuote.Rune()) {
 		target.Interpolated = target.Literal
+
+		return
+	}
+
+	// Unquote the literal
+	unquotedLiteral, err := target.Unquote(ctx)
+	if err != nil {
+		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 
 		return
 	}
@@ -169,19 +192,18 @@ func (doc *Document) doInterpolation(target *Assignment) {
 	// If the assignment literal doesn't count any '$' it would never change from the
 	// interpolated value
 	if !strings.Contains(target.Literal, "$") {
-		target.Interpolated = target.Literal
+		target.Interpolated = unquotedLiteral
 
 		return
 	}
 
-	value, warnings, err := template.Substitute(target.Literal, doc.interpolationMapper(target))
+	value, err := template.Substitute(ctx, unquotedLiteral, doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}
 
 	target.Interpolated = value
 
-	doc.interpolateWarnings = multierr.Append(doc.interpolateWarnings, ContextualError(target, warnings))
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 }
 
@@ -347,11 +369,11 @@ func (document *Document) Replace(assignment *Assignment) error {
 	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
-func (document *Document) Validate(selectors []Selector, ignoreErrors []string) ([]*ValidationError, error, error) {
+func (document *Document) Validate(ctx context.Context, selectors []Selector, ignoreErrors []string) ([]*ValidationError, error) {
 	var (
-		warnings, errors error
-		data             = map[string]any{}
-		rules            = map[string]any{}
+		errors error
+		data   = map[string]any{}
+		rules  = map[string]any{}
 
 		// The validation library uses a map[string]any as return value
 		// which causes random ordering of keys. We would like them
@@ -384,10 +406,9 @@ NEXT:
 			continue
 		}
 
-		warn, err := document.InterpolateStatement(assignment)
-
-		warnings = multierr.Append(warnings, warn)
-		errors = multierr.Append(errors, err)
+		if err := document.InterpolateStatement(ctx, assignment); err != nil {
+			errors = multierr.Append(errors, err)
+		}
 
 		data[assignment.Name] = assignment.Interpolated
 		rules[assignment.Name] = validationRules
@@ -397,7 +418,7 @@ NEXT:
 
 	validationErrors, err := document.doValidationAndRecoverFromPanic(data, rules)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var result []*ValidationError
@@ -424,7 +445,7 @@ NEXT_FIELD:
 		})
 	}
 
-	return result, warnings, errors
+	return result, errors
 }
 
 func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string]any) (res map[string]any, err error) {
@@ -437,8 +458,9 @@ func (document *Document) doValidationAndRecoverFromPanic(data, rules map[string
 	return validator.New().ValidateMap(data, rules), nil
 }
 
-func (document *Document) ValidateSingleAssignment(assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error, error) {
+func (document *Document) ValidateSingleAssignment(ctx context.Context, assignment *Assignment, selectors []Selector, ignoreErrors []string) (ValidationErrors, error) {
 	return document.Validate(
+		ctx,
 		append(
 			[]Selector{
 				ExcludeDisabledAssignments,

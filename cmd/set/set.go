@@ -1,6 +1,7 @@
 package set
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -49,7 +51,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	document, err := pkg.Load(filename)
+	document, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return err
 	}
@@ -91,36 +93,83 @@ func runE(cmd *cobra.Command, args []string) error {
 		stdout, stderr = tui.WritersFromContext(cmd.Context())
 	)
 
+	var (
+		argumentCounter  int
+		skipNextArgument bool
+	)
+
+	for _, arg := range args {
+		slogctx.Debug(cmd.Context(), "arg", tui.StringDump("arg", arg))
+	}
+
 	for _, stringPair := range args {
+		if skipNextArgument {
+			skipNextArgument = false
+
+			continue
+		}
+
+		var key, value string
+
+		// KEY1=VALUE KEY2=VALUE [...]
 		pairSlice := strings.SplitN(stringPair, "=", 2)
-		if len(pairSlice) != 2 {
+		if len(pairSlice) == 2 {
+			argumentCounter++
+
+			key = pairSlice[0]
+			value = pairSlice[1]
+		}
+
+		// KEY1 VALUE1 KEY2 VALUE2
+		if len(key) == 0 {
+			key = args[argumentCounter]
+			argumentCounter++
+
+			if argumentCounter >= len(args) {
+				allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument", stringPair))
+
+				break
+			}
+
+			value = args[argumentCounter]
+			argumentCounter++
+
+			skipNextArgument = true
+		}
+
+		// Fail
+		if len(key) == 0 {
 			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
 
 			continue
 		}
 
-		key := pairSlice[0]
-		value := pairSlice[1]
-
 		assignment := &ast.Assignment{
 			Name:         key,
+			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Literal:      value,
 			Interpolated: value,
-			Enabled:      !shared.BoolFlag(cmd.Flags(), "disabled"),
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
 			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
 		}
+
+		assignment.SetLiteral(cmd.Context(), value)
 
 		//
 		// Upsert the assignment
 		//
 
-		assignment, warnings, err := upserter.Upsert(cmd.Context(), assignment)
-		tui.MaybePrintWarnings(cmd.Context(), warnings)
+		var skippedStatementWarning upsert.SkippedStatementError
 
-		if err != nil {
-			z := ast.NewError(assignment, err)
-			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, z, assignment, false, true))
+		assignment, err := upserter.Upsert(cmd.Context(), assignment)
+
+		switch {
+		case errors.As(err, &skippedStatementWarning):
+			stderr.Warning().Print("WARNING: Key [ ", key, " ] was skipped: ")
+			stderr.Warning().Println(skippedStatementWarning.Reason)
+
+		case err != nil:
+			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, err, assignment, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 				allErrors = multierr.Append(allErrors, err)

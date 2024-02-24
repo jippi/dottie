@@ -12,14 +12,14 @@ import (
 	"github.com/jippi/dottie/pkg/scanner"
 )
 
-func Load(filename string) (*ast.Document, error) {
+func Load(ctx context.Context, filename string) (*ast.Document, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	return Parse(file, filename)
+	return Parse(ctx, file, filename)
 }
 
 func Save(ctx context.Context, filename string, doc *ast.Document) error {
@@ -40,7 +40,7 @@ func Save(ctx context.Context, filename string, doc *ast.Document) error {
 }
 
 // Parse reads an env file from io.Reader, returning a map of keys and values.
-func Parse(r io.Reader, filename string) (*ast.Document, error) {
+func Parse(ctx context.Context, r io.Reader, filename string) (*ast.Document, error) {
 	input, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -48,8 +48,9 @@ func Parse(r io.Reader, filename string) (*ast.Document, error) {
 
 	return parser.
 		New(
+			ctx,
 			scanner.New(string(input)),
 			filename,
 		).
-		Parse()
+		Parse(ctx)
 }

@@ -15,12 +15,16 @@
 package template
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"slices"
 	"strings"
 
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/syntax"
@@ -63,11 +67,14 @@ func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
 
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(template string, resolver Resolver) (string, error, error) {
+func Substitute(ctx context.Context, input string, resolver Resolver) (string, error) {
+	ctx = slogctx.With(ctx, slog.String("source", "template.Substitute"))
+
+	slogctx.Debug(ctx, "template.Substitute.input", tui.StringDump("input", input))
+
 	var (
-		combinedWarnings, combinedErrors error
-		missing                          []string
-		variables                        = ExtractVariables(template)
+		combinedErrors error
+		variables      = ExtractVariables(input)
 	)
 
 	environment := EnvironmentHelper{
@@ -77,7 +84,9 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 
 			// shouldn't be a lookup for anything that
 			if !ok {
-				panic(fmt.Errorf("unexpected missing() call during template.Substitute() for KEY [%s] - it's not in variable list?!", key))
+				slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
+
+				return
 			}
 
 			// Required variables are errors, so we ignore them as warnings
@@ -95,7 +104,7 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 				return
 			}
 
-			missing = append(missing, key)
+			slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
 		},
 	}
 
@@ -107,20 +116,26 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 		//       please see https://github.com/mvdan/sh for any issues
 		//
 		// Example:
-		//  - $(date)
-		//  - $(echo hello | tee > something)
-		CmdSubst: func(w io.Writer, i *syntax.CmdSubst) error {
-			p := syntax.NewPrinter()
-			p.Print(w, i)
+		//
+		//  - input : $(echo hello | tee > something)
+		//    output: $(echo hello | tee >something)
+		//
+		//  - input : ``$
+		//    output: $()$
+		CmdSubst: func(writer io.Writer, i *syntax.CmdSubst) error {
+			start := i.Left.Offset()
+			end := i.End().Offset() - 1
+
+			writer.Write([]byte(input[start:end]))
 
 			return nil
 		},
 	}
 
 	// Parse template into Shell words
-	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
+	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(input))
 	if err != nil {
-		return "", nil, InvalidTemplateError{Template: template}
+		return "", InvalidTemplateError{Template: input}
 	}
 
 	// Expand variables
@@ -137,16 +152,13 @@ func Substitute(template string, resolver Resolver) (string, error, error) {
 			})
 
 		default:
-			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: template, Wrapped: err})
+			combinedErrors = multierr.Append(combinedErrors, InvalidTemplateError{Template: input, Wrapped: err})
 		}
 	}
 
-	// Emit missing key warnings
-	for _, missingKey := range missing {
-		combinedWarnings = multierr.Append(combinedWarnings, fmt.Errorf("The %q variable is not set. Defaulting to a blank string.", missingKey))
-	}
+	slogctx.Debug(ctx, "template.Substitute output", tui.StringDump("output", result))
 
-	return result, combinedWarnings, combinedErrors
+	return result, combinedErrors
 }
 
 // ExtractVariables returns a map of all the variables defined in the specified
@@ -239,7 +251,7 @@ func extractVariable(value interface{}) ([]Variable, bool) {
 
 				variables = append(variables, variable)
 
-			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.Lit:
+			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob:
 				// Ignore known good-to-ignore-keywords
 
 			default:

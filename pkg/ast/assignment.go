@@ -2,11 +2,14 @@ package ast
 
 import (
 	"bytes"
+	"context"
 	"reflect"
 	"strings"
 
 	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 type Assignment struct {
@@ -131,4 +134,28 @@ func (a *Assignment) CommentsSlice() []string {
 	}
 
 	return res
+}
+
+func (a *Assignment) SetLiteral(ctx context.Context, in string) {
+	slogctx.Debug(ctx, "Assignment.SetLiteral() input", tui.StringDump("literal", in))
+
+	a.Literal = token.Escape(ctx, a.Literal, a.Quote)
+	a.Interpolated = a.Literal
+
+	slogctx.Debug(ctx, "Assignment.SetLiteral() output", tui.StringDump("literal", a.Literal))
+}
+
+func (a *Assignment) Unquote(ctx context.Context) (string, error) {
+	slogctx.Debug(ctx, "Assignment.Unquote() input", tui.StringDump("literal", a.Literal))
+
+	str, err := token.Unescape(ctx, a.Literal, a.Quote)
+	if err != nil {
+		slogctx.Error(ctx, "failed to unquote string", tui.StringDump("literal", a.Literal))
+
+		return "", err
+	}
+
+	slogctx.Debug(ctx, "Assignment.Unquote() output", tui.StringDump("literal", str))
+
+	return str, nil
 }

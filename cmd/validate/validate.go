@@ -32,7 +32,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	document, err := pkg.Load(filename)
+	document, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return fmt.Errorf("failed to load file: %w", err)
 	}
@@ -41,11 +41,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Interpolate
 	//
 
-	warnings, err := document.InterpolateAll()
-
-	tui.MaybePrintWarnings(cmd.Context(), warnings)
-
-	if err != nil {
+	if err = document.InterpolateAll(cmd.Context()); err != nil {
 		return fmt.Errorf("failed to interpolate file: %w", err)
 	}
 
@@ -66,9 +62,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		selectors = append(selectors, ast.ExcludeKeyPrefix(filter))
 	}
 
-	validationErrors, warnings, errs := document.Validate(selectors, ignoreRules)
-	tui.MaybePrintWarnings(cmd.Context(), warnings)
-
+	validationErrors, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
 	if errs != nil {
 		return errs
 	}
@@ -101,14 +95,12 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Validate file again, in case some of the fixers from before fixed them
 	//
 
-	document, err = pkg.Load(filename)
+	document, err = pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return fmt.Errorf("failed to reload .env file: %w", err)
 	}
 
-	newRes, warns, errs := document.Validate(selectors, ignoreRules)
-	tui.MaybePrintWarnings(cmd.Context(), warns)
-
+	newRes, errs := document.Validate(cmd.Context(), selectors, ignoreRules)
 	if errs != nil {
 		return errs
 	}

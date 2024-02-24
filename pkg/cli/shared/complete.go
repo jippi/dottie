@@ -51,7 +51,7 @@ func (c *Completer) Get() CobraCompleter {
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		filename := cmd.Flag("file").Value.String()
 
-		doc, err := pkg.Load(filename)
+		doc, err := pkg.Load(cmd.Context(), filename)
 		if err != nil {
 			return nil, cobra.ShellCompDirectiveError
 		}

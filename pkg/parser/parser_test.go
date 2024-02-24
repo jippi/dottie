@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/ast"
@@ -39,7 +40,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Complete: true,
 							Enabled:  true,
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 						},
 					},
 				},
@@ -61,7 +62,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Complete: true,
 							Enabled:  true,
-							Quote:    token.DoubleQuotes,
+							Quote:    token.DoubleQuote,
 						},
 					},
 				},
@@ -81,7 +82,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.SingleQuotes,
+							Quote:    token.SingleQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -104,7 +105,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote: token.NoQuotes,
+							Quote: token.NoQuote,
 						},
 					},
 				},
@@ -124,7 +125,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:   token.NoQuotes,
+							Quote:   token.NoQuote,
 							Enabled: true,
 						},
 					},
@@ -157,7 +158,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Complete: false,
 							Enabled:  true,
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 						},
 						&ast.Newline{
 							Blank:    true,
@@ -183,7 +184,7 @@ func TestParser_Parse(t *testing.T) {
 							Interpolated: ":9090",
 							Complete:     true,
 							Enabled:      true,
-							Quote:        token.NoQuotes,
+							Quote:        token.NoQuote,
 							Position: ast.Position{
 								File:      "-",
 								Line:      1,
@@ -198,7 +199,7 @@ func TestParser_Parse(t *testing.T) {
 							Interpolated: "0s",
 							Complete:     true,
 							Enabled:      true,
-							Quote:        token.NoQuotes,
+							Quote:        token.NoQuote,
 							Position: ast.Position{
 								File:      "-",
 								Line:      2,
@@ -213,7 +214,7 @@ func TestParser_Parse(t *testing.T) {
 							Interpolated: "jaeger-otlp-agent:6831",
 							Complete:     true,
 							Enabled:      true,
-							Quote:        token.NoQuotes,
+							Quote:        token.NoQuote,
 							Position: ast.Position{
 								File:      "-",
 								Line:      3,
@@ -240,7 +241,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  2,
 							},
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 							Complete: true,
 							Enabled:  true,
 							Comments: []*ast.Comment{
@@ -284,7 +285,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Complete: true,
 							Enabled:  true,
-							Quote:    token.DoubleQuotes,
+							Quote:    token.DoubleQuote,
 						},
 					},
 				},
@@ -304,7 +305,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -326,7 +327,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.DoubleQuotes,
+							Quote:    token.DoubleQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -348,7 +349,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -372,7 +373,7 @@ func TestParser_Parse(t *testing.T) {
 							},
 							Complete: true,
 							Enabled:  true,
-							Quote:    token.NoQuotes,
+							Quote:    token.NoQuote,
 						},
 					},
 				},
@@ -392,7 +393,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.DoubleQuotes,
+							Quote:    token.DoubleQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -414,7 +415,7 @@ func TestParser_Parse(t *testing.T) {
 								FirstLine: 1,
 								LastLine:  1,
 							},
-							Quote:    token.SingleQuotes,
+							Quote:    token.SingleQuote,
 							Complete: true,
 							Enabled:  true,
 						},
@@ -431,11 +432,11 @@ func TestParser_Parse(t *testing.T) {
 
 				expected := tt.expected
 				expected.Initialize()
-				expected.InterpolateAll()
+				expected.InterpolateAll(context.TODO())
 
-				actual, err := parser.New(scanner.New(tt.input), "-").Parse()
+				actual, err := parser.New(context.TODO(), scanner.New(tt.input), "-").Parse(context.TODO())
 				actual.Initialize()
-				actual.InterpolateAll()
+				actual.InterpolateAll(context.TODO())
 
 				require.NoError(t, err)
 				require.EqualExportedValues(t, *expected, *actual)
@@ -448,10 +449,6 @@ func TestParser_Parse(t *testing.T) {
 			name  string
 			input string
 		}{
-			{
-				name:  "escaped double quotes",
-				input: `FOO="escaped\"bar"`,
-			},
 			{
 				name:  "value with space after equal sign",
 				input: `FOO= bar`,
@@ -476,7 +473,7 @@ func TestParser_Parse(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
 
-				document, err := parser.New(scanner.New(tt.input), "-").Parse()
+				document, err := parser.New(context.TODO(), scanner.New(tt.input), "-").Parse(context.TODO())
 				require.Error(t, err, "expected an error")
 				require.Nil(t, document, "did not expect a document when erroring")
 			})

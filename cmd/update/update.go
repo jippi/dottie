@@ -40,7 +40,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	stdout, _ := tui.WritersFromContext(cmd.Context())
+	stdout, stderr := tui.WritersFromContext(cmd.Context())
 
 	dark := stdout.NoColor()
 	info := stdout.Info()
@@ -53,7 +53,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	dark.Println("Looking for upstream source")
 
-	oldDocument, err := pkg.Load(filename)
+	oldDocument, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Load the soon-to-be-merged file
 	dark.Println("Loading and parsing source")
 
-	newDocument, err := pkg.Load(tmp.Name())
+	newDocument, err := pkg.Load(cmd.Context(), tmp.Name())
 	if err != nil {
 		return err
 	}
@@ -209,19 +209,14 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		var skippedStatementWarning upsert.SkippedStatementError
 
-		changed, warnings, err := upserter.Upsert(cmd.Context(), oldStatement)
+		changed, err := upserter.Upsert(cmd.Context(), oldStatement)
 
 		switch {
-		case errors.As(warnings, &skippedStatementWarning):
-			stdout.Warning().Print("  ", oldStatement.Name)
-			dark.Print(" was skipped: ")
-			dark.Println(skippedStatementWarning.Reason)
+		case errors.As(err, &skippedStatementWarning):
+			stderr.Warning().Print("WARNING: Key [ ", oldStatement.Name, " ] was skipped: ")
+			stderr.Warning().Println(skippedStatementWarning.Reason)
 
-		default:
-			tui.MaybePrintWarnings(cmd.Context(), warnings)
-		}
-
-		if err != nil {
+		case err != nil:
 			sawError = true
 			lastWasError = true
 

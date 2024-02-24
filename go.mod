@@ -4,21 +4,30 @@ go 1.22
 
 replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
 
+replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
+
 require (
 	github.com/caarlos0/go-version v0.1.1
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.17.0
+	github.com/golang-cz/devslog v0.0.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.13.1
 	github.com/hashicorp/go-getter v1.7.3
+	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
+	github.com/neilotoole/slogt v1.1.0
+	github.com/reugn/pkgslog v0.0.0-00010101000000-000000000000
+	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
 	github.com/teacat/noire v1.1.0
+	github.com/veqryn/slog-context v0.5.0
+	github.com/veqryn/slog-dedup v0.3.0
 	go.uber.org/multierr v1.11.0
 	mvdan.cc/sh/v3 v3.8.0
 )
@@ -38,6 +47,7 @@ require (
 	github.com/charmbracelet/bubbletea v0.25.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -66,10 +76,12 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
@@ -85,4 +97,5 @@ require (
 	google.golang.org/grpc v1.58.3 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	modernc.org/b/v2 v2.1.0 // indirect
 )

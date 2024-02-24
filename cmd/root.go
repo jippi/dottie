@@ -37,8 +37,9 @@ GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
 `
 
 func init() {
-	spew.Config.DisablePointerMethods = true
+	spew.Config.DisablePointerMethods = false
 	spew.Config.DisableMethods = false
+
 	cobra.EnableCommandSorting = false
 }
 
@@ -52,8 +53,6 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	}
 
 	root.SetVersionTemplate(`{{ .Version }}`)
-
-	ctx = tui.NewContext(ctx, stdout, stderr)
 
 	root.SetArgs(args)
 	root.SetContext(ctx)

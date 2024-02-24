@@ -1,12 +1,16 @@
 package scanner
 
 import (
+	"context"
+	"log/slog"
 	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/jippi/dottie/pkg/token"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 var escaper = strings.NewReplacer(
@@ -55,7 +59,17 @@ func New(input string) *Scanner {
 // the literal string has the corresponding value.
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
-func (s *Scanner) NextToken() token.Token {
+func (s *Scanner) NextToken(ctx context.Context) token.Token {
+	ctx = slogctx.With(
+		ctx,
+		slog.Group("scanner_state",
+			tui.StringDump("rune", string(s.rune)),
+		),
+		slog.String("source", "scanner"),
+	)
+
+	slogctx.Debug(ctx, "Scanner.NextToken()")
+
 	switch s.rune {
 	case eof:
 		return token.New(
@@ -89,11 +103,11 @@ func (s *Scanner) NextToken() token.Token {
 	case '#':
 		return s.scanComment()
 
-	case '"':
-		return s.scanQuotedValue(token.Value, token.DoubleQuotes)
+	case token.DoubleQuote.Rune():
+		return s.scanQuotedValue(ctx, token.Value, token.DoubleQuote)
 
-	case '\'':
-		return s.scanQuotedValue(token.RawValue, token.SingleQuotes)
+	case token.SingleQuote.Rune():
+		return s.scanQuotedValue(ctx, token.RawValue, token.SingleQuote)
 
 	default:
 		switch prev := s.prev(); prev {
@@ -255,27 +269,43 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	return token.New(
 		token.Value,
 		token.WithLiteral(lit),
-		token.WithQuoteType(token.NoQuotes),
+		token.WithQuoteType(token.NoQuote),
 		token.WithOffset(s.offset),
 		token.WithLineNumber(s.lineNumber),
 	)
 }
 
-func (s *Scanner) scanQuotedValue(tType token.Type, quote token.Quote) token.Token {
+func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote token.Quote) token.Token {
 	// opening quote already consumed
 	s.next()
 
 	start := s.offset
 
+	escapes := 0
+
 	for {
+		escapingPrevious := escapes == 1
+
 		if isEOF(s.rune) || isNewLine(s.rune) {
 			tType = token.Illegal
 
 			break
 		}
 
-		if quote.Is(s.rune) {
+		// Break parsing if we hit our quote style,
+		// and the previous token IS NOT an escape sequence
+		if quote.Is(s.rune) && !escapingPrevious {
 			break
+		}
+
+		if s.rune == '\\' {
+			escapes++
+		} else {
+			escapes = 0
+		}
+
+		if escapes == 2 {
+			escapes = 0
 		}
 
 		s.next()

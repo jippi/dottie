@@ -3,12 +3,15 @@ package upsert
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/parser"
 	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/scanner"
+	"github.com/jippi/dottie/pkg/tui"
+	slogctx "github.com/veqryn/slog-context"
 	"go.uber.org/multierr"
 )
 
@@ -51,7 +54,9 @@ func (u *Upserter) ApplyOptions(options ...Option) error {
 }
 
 // Upsert will, depending on its options, either Update or Insert (thus, "[Up]date + In[sert]").
-func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error, error) {
+func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error) {
+	ctx = slogctx.With(ctx, slog.String("source", "upserter"), slog.String("assignment_key", input.Name))
+
 	existing := u.document.Get(input.Name)
 	exists := existing != nil
 
@@ -60,23 +65,23 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	switch {
 	// The assignment exists, so return early
 	case exists && u.settings.Has(SkipIfExists):
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the key already exists in the document (SkipIfExists)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key already exists in the document (SkipIfExists)"}
 
 	// The assignment does *NOT* exists, and we require it to
 	case !exists && u.settings.Has(ErrorIfMissing):
-		return nil, nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
+		return nil, fmt.Errorf("key [%s] does not exists in the document", input.Name)
 
 		// The assignment does not have any VALUE
 	case exists && u.settings.Has(SkipIfEmpty) && len(input.Literal) == 0:
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has an empty value (SkipIfEmpty)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has an empty value (SkipIfEmpty)"}
 
 	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
 	case exists && u.settings.Has(SkipIfSet) && len(existing.Literal) > 0 && len(u.valuesConsideredEmpty) > 0 && !slices.Contains(u.valuesConsideredEmpty, existing.Literal):
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}
 
 	// The assignment exists, the literal values are the same
 	case exists && u.settings.Has(SkipIfSame) && existing.Literal == input.Literal:
-		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}
 
 	// The KEY was *NOT* found, and all other preconditions are not triggering
 	case !exists:
@@ -85,7 +90,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 		// Create and insert the (*ast.Assignment) into the Statement list
 		existing, err = u.createAndInsert(ctx, input)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		// Make sure to reindex the document
@@ -103,23 +108,28 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	existing.Quote = input.Quote
 
 	var (
-		tempDoc       *ast.Document
-		err, warnings error
+		tempDoc *ast.Document
+		err     error
 	)
 
 	// Render and parse back the Statement to ensure annotations and such are properly handled
 	thing := u.document.AllAssignments()[:existing.Position.Index+1]
+	content := render.NewFormatter().Statement(ctx, thing).String()
+	scan := scanner.New(content)
 
-	tempDoc, err = parser.New(scanner.New(render.NewFormatter().Statement(ctx, thing).String()), "memory://tmp").Parse()
+	slogctx.Debug(ctx, "memory://tmp/upsert", tui.StringDump("rendered_content", content))
+
+	tempDoc, err = parser.New(ctx, scan, "memory://tmp/upsert").Parse(ctx)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse assignment: %w", err)
+		return nil, fmt.Errorf("(upsert) failed to parse assignment: %w", err)
 	}
 
 	existing = tempDoc.Get(existing.Name)
+	existing.Literal = input.Literal
 	existing.Initialize()
 
 	if _, ok := existing.Dependencies[existing.Name]; ok {
-		return nil, nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
+		return nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
 	}
 
 	// Replace the Assignment in the document
@@ -132,23 +142,21 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Interpolate the Assignment if it is enabled
 	if existing.Enabled {
-		warnings, err = u.document.InterpolateStatement(existing)
-		if err != nil {
-			return nil, warnings, err
+		if err = u.document.InterpolateStatement(ctx, existing); err != nil {
+			return nil, err
 		}
 	}
 
 	// Validate
 	if u.settings.Has(Validate) {
-		if validationErrors, warns, errs := u.document.ValidateSingleAssignment(existing, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
-			warnings = multierr.Append(warnings, warns)
+		if validationErrors, errs := u.document.ValidateSingleAssignment(ctx, existing, nil, u.ignoreValidationRules); len(validationErrors) > 0 {
 			errs = multierr.Append(errs, validationErrors)
 
-			return existing, warnings, errs
+			return existing, errs
 		}
 	}
 
-	return existing, warnings, nil
+	return existing, nil
 }
 
 func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (*ast.Assignment, error) {
@@ -161,15 +169,26 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 		Quote:    input.Quote,
 	}
 
-	inMemoryDoc, err := parser.New(scanner.New(render.NewFormatter().Statement(ctx, newAssignment).String()), "-").Parse()
+	slogctx.Debug(ctx, "createAndInsert: input.Literal", tui.StringDump("literal", newAssignment.Literal))
+
+	content := render.NewFormatter().Statement(ctx, newAssignment).String()
+	scan := scanner.New(content)
+
+	slogctx.Debug(ctx, "createAndInsert: content", tui.StringDump("rendered_content", content))
+
+	inMemoryDoc, err := parser.New(ctx, scan, "memory://tmp/upsert/createAndInsert").Parse(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse assignment: %w", err)
+		return nil, fmt.Errorf("(createAndInsert 1) failed to parse assignment: %w", err)
 	}
 
 	// Ensure the group exists (may return 'nil' if no group is required)
 	group := u.document.EnsureGroup(u.group)
 
 	newAssignment = inMemoryDoc.Get(newAssignment.Name)
+	if newAssignment == nil {
+		return nil, fmt.Errorf("(createAndInsert 2) could not read assignment back from in-memory parser for key [ %s ]", input.Name)
+	}
+
 	newAssignment.Group = group
 
 	// Find the statement slice to operate on
