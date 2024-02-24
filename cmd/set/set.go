@@ -1,6 +1,7 @@
 package set
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -158,8 +159,17 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Upsert the assignment
 		//
 
+		var skippedStatementWarning upsert.SkippedStatementError
+
 		assignment, err := upserter.Upsert(cmd.Context(), assignment)
-		if err != nil {
+
+		switch {
+		case errors.As(err, &skippedStatementWarning):
+			stderr.Warning().Print("  ", key)
+			stderr.Dark().Print(" was skipped: ")
+			stderr.Dark().Println(skippedStatementWarning.Reason)
+
+		case err != nil:
 			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, err, assignment, false, true))
 
 			if shared.BoolWithInverseValue(cmd.Flags(), "validate") {
@@ -167,9 +177,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 				continue
 			}
-		} else {
-			stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 		}
+
+		stdout.Success().Printfln("Key [ %s ] was successfully upserted", key)
 	}
 
 	if allErrors != nil {

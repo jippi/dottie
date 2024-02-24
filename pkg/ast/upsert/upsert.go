@@ -62,9 +62,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	switch {
 	// The assignment exists, so return early
 	case exists && u.settings.Has(SkipIfExists):
-		slogctx.Warn(ctx, SkippedStatementError{Key: input.Name, Reason: "the key already exists in the document (SkipIfExists)"}.Error())
-
-		return nil, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key already exists in the document (SkipIfExists)"}
 
 	// The assignment does *NOT* exists, and we require it to
 	case !exists && u.settings.Has(ErrorIfMissing):
@@ -72,21 +70,15 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 		// The assignment does not have any VALUE
 	case exists && u.settings.Has(SkipIfEmpty) && len(input.Literal) == 0:
-		slogctx.Warn(ctx, SkippedStatementError{Key: input.Name, Reason: "the key has an empty value (SkipIfEmpty)"}.Error())
-
-		return nil, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has an empty value (SkipIfEmpty)"}
 
 	// The assignment exists, has a literal value, and the literal value isn't what we should consider empty
 	case exists && u.settings.Has(SkipIfSet) && len(existing.Literal) > 0 && len(u.valuesConsideredEmpty) > 0 && !slices.Contains(u.valuesConsideredEmpty, existing.Literal):
-		slogctx.Warn(ctx, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}.Error())
-
-		return nil, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}
 
 	// The assignment exists, the literal values are the same
 	case exists && u.settings.Has(SkipIfSame) && existing.Literal == input.Literal:
-		slogctx.Warn(ctx, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}.Error())
-
-		return nil, nil
+		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}
 
 	// The KEY was *NOT* found, and all other preconditions are not triggering
 	case !exists:

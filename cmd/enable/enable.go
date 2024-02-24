@@ -33,7 +33,9 @@ func NewCommand() *cobra.Command {
 			}
 
 			if assignment.Enabled {
-				tui.MaybePrintWarnings(cmd.Context(), fmt.Errorf("The key [ %s ] is already enabled", key))
+				tui.StderrFromContext(cmd.Context()).
+					Warning().
+					Println(fmt.Errorf("WARNING: The key [ %s ] is already enabled", key))
 			}
 
 			assignment.Enable()

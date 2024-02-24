@@ -112,7 +112,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		var (
 			stdout bytes.Buffer
 			stderr bytes.Buffer
-			ctx    = test_helpers.CreateContext(t, &stdout, &stderr)
+			ctx    = test_helpers.CreateTestContext(t, &stdout, &stderr)
 			args   = []string{
 				"--file", dotEnvFile,
 				"set",
@@ -187,7 +187,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		var (
 			stdout bytes.Buffer
 			stderr bytes.Buffer
-			ctx    = test_helpers.CreateContext(t, &stdout, &stderr)
+			ctx    = test_helpers.CreateTestContext(t, &stdout, &stderr)
 			args   = []string{
 				"--file", dotEnvFile,
 				"value",

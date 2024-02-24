@@ -10,7 +10,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 )
 
-func CreateContext(t *testing.T, out, err *bytes.Buffer) context.Context {
+func CreateTestContext(t *testing.T, out, err *bytes.Buffer) context.Context {
 	t.Helper()
 
 	if out == nil {
@@ -23,5 +23,5 @@ func CreateContext(t *testing.T, out, err *bytes.Buffer) context.Context {
 
 	ctx := tui.NewContextWithoutLogger(context.Background(), out, err)
 
-	return slogctx.NewCtx(ctx, slogt.New(t, slogt.Text()))
+	return slogctx.NewCtx(ctx, slogt.New(t))
 }

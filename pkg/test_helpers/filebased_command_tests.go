@@ -165,7 +165,7 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				var (
 					stdout = bytes.Buffer{}
 					stderr = bytes.Buffer{}
-					ctx    = CreateContext(t, &stdout, &stderr)
+					ctx    = CreateTestContext(t, &stdout, &stderr)
 				)
 
 				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)

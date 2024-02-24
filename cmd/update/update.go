@@ -40,7 +40,7 @@ func NewCommand() *cobra.Command {
 func runE(cmd *cobra.Command, args []string) error {
 	filename := cmd.Flag("file").Value.String()
 
-	stdout, _ := tui.WritersFromContext(cmd.Context())
+	stdout, stderr := tui.WritersFromContext(cmd.Context())
 
 	dark := stdout.NoColor()
 	info := stdout.Info()
@@ -207,8 +207,17 @@ func runE(cmd *cobra.Command, args []string) error {
 			}
 		}
 
+		var skippedStatementWarning upsert.SkippedStatementError
+
 		changed, err := upserter.Upsert(cmd.Context(), oldStatement)
-		if err != nil {
+
+		switch {
+		case errors.As(err, &skippedStatementWarning):
+			stderr.Warning().Print("  ", oldStatement.Name)
+			stderr.Dark().Print(" was skipped: ")
+			stderr.Dark().Println(skippedStatementWarning.Reason)
+
+		case err != nil:
 			sawError = true
 			lastWasError = true
 
