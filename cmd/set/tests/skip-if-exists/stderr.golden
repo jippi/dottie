@@ -10,4 +10,4 @@
 - [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
 --------------------------------------------------------------------------------
 
-WARNING: Key [SOME_KEY] was skipped: the key already exists in the document (SkipIfExists)
+WARNING: Key [ SOME_KEY ] was skipped: the key already exists in the document (SkipIfExists)
