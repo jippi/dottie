@@ -104,6 +104,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	existing.Enabled = input.Enabled
 	existing.Literal = input.Literal
+	existing.Interpolated = input.Literal
 	existing.Quote = input.Quote
 
 	var (
@@ -163,11 +164,10 @@ func (u *Upserter) createAndInsert(ctx context.Context, input *ast.Assignment) (
 	newAssignment := &ast.Assignment{
 		Comments: input.Comments,
 		Enabled:  input.Enabled,
+		Literal:  input.Literal,
 		Name:     input.Name,
 		Quote:    input.Quote,
 	}
-
-	newAssignment.Literal = input.Literal
 
 	slogctx.Debug(ctx, "createAndInsert: input.Literal", tui.StringDump("literal", newAssignment.Literal))
 
