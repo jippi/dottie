@@ -55,7 +55,7 @@
   NOT_A_NUMBER ( memory://tmp/upsert:13 )
     * (number) The value [abc] is not a valid number.
 
-Error: validation error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
+Error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
 Run 'dottie set --help' for usage.
 
 --------------------------------------------------------------------------------

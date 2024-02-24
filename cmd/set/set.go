@@ -165,6 +165,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case errors.As(err, &skippedStatementWarning):
+			if skippedStatementWarning.IsError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
+				allErrors = multierr.Append(allErrors, err)
+
+				continue
+			}
+
 			stderr.Warning().Print("WARNING: Key [ ", key, " ] was skipped: ")
 			stderr.Warning().Println(skippedStatementWarning.Reason)
 
@@ -182,7 +188,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if allErrors != nil {
-		return fmt.Errorf("validation error: %+w", allErrors)
+		return allErrors
 	}
 
 	//

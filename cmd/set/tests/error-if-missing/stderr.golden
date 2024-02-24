@@ -3,9 +3,7 @@
 - [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
 --------------------------------------------------------------------------------
 
-(error *errors.errorString) key [MISSING_KEY] does not exists in the document
-
-Error: validation error: key [MISSING_KEY] does not exists in the document
+Error: Key [ MISSING_KEY ] was skipped: the key does not exists in the document (ErrorIfMissing)
 Run 'dottie set --help' for usage.
 
 --------------------------------------------------------------------------------
