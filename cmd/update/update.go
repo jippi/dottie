@@ -213,9 +213,8 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case errors.As(err, &skippedStatementWarning):
-			stderr.Warning().Print("  ", oldStatement.Name)
-			stderr.Dark().Print(" was skipped: ")
-			stderr.Dark().Println(skippedStatementWarning.Reason)
+			stderr.Warning().Print("WARNING: Key [", oldStatement.Name, "] was skipped: ")
+			stderr.Warning().Println(skippedStatementWarning.Reason)
 
 		case err != nil:
 			sawError = true

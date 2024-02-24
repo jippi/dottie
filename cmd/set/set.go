@@ -165,9 +165,8 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		switch {
 		case errors.As(err, &skippedStatementWarning):
-			stderr.Warning().Print("  ", key)
-			stderr.Dark().Print(" was skipped: ")
-			stderr.Dark().Println(skippedStatementWarning.Reason)
+			stderr.Warning().Print("WARNING: Key [", key, "] was skipped: ")
+			stderr.Warning().Println(skippedStatementWarning.Reason)
 
 		case err != nil:
 			stderr.NoColor().Println(validation.Explain(cmd.Context(), document, err, assignment, false, true))
