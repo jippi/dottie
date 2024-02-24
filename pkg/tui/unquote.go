@@ -233,16 +233,9 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 	case '\\':
 		value = '\\'
 
-		// If we're unquoting another "\" the make sure to include it
-		// in the "input" so we don't convert "\\\\" into "\\"
-		// if initial == '\\' {
-		// 	input = "\\" + input
-		// }
-
 	case '\'':
 		if char != quote {
 			value = rune(char)
-			// err = errors.New("UnquoteChar single: c != quote")
 		} else {
 			err = errors.New("UnquoteChar single: c != quote")
 		}

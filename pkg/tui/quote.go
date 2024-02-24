@@ -130,13 +130,13 @@ func appendEscapedRune(ctx context.Context, buf []byte, runeValue rune, quote by
 // isInGraphicList reports whether the rune is in the isGraphic list. This separation
 // from IsGraphic allows quoteWith to avoid two calls to IsPrint.
 // Should be called only if IsPrint fails.
-func isInGraphicList(r rune) bool {
+func isInGraphicList(runeVal rune) bool {
 	// We know r must fit in 16 bits - see makeisprint.go.
-	if r > 0xFFFF {
+	if runeVal > 0xFFFF {
 		return false
 	}
 
-	rr := uint16(r)
+	rr := uint16(runeVal)
 	i := bsearch16(isGraphic, rr)
 
 	return i < len(isGraphic) && rr == isGraphic[i]

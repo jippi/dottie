@@ -208,9 +208,9 @@ func TestBackAndForth(t *testing.T) {
 			t.Log("strconv.Quote")
 			t.Log("-----------------------")
 
-			qu := strconv.Quote(tt.input)
+			strconvQuoted := strconv.Quote(tt.input)
 
-			for _, line := range tui.DumpSlice(context.TODO(), qu[1:len(qu)-1]) {
+			for _, line := range tui.DumpSlice(context.TODO(), strconvQuoted[1:len(strconvQuoted)-1]) {
 				t.Log(line)
 			}
 
@@ -219,20 +219,20 @@ func TestBackAndForth(t *testing.T) {
 			t.Log("-----------------------")
 
 			// Quote the string
-			quoted := tui.Quote(context.TODO(), tt.input)
+			tuiQuoted := tui.Quote(context.TODO(), tt.input)
 
-			for _, line := range tui.DumpSlice(context.TODO(), quoted) {
+			for _, line := range tui.DumpSlice(context.TODO(), tuiQuoted) {
 				t.Log(line)
 			}
 
 			// Ensure output matches the expected quoted string
-			assert.Equal(t, tt.expectedQuoted, quoted)
+			assert.Equal(t, tt.expectedQuoted, tuiQuoted)
 
 			t.Log("-----------------------")
 			t.Log("strconv.Unquote")
 			t.Log("-----------------------")
 
-			s, err := strconv.Unquote(qu)
+			s, err := strconv.Unquote(strconvQuoted)
 			require.NoError(t, err)
 
 			for _, line := range tui.DumpSlice(context.TODO(), s) {
@@ -240,7 +240,7 @@ func TestBackAndForth(t *testing.T) {
 			}
 
 			// Unquote the string back
-			unquoted, err := tui.Unquote(context.TODO(), quoted, '"', true)
+			unquoted, err := tui.Unquote(context.TODO(), tuiQuoted, '"', true)
 			require.NoError(t, err)
 
 			t.Log("-----------------------")
