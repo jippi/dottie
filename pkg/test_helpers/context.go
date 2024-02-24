@@ -22,7 +22,6 @@ func CreateContext(t *testing.T, out, err *bytes.Buffer) context.Context {
 	}
 
 	ctx := tui.NewContextWithoutLogger(context.Background(), out, err)
-	// return ctx
 
 	return slogctx.NewCtx(ctx, slogt.New(t, slogt.Text()))
 }

@@ -46,7 +46,12 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if ok, _ := cmd.Flags().GetBool("literal"); ok {
-		fmt.Fprint(cmd.OutOrStdout(), assignment.Unquote(cmd.Context()))
+		out, err := assignment.Unquote(cmd.Context())
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprint(cmd.OutOrStdout(), out)
 
 		return nil
 	}

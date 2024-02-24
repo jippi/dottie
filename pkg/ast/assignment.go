@@ -145,16 +145,17 @@ func (a *Assignment) SetLiteral(ctx context.Context, in string) {
 	slogctx.Debug(ctx, "SetLiteral.output", tui.StringDump(a.Literal))
 }
 
-func (a *Assignment) Unquote(ctx context.Context) string {
+func (a *Assignment) Unquote(ctx context.Context) (string, error) {
 	slogctx.Debug(ctx, "Unquote.input", tui.StringDump(a.Literal))
 
-	// str := tui.Quote(a.Literal)
 	str, err := tui.Unquote(ctx, a.Literal, '"', true)
 	if err != nil {
-		panic(err)
+		slogctx.Error(ctx, "failed to unquote string", tui.StringDump(a.Literal))
+
+		return "", err
 	}
 
 	slogctx.Debug(ctx, "Unquote.output", tui.StringDump(str))
 
-	return str
+	return str, nil
 }

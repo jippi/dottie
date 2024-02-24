@@ -93,19 +93,17 @@ func runE(cmd *cobra.Command, args []string) error {
 	)
 
 	var (
-		i        int
-		skipNext bool
+		argumentCounter  int
+		skipNextArgument bool
 	)
-
-	// fmt.Printf("%q\n", os.Args)
 
 	for _, arg := range args {
 		slogctx.Debug(cmd.Context(), "arg", tui.StringDump(arg))
 	}
 
 	for _, stringPair := range args {
-		if skipNext {
-			skipNext = false
+		if skipNextArgument {
+			skipNextArgument = false
 
 			continue
 		}
@@ -115,7 +113,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		// KEY1=VALUE KEY2=VALUE [...]
 		pairSlice := strings.SplitN(stringPair, "=", 2)
 		if len(pairSlice) == 2 {
-			i++
+			argumentCounter++
 
 			key = pairSlice[0]
 			value = pairSlice[1]
@@ -123,19 +121,19 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// KEY1 VALUE1 KEY2 VALUE2
 		if len(key) == 0 {
-			key = args[i]
-			i++
+			key = args[argumentCounter]
+			argumentCounter++
 
-			if i >= len(args) {
+			if argumentCounter >= len(args) {
 				allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument", stringPair))
 
 				break
 			}
 
-			value = args[i]
-			i++
+			value = args[argumentCounter]
+			argumentCounter++
 
-			skipNext = true
+			skipNextArgument = true
 		}
 
 		// Fail
@@ -144,11 +142,6 @@ func runE(cmd *cobra.Command, args []string) error {
 
 			continue
 		}
-
-		// value, err = tui.Unquote(value, '`', true)
-		// if err != nil {
-		// 	panic(err)
-		// }
 
 		assignment := &ast.Assignment{
 			Name:         key,

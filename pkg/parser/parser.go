@@ -34,13 +34,6 @@ func New(ctx context.Context, scanner Scanner, filename string) *Parser {
 
 // Parse parses the .env file and returns an ast.Statement.
 func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) {
-	// defer func() {
-	// 	if recoveryErr := recover(); recoveryErr != nil {
-	// 		err = fmt.Errorf("panic from parser: %+v", recoveryErr)
-	// 		document = nil
-	// 	}
-	// }()
-
 	var (
 		comments          []*ast.Comment
 		currentGroup      *ast.Group

@@ -111,8 +111,6 @@ func UnquoteChar(ctx context.Context, input string, quote byte) (value rune, mul
 
 	slogctx.Debug(ctx, "UnquoteChar.switch.miss: yup")
 
-	// initial := input[0]
-
 	char := input[1]
 	input = input[2:]
 

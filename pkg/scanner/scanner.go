@@ -282,10 +282,8 @@ func (s *Scanner) scanQuotedValue(ctx context.Context, tType token.Type, quote t
 		escapingPrevious := escapes == 1
 
 		slogctx.Debug(ctx, "scanQuotedValue: loop", tui.StringDump(string(s.rune)))
-		// fmt.Println("scanQuotedValue -->", fmt.Sprintf("%q", s.rune), fmt.Sprintf("%q", quote.Rune()), s.rune, "inEscape?", escapingPrevious, escapes)
 
 		if isEOF(s.rune) || isNewLine(s.rune) {
-			// panic("nein")
 			tType = token.Illegal
 
 			break
@@ -294,7 +292,6 @@ func (s *Scanner) scanQuotedValue(ctx context.Context, tType token.Type, quote t
 		// Break parsing if we hit our quote style,
 		// and the previous token IS NOT an escape sequence
 		if quote.Is(s.rune) && !escapingPrevious {
-			// panic("oh no")
 			break
 		}
 
@@ -443,7 +440,7 @@ func isEOF(r rune) bool {
 }
 
 func isWideSpace(r rune) bool {
-	return unicode.IsSpace(r) || isEOF(r) || isNewLine(r) || r == '\v'
+	return unicode.IsSpace(r) || isEOF(r) || isNewLine(r)
 }
 
 // ------------------------------------------------------------------------

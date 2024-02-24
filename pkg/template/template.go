@@ -121,10 +121,6 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 		//  - input : ``$
 		//    output: $()$
 		CmdSubst: func(writer io.Writer, i *syntax.CmdSubst) error {
-			// spew.Dump(i)
-			// spew.Dump(i.Left)
-			// spew.Dump(i.Left.Offset())
-
 			start := i.Left.Offset()
 			end := i.End().Offset() - 1
 
@@ -135,8 +131,6 @@ func Substitute(ctx context.Context, template string, resolver Resolver) (string
 	}
 
 	// Parse template into Shell words
-	//
-	// Single quote the input to avoid shell expansions such as "~" => $HOME => env lookup
 	words, err := syntax.NewParser(syntax.Variant(syntax.LangBash)).Document(strings.NewReader(template))
 	if err != nil {
 		return "", nil, InvalidTemplateError{Template: template}

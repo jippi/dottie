@@ -178,17 +178,25 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 		return
 	}
 
-	// If the assignment literal doesn't count any '$' it would never change from the
-	// interpolated value
-	if !strings.Contains(target.Literal, "$") {
-		target.Interpolated = target.Unquote(ctx)
-
-		slogctx.Debug(ctx, "doInterpolation.target.Interpolated", tui.StringDump(target.Interpolated))
+	// Unquote the literal
+	unquotedLiteral, err := target.Unquote(ctx)
+	if err != nil {
+		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 
 		return
 	}
 
-	value, warnings, err := template.Substitute(ctx, target.Unquote(ctx), doc.interpolationMapper(target))
+	// If the assignment literal doesn't count any '$' it would never change from the
+	// interpolated value
+	if !strings.Contains(target.Literal, "$") {
+		slogctx.Debug(ctx, "doInterpolation.target.Interpolated", tui.StringDump(target.Interpolated))
+
+		target.Interpolated = unquotedLiteral
+
+		return
+	}
+
+	value, warnings, err := template.Substitute(ctx, unquotedLiteral, doc.interpolationMapper(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}
