@@ -14,22 +14,24 @@ func NewCommand() *cobra.Command {
 		Short:   "Print as JSON",
 		Args:    cobra.ExactArgs(0),
 		GroupID: "output",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			filename := cmd.Flag("file").Value.String()
-
-			document, err := pkg.Load(cmd.Context(), filename)
-			if err != nil {
-				return err
-			}
-
-			output, err := json.MarshalIndent(document, "", "  ")
-			if err != nil {
-				return err
-			}
-
-			fmt.Fprintln(cmd.OutOrStdout(), string(output))
-
-			return nil
-		},
+		RunE:    runE,
 	}
+}
+
+func runE(cmd *cobra.Command, args []string) error {
+	filename := cmd.Flag("file").Value.String()
+
+	document, err := pkg.Load(cmd.Context(), filename)
+	if err != nil {
+		return err
+	}
+
+	output, err := json.MarshalIndent(document, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(cmd.OutOrStdout(), string(output))
+
+	return nil
 }

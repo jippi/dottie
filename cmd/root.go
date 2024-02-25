@@ -7,6 +7,7 @@ import (
 
 	goversion "github.com/caarlos0/go-version"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/jippi/dottie/cmd/console"
 	"github.com/jippi/dottie/cmd/disable"
 	"github.com/jippi/dottie/cmd/enable"
 	"github.com/jippi/dottie/cmd/fmt"
@@ -62,6 +63,8 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
+	root.AddCommand(console.NewCommand())
+
 	root.AddCommand(set.NewCommand())
 	root.AddCommand(fmt.NewCommand())
 	root.AddCommand(enable.NewCommand())
@@ -76,7 +79,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
 
-	command, err := root.ExecuteC()
+	command, err := root.ExecuteContextC(ctx)
 	if err != nil {
 		stderr := tui.WriterFromContext(ctx, tui.Stderr)
 		stderr.Danger().Copy(tui.WithEmphasis(true)).Printfln("%s %+v", command.ErrPrefix(), err)

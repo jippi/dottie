@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ionoscloudsdk/comptplus"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/ast/upsert"
 	"github.com/jippi/dottie/pkg/cli/shared"
+	"github.com/jippi/dottie/pkg/render"
 	"github.com/jippi/dottie/pkg/token"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
@@ -23,9 +25,12 @@ func NewCommand() *cobra.Command {
 		Short:   "Set/update one or multiple key=value pairs",
 		GroupID: "manipulate",
 		Args:    cobra.MinimumNArgs(1),
+		Annotations: map[string]string{
+			comptplus.DynamicSuggestionsAnnotation: "set",
+		},
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
-			WithHandlers(ast.ExcludeDisabledAssignments).
+			WithSelectors(ast.ExcludeDisabledAssignments).
 			Get(),
 		RunE: runE,
 	}
@@ -38,10 +43,19 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().Bool("skip-if-same", false, "If the already KEY exists, and it the value is identical, do not set or change any settings")
 
 	cmd.Flags().String("group", "", "The (optional) group name to add the KEY=VALUE pair under")
+	cmd.RegisterFlagCompletionFunc("group", cobra.NoFileCompletions)
+
 	cmd.Flags().String("before", "", "If the key doesn't exist, add it to the file *before* this KEY")
+	cmd.RegisterFlagCompletionFunc("before", shared.NewCompleter().WithSettings(render.WithIncludeDisabled(true)).Get())
+
 	cmd.Flags().String("after", "", "If the key doesn't exist, add it to the file *after* this KEY")
+	cmd.RegisterFlagCompletionFunc("after", shared.NewCompleter().WithSettings(render.WithIncludeDisabled(true)).Get())
+
 	cmd.Flags().String("quote-style", "double", "The quote style to use (single, double, none)")
+	cmd.RegisterFlagCompletionFunc("quote-style", cobra.FixedCompletions([]string{"single", "double", "none"}, cobra.ShellCompDirectiveDefault))
+
 	cmd.Flags().StringSlice("comment", nil, "Set one or multiple lines of comments to the KEY=VALUE pair")
+	cmd.RegisterFlagCompletionFunc("comment", cobra.NoFileCompletions)
 
 	cmd.MarkFlagsMutuallyExclusive("before", "after", "group")
 
@@ -151,6 +165,10 @@ func runE(cmd *cobra.Command, args []string) error {
 			Interpolated: value,
 			Quote:        token.QuoteFromString(shared.StringFlag(cmd.Flags(), "quote-style")),
 			Comments:     ast.NewCommentsFromSlice(shared.StringSliceFlag(cmd.Flags(), "comment")),
+		}
+
+		if !assignment.Quote.Valid() {
+			return token.ErrInvalidQuoteStyle
 		}
 
 		assignment.SetLiteral(cmd.Context(), value)

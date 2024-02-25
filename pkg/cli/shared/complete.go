@@ -35,8 +35,8 @@ func (c *Completer) WithSuffixIsLiteral(b bool) *Completer {
 	return c
 }
 
-func (c *Completer) WithHandlers(handlers ...ast.Selector) *Completer {
-	c.selectors = append(c.selectors, handlers...)
+func (c *Completer) WithSelectors(selectors ...ast.Selector) *Completer {
+	c.selectors = append(c.selectors, selectors...)
 
 	return c
 }
@@ -48,7 +48,7 @@ func (c *Completer) WithSettings(options ...render.SettingsOption) *Completer {
 }
 
 func (c *Completer) Get() CobraCompleter {
-	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	return func(cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		filename := cmd.Flag("file").Value.String()
 
 		doc, err := pkg.Load(cmd.Context(), filename)
@@ -64,7 +64,7 @@ func (c *Completer) Get() CobraCompleter {
 		)
 
 		lines := render.
-			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...), nil).
+			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...)).
 			Statement(cmd.Context(), doc).
 			Lines()
 
@@ -78,7 +78,7 @@ func (c *Completer) Get() CobraCompleter {
 
 		switch len(lines) {
 		case 0:
-			return lines, cobra.ShellCompDirectiveNoSpace
+			return lines, cobra.ShellCompDirectiveNoFileComp
 
 		case 1:
 			if c.suffixIsLiteral {
@@ -90,14 +90,14 @@ func (c *Completer) Get() CobraCompleter {
 				assignment := doc.Get(key)
 
 				if assignment != nil {
-					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveDefault
+					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoFileComp
 				}
 			}
 
-			return []string{lines[0] + c.suffix}, cobra.ShellCompDirectiveNoSpace
+			return []string{lines[0] + c.suffix}, cobra.ShellCompDirectiveNoFileComp
 
 		default:
-			return lines, cobra.ShellCompDirectiveNoSpace
+			return lines, cobra.ShellCompDirectiveNoFileComp
 		}
 	}
 }

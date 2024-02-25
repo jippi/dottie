@@ -27,8 +27,13 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
+	cmd.RegisterFlagCompletionFunc("source", cobra.NoFileCompletions)
+
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
+	cmd.RegisterFlagCompletionFunc("ignore-rule", cobra.NoFileCompletions)
+
 	cmd.Flags().StringSlice("exclude-key-prefix", []string{}, "Ignore these KEY prefixes")
+	cmd.RegisterFlagCompletionFunc("exclude-key-prefix", cobra.NoFileCompletions)
 
 	shared.BoolWithInverse(cmd, "error-on-missing-key", false, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")

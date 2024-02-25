@@ -3,6 +3,7 @@ package value
 import (
 	"fmt"
 
+	"github.com/ionoscloudsdk/comptplus"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -17,8 +18,9 @@ func NewCommand() *cobra.Command {
 		Short:             "Print value of a env key if it exists",
 		GroupID:           "output",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: shared.NewCompleter().WithHandlers(ast.ExcludeDisabledAssignments).Get(),
 		RunE:              runE,
+		ValidArgsFunction: shared.NewCompleter().WithSelectors(ast.ExcludeDisabledAssignments).Get(),
+		Annotations:       map[string]string{comptplus.DynamicSuggestionsAnnotation: "value"},
 	}
 
 	cmd.Flags().Bool("literal", false, "Show literal value instead of interpolated")

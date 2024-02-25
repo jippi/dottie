@@ -6,16 +6,22 @@ replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/
 
 replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
+// replace github.com/ionoscloudsdk/comptplus => ./3rd-party/go-comptplus
+
+replace github.com/ionoscloudsdk/comptplus => github.com/jippi/go-comptplus v0.0.0-20240225191001-6e9a3e933a89
+
 require (
 	github.com/caarlos0/go-version v0.1.1
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
+	github.com/elk-language/go-prompt v1.1.5
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-cz/devslog v0.0.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.13.1
 	github.com/hashicorp/go-getter v1.7.3
+	github.com/ionoscloudsdk/comptplus v1.0.4
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
@@ -63,17 +69,21 @@ require (
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
+	github.com/pkg/term v1.2.0-beta.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/lo v1.38.1 // indirect
@@ -81,7 +91,7 @@ require (
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
+	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect

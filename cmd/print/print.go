@@ -22,7 +22,10 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().Bool("pretty", false, "implies --color --comments --blank-lines --group-banners")
 
 	cmd.Flags().String("key-prefix", "", "Filter by key prefix")
+	cmd.RegisterFlagCompletionFunc("key-prefix", cobra.NoFileCompletions)
+
 	cmd.Flags().String("group", "", "Filter by group name")
+	cmd.RegisterFlagCompletionFunc("group", cobra.NoFileCompletions)
 
 	shared.BoolWithInverse(cmd, "blank-lines", true, "Show blank lines", "Do not show blank lines")
 	shared.BoolWithInverse(cmd, "color", true, "Enable color output", "Disable color output")

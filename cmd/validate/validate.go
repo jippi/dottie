@@ -22,7 +22,10 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.Flags().StringSlice("exclude-prefix", []string{}, "Exclude KEY with this prefix")
+	cmd.RegisterFlagCompletionFunc("exclude-prefix", cobra.NoFileCompletions)
+
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
+	cmd.RegisterFlagCompletionFunc("ignore-rule", cobra.NoFileCompletions)
 
 	shared.BoolWithInverse(cmd, "fix", true, "Guide the user to fix supported validation errors", "Do not guide the user to fix supported validation errors")
 
