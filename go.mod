@@ -6,9 +6,9 @@ replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/
 
 replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
-replace github.com/ionoscloudsdk/comptplus => ./3rd-party/go-comptplus
+// replace github.com/ionoscloudsdk/comptplus => ./3rd-party/go-comptplus
 
-// replace github.com/ionoscloudsdk/comptplus => github.com/jippi/go-comptplus v0.0.0-20240225191001-6e9a3e933a89
+replace github.com/ionoscloudsdk/comptplus => github.com/jippi/go-comptplus v0.0.0-20240225191001-6e9a3e933a89
 
 require (
 	github.com/caarlos0/go-version v0.1.1
