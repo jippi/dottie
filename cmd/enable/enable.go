@@ -16,7 +16,7 @@ func NewCommand() *cobra.Command {
 		Short:             "Enable (uncomment) a KEY if it exists",
 		Args:              cobra.ExactArgs(1),
 		GroupID:           "manipulate",
-		ValidArgsFunction: shared.NewCompleter().WithHandlers(ast.ExcludeActiveAssignments).Get(),
+		ValidArgsFunction: shared.NewCompleter().WithSelectors(ast.ExcludeActiveAssignments).Get(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := cmd.Flag("file").Value.String()
 

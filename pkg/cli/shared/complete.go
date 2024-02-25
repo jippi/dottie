@@ -35,8 +35,8 @@ func (c *Completer) WithSuffixIsLiteral(b bool) *Completer {
 	return c
 }
 
-func (c *Completer) WithHandlers(handlers ...ast.Selector) *Completer {
-	c.selectors = append(c.selectors, handlers...)
+func (c *Completer) WithSelectors(selectors ...ast.Selector) *Completer {
+	c.selectors = append(c.selectors, selectors...)
 
 	return c
 }
@@ -48,6 +48,12 @@ func (c *Completer) WithSettings(options ...render.SettingsOption) *Completer {
 }
 
 func (c *Completer) Get() CobraCompleter {
+	c.selectors = append(
+		c.selectors,
+		ast.ExcludeComments,
+		ast.ExcludeHiddenViaAnnotation,
+	)
+
 	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		filename := cmd.Flag("file").Value.String()
 
@@ -56,15 +62,14 @@ func (c *Completer) Get() CobraCompleter {
 			return nil, cobra.ShellCompDirectiveError
 		}
 
-		c.selectors = append(
-			c.selectors,
-			ast.ExcludeComments,
-			ast.ExcludeHiddenViaAnnotation,
-			ast.RetainKeyPrefix(toComplete),
-		)
+		selectors := c.selectors
+
+		if len(toComplete) > 0 {
+			selectors = append(selectors, ast.RetainKeyPrefix(toComplete))
+		}
 
 		lines := render.
-			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...), nil).
+			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(selectors...)).
 			Statement(cmd.Context(), doc).
 			Lines()
 
@@ -72,13 +77,13 @@ func (c *Completer) Get() CobraCompleter {
 			key := strings.TrimSuffix(toComplete, "=")
 
 			if assignment := doc.Get(key); assignment != nil {
-				return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveDefault
+				return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoSpace
 			}
 		}
 
 		switch len(lines) {
 		case 0:
-			return lines, cobra.ShellCompDirectiveNoSpace
+			return lines, cobra.ShellCompDirectiveNoFileComp
 
 		case 1:
 			if c.suffixIsLiteral {
@@ -90,14 +95,14 @@ func (c *Completer) Get() CobraCompleter {
 				assignment := doc.Get(key)
 
 				if assignment != nil {
-					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveDefault
+					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoFileComp
 				}
 			}
 
-			return []string{lines[0] + c.suffix}, cobra.ShellCompDirectiveNoSpace
+			return []string{lines[0] + c.suffix}, cobra.ShellCompDirectiveNoFileComp
 
 		default:
-			return lines, cobra.ShellCompDirectiveNoSpace
+			return lines, cobra.ShellCompDirectiveNoFileComp
 		}
 	}
 }

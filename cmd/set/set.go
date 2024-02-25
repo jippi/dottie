@@ -25,7 +25,7 @@ func NewCommand() *cobra.Command {
 		Args:    cobra.MinimumNArgs(1),
 		ValidArgsFunction: shared.NewCompleter().
 			WithSuffixIsLiteral(true).
-			WithHandlers(ast.ExcludeDisabledAssignments).
+			WithSelectors(ast.ExcludeDisabledAssignments).
 			Get(),
 		RunE: runE,
 	}

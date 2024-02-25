@@ -16,7 +16,7 @@ func NewCommand() *cobra.Command {
 		Short:             "Disable (comment out) a KEY if it exists",
 		GroupID:           "manipulate",
 		Args:              cobra.ExactArgs(1),
-		ValidArgsFunction: shared.NewCompleter().WithHandlers(ast.ExcludeDisabledAssignments).Get(),
+		ValidArgsFunction: shared.NewCompleter().WithSelectors(ast.ExcludeDisabledAssignments).Get(),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := cmd.Flags().Arg(0)
 
