@@ -35,7 +35,7 @@ func runE(cmd *cobra.Command, _ []string) error {
 			prompt.WithPrefix("dottie: "),
 			prompt.WithMaxSuggestion(10),
 		},
-		DynamicSuggestionsFunc: func(cmd *cobra.Command, annotationValue string, document *prompt.Document) []prompt.Suggest {
+		DynamicSuggestionsFunc: func(cmd *cobra.Command, _ string, document *prompt.Document) []prompt.Suggest {
 			suggestions := []prompt.Suggest{}
 
 			if cmd.ValidArgsFunction == nil {
@@ -44,7 +44,7 @@ func runE(cmd *cobra.Command, _ []string) error {
 
 			// We do not have access to the "args" being completed, so we pass in an empty slice
 			// which in many cases will trigger the "full" list of suggestions
-			arguments, _ := cmd.ValidArgsFunction(cmd, []string{}, "")
+			arguments, _ := cmd.ValidArgsFunction(cmd, []string{}, document.GetWordBeforeCursor())
 			for _, name := range arguments {
 				// ValidArgsFunction() returns "name\tdescription" pairs
 				// so we split by "\t" to get the individual parts

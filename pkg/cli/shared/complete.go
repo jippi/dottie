@@ -48,7 +48,13 @@ func (c *Completer) WithSettings(options ...render.SettingsOption) *Completer {
 }
 
 func (c *Completer) Get() CobraCompleter {
-	return func(cmd *cobra.Command, _ []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	c.selectors = append(
+		c.selectors,
+		ast.ExcludeComments,
+		ast.ExcludeHiddenViaAnnotation,
+	)
+
+	return func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		filename := cmd.Flag("file").Value.String()
 
 		doc, err := pkg.Load(cmd.Context(), filename)
@@ -56,15 +62,14 @@ func (c *Completer) Get() CobraCompleter {
 			return nil, cobra.ShellCompDirectiveError
 		}
 
-		c.selectors = append(
-			c.selectors,
-			ast.ExcludeComments,
-			ast.ExcludeHiddenViaAnnotation,
-			ast.RetainKeyPrefix(toComplete),
-		)
+		selectors := c.selectors
+
+		if len(toComplete) > 0 {
+			selectors = append(selectors, ast.RetainKeyPrefix(toComplete))
+		}
 
 		lines := render.
-			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(c.selectors...)).
+			NewUnfilteredRenderer(render.NewSettings(c.options...), render.NewAstSelectorHandler(selectors...)).
 			Statement(cmd.Context(), doc).
 			Lines()
 
@@ -72,7 +77,7 @@ func (c *Completer) Get() CobraCompleter {
 			key := strings.TrimSuffix(toComplete, "=")
 
 			if assignment := doc.Get(key); assignment != nil {
-				return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveDefault
+				return []string{assignment.Name + "=" + assignment.GetSafeLiteral()}, cobra.ShellCompDirectiveDefault
 			}
 		}
 
@@ -90,7 +95,7 @@ func (c *Completer) Get() CobraCompleter {
 				assignment := doc.Get(key)
 
 				if assignment != nil {
-					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoFileComp
+					return []string{assignment.Name + "=" + assignment.GetSafeLiteral()}, cobra.ShellCompDirectiveNoFileComp
 				}
 			}
 
