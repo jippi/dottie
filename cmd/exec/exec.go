@@ -3,6 +3,7 @@ package exec
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jippi/dottie/pkg"
@@ -78,6 +79,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			AccessibleVariables: document.AccessibleVariables(assignment),
 			MissingKeyCallback:  template.DefaultMissingKeyCallback(cmd.Context(), assignment.Literal),
 		}
+
+		pwd, _ := os.Getwd()
+		runner.Dir = pwd
 
 		prog, err := syntax.NewParser().Parse(strings.NewReader(annotations[0]), "")
 		if err != nil {
