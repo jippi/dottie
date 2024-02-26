@@ -8,11 +8,12 @@ import (
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
+	"github.com/jippi/dottie/pkg/template"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/validation"
 	"github.com/spf13/cobra"
-	"mvdan.cc/sh/interp"
-	"mvdan.cc/sh/syntax"
+	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 func NewCommand() *cobra.Command {
@@ -67,9 +68,26 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		var buf bytes.Buffer
 
-		// Run the command and capture the stdout output to the buffer
-		if err := runCommand(cmd, annotations[0], &buf); err != nil {
-			return fmt.Errorf("exec failure: %w", err)
+		runner, err := interp.New(interp.StdIO(cmd.InOrStdin(), &buf, cmd.ErrOrStderr()))
+		if err != nil {
+			return err
+		}
+
+		runner.Env = template.EnvironmentHelper{
+			Resolver:            document.InterpolationMapper(assignment),
+			AccessibleVariables: document.AccessibleVariables(assignment),
+			MissingKeyCallback:  template.DefaultMissingKeyCallback(cmd.Context(), assignment.Literal),
+		}
+
+		prog, err := syntax.NewParser().Parse(strings.NewReader(annotations[0]), "")
+		if err != nil {
+			return err
+		}
+
+		runner.Reset()
+
+		if err := runner.Run(cmd.Context(), prog); err != nil {
+			return err
 		}
 
 		// Trim the output to remove any leading and trailing newlines
@@ -105,20 +123,4 @@ func runE(cmd *cobra.Command, args []string) error {
 	out.Success().Println("File successfully saved")
 
 	return nil
-}
-
-func runCommand(cmd *cobra.Command, command string, buf *bytes.Buffer) error {
-	runner, err := interp.New(interp.StdIO(cmd.InOrStdin(), buf, cmd.ErrOrStderr()))
-	if err != nil {
-		return err
-	}
-
-	prog, err := syntax.NewParser().Parse(strings.NewReader(command), "")
-	if err != nil {
-		return err
-	}
-
-	runner.Reset()
-
-	return runner.Run(cmd.Context(), prog)
 }
