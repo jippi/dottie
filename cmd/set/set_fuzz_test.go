@@ -160,7 +160,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		default:
 			setFailed = true
 
-			assert.Regexp(t, "(illegal UTF-8 encoding|Invalid template)", stderr.String())
+			assert.Regexp(t, "(Invalid template)", stderr.String())
 		}
 	}
 

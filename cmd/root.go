@@ -9,6 +9,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd/disable"
 	"github.com/jippi/dottie/cmd/enable"
+	"github.com/jippi/dottie/cmd/exec"
 	"github.com/jippi/dottie/cmd/fmt"
 	"github.com/jippi/dottie/cmd/groups"
 	"github.com/jippi/dottie/cmd/json"
@@ -63,6 +64,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
 	root.AddCommand(set.NewCommand())
+	root.AddCommand(exec.NewCommand())
 	root.AddCommand(fmt.NewCommand())
 	root.AddCommand(enable.NewCommand())
 	root.AddCommand(disable.NewCommand())
