@@ -29,6 +29,7 @@ require (
 	github.com/veqryn/slog-context v0.5.0
 	github.com/veqryn/slog-dedup v0.3.0
 	go.uber.org/multierr v1.11.0
+	mvdan.cc/sh v2.6.4+incompatible
 	mvdan.cc/sh/v3 v3.8.0
 )
 

@@ -1,0 +1,8 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/echo-validate.run]:
+- [exec]
+--------------------------------------------------------------------------------
+
+  OUTPUT ( /fake/testing/path/tmp.env:3 )
+    * (ne) The value [failure] must NOT be equal to [failure], please change it.
+

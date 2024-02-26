@@ -30,82 +30,19 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
-// Resolver is a user-supplied function which maps from variable names to values.
-// Returns the value as a string and a bool indicating whether
-// the value is present, to distinguish between an empty string
-// and the absence of a value.
-type Resolver func(string) (string, bool)
-
-type EnvironmentHelper struct {
-	resolver           Resolver
-	missingKeyCallback func(string)
-}
-
-func (helper EnvironmentHelper) Get(name string) expand.Variable {
-	val, ok := helper.resolver(name)
-	if !ok {
-		if name != "IFS" {
-			helper.missingKeyCallback(name)
-		}
-
-		return expand.Variable{
-			Kind: expand.Unset,
-		}
-	}
-
-	return expand.Variable{
-		Str:      val,
-		Exported: true,
-		ReadOnly: true,
-		Kind:     expand.String,
-	}
-}
-
-func (l EnvironmentHelper) Each(cb func(name string, vr expand.Variable) bool) {
-	panic("EnvironmentHelper.Each() should never be called")
-}
-
 // SubstituteWithOptions substitute variables in the string with their values.
 // It accepts additional options such as a custom function or pattern.
-func Substitute(ctx context.Context, input string, resolver Resolver) (string, error) {
+func Substitute(ctx context.Context, input string, resolver Resolver, accessibleVariables AccessibleVariables) (string, error) {
 	ctx = slogctx.With(ctx, slog.String("source", "template.Substitute"))
 
 	slogctx.Debug(ctx, "template.Substitute.input", tui.StringDump("input", input))
 
-	var (
-		combinedErrors error
-		variables      = ExtractVariables(ctx, input)
-	)
+	var combinedErrors error
 
 	environment := EnvironmentHelper{
-		resolver: resolver,
-		missingKeyCallback: func(key string) {
-			variable, ok := variables[key]
-
-			// shouldn't be a lookup for anything that
-			if !ok {
-				slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
-
-				return
-			}
-
-			// Required variables are errors, so we ignore them as warnings
-			if variable.Required {
-				return
-			}
-
-			// If the variable has a default value, then it's not missing
-			if len(variable.DefaultValue) > 0 {
-				return
-			}
-
-			// If the variable has a alternate/presence value, then it's not missing
-			if len(variable.PresenceValue) > 0 {
-				return
-			}
-
-			slogctx.Warn(ctx, fmt.Sprintf("The [ $%s ] key is not set. Defaulting to a blank string.", key))
-		},
+		Resolver:            resolver,
+		MissingKeyCallback:  DefaultMissingKeyCallback(ctx, input),
+		AccessibleVariables: accessibleVariables,
 	}
 
 	config := &expand.Config{
@@ -255,7 +192,7 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 
 				variables = append(variables, variable)
 
-			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob:
+			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob, *syntax.ArithmExp:
 				// Ignore known good-to-ignore-keywords
 
 			default:
