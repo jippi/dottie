@@ -21,7 +21,7 @@ require (
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
-	github.com/reugn/pkgslog v0.0.0-00010101000000-000000000000
+	github.com/reugn/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0
