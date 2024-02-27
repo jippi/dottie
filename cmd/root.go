@@ -44,7 +44,7 @@ func init() {
 	cobra.EnableCommandSorting = false
 }
 
-func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
+func NewRootCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command) {
 	root := &cobra.Command{
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
@@ -77,6 +77,12 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.AddCommand(json.NewCommand())
 
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
+
+	return root
+}
+
+func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
+	root := NewRootCommand(ctx, args, stdout, stderr)
 
 	command, err := root.ExecuteC()
 	if err != nil {
