@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	goversion "github.com/caarlos0/go-version"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd/disable"
 	"github.com/jippi/dottie/cmd/enable"
 	"github.com/jippi/dottie/cmd/exec"
@@ -30,25 +29,11 @@ var (
 	version   = "dev"
 )
 
-const globalOptionsTemplate = `{{if .VisibleFlags}}
-GLOBAL OPTIONS:{{template "visibleFlagCategoryTemplate" .}}{{else if .VisibleFlags}}
-
-GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
-{{end}}
-`
-
-func init() {
-	spew.Config.DisablePointerMethods = false
-	spew.Config.DisableMethods = false
-
-	cobra.EnableCommandSorting = false
-}
-
-func NewRootCommand() (*cobra.Command) {
+func NewRootCommand() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "dottie",
-		Short:         "Simplify working with .env files",
-		Version:       buildVersion().String(),
+		Use:     "dottie",
+		Short:   "Simplify working with .env files",
+		Version: buildVersion().String(),
 	}
 
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
@@ -72,14 +57,14 @@ func NewRootCommand() (*cobra.Command) {
 
 func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
 	root := NewRootCommand()
-  root.SilenceErrors = true
-	root.SilenceUsage =  true
+	root.SilenceErrors = true
+	root.SilenceUsage = true
 	root.SetArgs(args)
 	root.SetContext(ctx)
 	root.SetErr(stderr)
 	root.SetOut(stdout)
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
-  root.SetVersionTemplate(`{{ .Version }}`)
+	root.SetVersionTemplate(`{{ .Version }}`)
 
 	command, err := root.ExecuteC()
 	if err != nil {
