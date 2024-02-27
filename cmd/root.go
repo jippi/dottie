@@ -48,8 +48,6 @@ func NewRootCommand() (*cobra.Command) {
 	root := &cobra.Command{
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
-		SilenceErrors: true,
-		SilenceUsage:  true,
 		Version:       buildVersion().String(),
 	}
 
@@ -76,6 +74,8 @@ func NewRootCommand() (*cobra.Command) {
 
 func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
 	root := NewRootCommand()
+  root.SilenceErrors = true
+	root.SilenceUsage =  true
 	root.SetArgs(args)
 	root.SetContext(ctx)
 	root.SetErr(stderr)
