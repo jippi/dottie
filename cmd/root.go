@@ -44,7 +44,7 @@ func init() {
 	cobra.EnableCommandSorting = false
 }
 
-func NewRootCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command) {
+func NewRootCommand() (*cobra.Command) {
 	root := &cobra.Command{
 		Use:           "dottie",
 		Short:         "Simplify working with .env files",
@@ -52,13 +52,6 @@ func NewRootCommand(ctx context.Context, args []string, stdout io.Writer, stderr
 		SilenceUsage:  true,
 		Version:       buildVersion().String(),
 	}
-
-	root.SetVersionTemplate(`{{ .Version }}`)
-
-	root.SetArgs(args)
-	root.SetContext(ctx)
-	root.SetErr(stderr)
-	root.SetOut(stdout)
 
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
@@ -82,7 +75,12 @@ func NewRootCommand(ctx context.Context, args []string, stdout io.Writer, stderr
 }
 
 func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
-	root := NewRootCommand(ctx, args, stdout, stderr)
+	root := NewRootCommand()
+	root.SetArgs(args)
+	root.SetContext(ctx)
+	root.SetErr(stderr)
+	root.SetOut(stdout)
+  root.SetVersionTemplate(`{{ .Version }}`)
 
 	command, err := root.ExecuteC()
 	if err != nil {
