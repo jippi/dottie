@@ -6,7 +6,7 @@ toolchain go1.21.6
 
 replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
 
-// replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
+replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
 require (
 	github.com/caarlos0/go-version v0.1.1
@@ -21,6 +21,7 @@ require (
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
+	github.com/reugn/pkgslog v0.0.0-20231009090135-bbaf4951c7eb
 	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0
@@ -76,7 +77,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/reugn/pkgslog v0.0.0-20231009090135-bbaf4951c7eb // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
