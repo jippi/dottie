@@ -67,8 +67,6 @@ func NewRootCommand() (*cobra.Command) {
 	root.AddCommand(groups.NewCommand())
 	root.AddCommand(json.NewCommand())
 
-	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
-
 	return root
 }
 
@@ -80,6 +78,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.SetContext(ctx)
 	root.SetErr(stderr)
 	root.SetOut(stdout)
+	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
   root.SetVersionTemplate(`{{ .Version }}`)
 
 	command, err := root.ExecuteC()
