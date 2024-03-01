@@ -93,6 +93,24 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 	return buff.String()
 }
 
+func (a *Assignment) Annotation(name string) []string {
+	buff := []string{}
+
+	for _, comment := range a.Comments {
+		if comment.Annotation == nil {
+			continue
+		}
+
+		if comment.Annotation.Key != name {
+			continue
+		}
+
+		buff = append(buff, comment.Annotation.Value)
+	}
+
+	return buff
+}
+
 func (a *Assignment) ValidationRules() string {
 	for _, comment := range a.Comments {
 		if comment.Annotation == nil {
@@ -140,7 +158,7 @@ func (a *Assignment) CommentsSlice() []string {
 func (a *Assignment) SetLiteral(ctx context.Context, in string) {
 	slogctx.Debug(ctx, "Assignment.SetLiteral() input", tui.StringDump("literal", in))
 
-	a.Literal = token.Escape(ctx, a.Literal, a.Quote)
+	a.Literal = token.Escape(ctx, in, a.Quote)
 	a.Interpolated = a.Literal
 
 	slogctx.Debug(ctx, "Assignment.SetLiteral() output", tui.StringDump("literal", a.Literal))

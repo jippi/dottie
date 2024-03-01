@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"path/filepath"
+	"strings"
+	"testing"
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/token"
@@ -25,6 +28,13 @@ type Parser struct {
 
 // New returns new Parser.
 func New(ctx context.Context, scanner Scanner, filename string) *Parser {
+	// If we're under test, the filename will be completely random, which will
+	// mess with golden file output, so we override the filename to a static
+	// value to make the tests deterministic.
+	if testing.Testing() && strings.HasPrefix(filename, "/") {
+		filename = "/fake/testing/path/" + filepath.Base(filename)
+	}
+
 	ctx = slogctx.With(
 		ctx,
 		slog.Group(

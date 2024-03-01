@@ -1,6 +1,8 @@
 module github.com/jippi/dottie
 
-go 1.22
+go 1.21.1
+
+toolchain go1.21.6
 
 replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
 
@@ -19,13 +21,13 @@ require (
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-cz/devslog v0.0.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/gosimple/slug v1.13.1
+	github.com/gosimple/slug v1.14.0
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/ionoscloudsdk/comptplus v1.0.4
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
-	github.com/reugn/pkgslog v0.0.0-00010101000000-000000000000
+	github.com/reugn/pkgslog v0.0.0-20231009090135-bbaf4951c7eb
 	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0

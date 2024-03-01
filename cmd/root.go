@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	goversion "github.com/caarlos0/go-version"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/cmd/console"
 	"github.com/jippi/dottie/cmd/disable"
 	"github.com/jippi/dottie/cmd/enable"
+	"github.com/jippi/dottie/cmd/exec"
 	"github.com/jippi/dottie/cmd/fmt"
 	"github.com/jippi/dottie/cmd/groups"
 	"github.com/jippi/dottie/cmd/json"
@@ -30,35 +30,12 @@ var (
 	version   = "dev"
 )
 
-const globalOptionsTemplate = `{{if .VisibleFlags}}
-GLOBAL OPTIONS:{{template "visibleFlagCategoryTemplate" .}}{{else if .VisibleFlags}}
-
-GLOBAL OPTIONS:{{template "visibleFlagTemplate" .}}{{end}}{{if .Copyright}}
-{{end}}
-`
-
-func init() {
-	spew.Config.DisablePointerMethods = false
-	spew.Config.DisableMethods = false
-
-	cobra.EnableCommandSorting = false
-}
-
-func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
+func NewRootCommand() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "dottie",
-		Short:         "Simplify working with .env files",
-		SilenceErrors: true,
-		SilenceUsage:  true,
-		Version:       buildVersion().String(),
+		Use:     "dottie",
+		Short:   "Simplify working with .env files",
+		Version: buildVersion().String(),
 	}
-
-	root.SetVersionTemplate(`{{ .Version }}`)
-
-	root.SetArgs(args)
-	root.SetContext(ctx)
-	root.SetErr(stderr)
-	root.SetOut(stdout)
 
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
@@ -66,6 +43,7 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.AddCommand(console.NewCommand())
 
 	root.AddCommand(set.NewCommand())
+	root.AddCommand(exec.NewCommand())
 	root.AddCommand(fmt.NewCommand())
 	root.AddCommand(enable.NewCommand())
 	root.AddCommand(disable.NewCommand())
@@ -77,7 +55,19 @@ func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.
 	root.AddCommand(groups.NewCommand())
 	root.AddCommand(json.NewCommand())
 
+	return root
+}
+
+func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
+	root := NewRootCommand()
+	root.SilenceErrors = true
+	root.SilenceUsage = true
+	root.SetArgs(args)
+	root.SetContext(ctx)
+	root.SetErr(stderr)
+	root.SetOut(stdout)
 	root.PersistentFlags().StringP("file", "f", ".env", "Load this file")
+	root.SetVersionTemplate(`{{ .Version }}`)
 
 	command, err := root.ExecuteContextC(ctx)
 	if err != nil {

@@ -197,7 +197,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 		return
 	}
 
-	value, err := template.Substitute(ctx, unquotedLiteral, doc.interpolationMapper(target))
+	value, err := template.Substitute(ctx, unquotedLiteral, doc.InterpolationMapper(target), doc.AccessibleVariables(target))
 	if err != nil {
 		err = fmt.Errorf("interpolation error for [%s] (%s): %w", target.Name, target.Position, err)
 	}
@@ -207,7 +207,25 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 }
 
-func (doc *Document) interpolationMapper(target *Assignment) func(input string) (string, bool) {
+func (doc *Document) AccessibleVariables(target *Assignment) func() map[string]string {
+	return func() map[string]string {
+		variables := map[string]string{}
+
+		for _, assignment := range doc.AllAssignments() {
+			if assignment.Position.Index >= target.Position.Index {
+				continue
+			}
+
+			if assignment.Enabled {
+				variables[assignment.Name] = assignment.Interpolated
+			}
+		}
+
+		return variables
+	}
+}
+
+func (doc *Document) InterpolationMapper(target *Assignment) func(input string) (string, bool) {
 	return func(input string) (string, bool) {
 		// Lookup in process environment
 		if val, ok := os.LookupEnv(input); ok {
