@@ -15,12 +15,12 @@ require (
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
-	github.com/erikgeiser/promptkit v0.9.0
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-cz/devslog v0.0.8
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.14.0
 	github.com/hashicorp/go-getter v1.7.3
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0

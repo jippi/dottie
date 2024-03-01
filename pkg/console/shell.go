@@ -1,13 +1,11 @@
 package console
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/spf13/cobra"
 )
 
 type (
@@ -15,28 +13,11 @@ type (
 )
 
 type model struct {
-	viewport    viewport.Model
-	messages    []string
-	textarea    textinput.Model
-	senderStyle lipgloss.Style
-	err         error
-}
-
-func InitialModel() model {
-	input := textinput.New()
-	input.Placeholder = ""
-	input.Prompt = "dottie: "
-	input.Focus()
-
-	vp := viewport.New(30, 5)
-
-	return model{
-		textarea:    input,
-		messages:    []string{},
-		viewport:    vp,
-		senderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
-		err:         nil,
-	}
+	input          textinput.Model
+	senderStyle    lipgloss.Style
+	err            error
+	rootCommand    *cobra.Command
+	currentCommand *cobra.Command
 }
 
 func (m model) Init() tea.Cmd {
@@ -45,25 +26,30 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
-		tiCmd tea.Cmd
-		vpCmd tea.Cmd
+		commands []tea.Cmd
+		inputCmd tea.Cmd
 	)
 
-	m.textarea, tiCmd = m.textarea.Update(msg)
-	m.viewport, vpCmd = m.viewport.Update(msg)
+	m.input, inputCmd = m.input.Update(msg)
+	commands = append(commands, inputCmd)
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
-			fmt.Println(m.textarea.Value())
 			return m, tea.Quit
 
 		case tea.KeyEnter:
-			m.messages = append(m.messages, m.senderStyle.Render("You: ")+m.textarea.Value())
-			m.viewport.SetContent(strings.Join(m.messages, "\n"))
-			m.textarea.Reset()
-			m.viewport.GotoBottom()
+			commands = append(commands, tea.Printf(">> Dump: %s", spew.Sdump(m.input)))
+			commands = append(commands, tea.Printf(">> Position: %d", m.input.Position()))
+			commands = append(commands, tea.Printf(">> Value: %s", m.input.Value()))
+			commands = append(commands, tea.Printf(">> Runes: %v", msg.Runes))
+			commands = append(commands, tea.Printf("dottie: %s", m.input.Value()))
+
+			m.input.Reset()
+
+		default:
+			commands = append(commands, tea.Printf(">> Runes: %v (%s) | %s", msg.Runes, string(msg.Runes), m.input.Value()))
 		}
 
 	// We handle errors just like any other message
@@ -73,13 +59,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	return m, tea.Batch(tiCmd, vpCmd)
+	return m, tea.Sequence(commands...)
 }
 
 func (m model) View() string {
-	return fmt.Sprintf(
-		"%s\n\n%s",
-		m.viewport.View(),
-		m.textarea.View(),
-	) + "\n\n"
+	return m.input.View()
 }

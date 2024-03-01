@@ -21,7 +21,7 @@ func NewCommand() *cobra.Command {
 }
 
 func runE(cmd *cobra.Command, args []string) error {
-	p := tea.NewProgram(console.InitialModel())
+	p := tea.NewProgram(console.NewModel(cmd))
 	if _, err := p.Run(); err != nil {
 		log.Fatal(err)
 	}
