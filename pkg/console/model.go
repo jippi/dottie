@@ -1,7 +1,6 @@
 package console
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 )
@@ -9,7 +8,7 @@ import (
 func NewModel(cmd *cobra.Command) model {
 	root := cmd.Root()
 
-	input := textinput.New()
+	input := NewInput()
 	input.Placeholder = ""
 	input.Prompt = "dottie: "
 	input.ShowSuggestions = true

@@ -1,37 +1,54 @@
 package console
 
 import (
-	"github.com/kballard/go-shellquote"
 	"github.com/spf13/cobra"
 )
 
-func (m *model) commandSuggestions(root *cobra.Command) []string {
-	var suggestions []string
+func (m *model) commandSuggestions(cmd *cobra.Command) []string {
+	suggestions := []string{}
 
-	if root.HasAvailableSubCommands() {
-		for _, c := range root.Commands() {
-			if c.Hidden {
-				continue
-			}
+	if !cmd.HasAvailableSubCommands() {
+		return suggestions
+	}
 
-			suggestions = append(suggestions, c.Name())
+	for _, c := range cmd.Commands() {
+		if c.Hidden {
+			continue
 		}
+
+		suggestions = append(suggestions, c.Name())
 	}
 
 	return suggestions
 }
 
-func (m *model) findCommand() bool {
+func (m *model) refreshSuggestions(cmd *cobra.Command) {
+	suggestions := []string{}
+	suggestions = append(suggestions, m.commandSuggestions(cmd)...)
+
+	m.input.SetSuggestions(suggestions)
+}
+
+func (m *model) findCommand() {
 	if m.input.Value() == "" {
-		return false
+		m.currentCommand = nil
+
+		return
 	}
 
-	args, err := shellquote.Split(m.input.Value())
+	args := SafeSplitWords(m.input.Value())
 
-	cmd, _, err := m.rootCommand.Find(args)
+	cmd, _, err := m.rootCommand.Find(JoinWords(args))
 	if err != nil {
-		return false
+		m.currentCommand = nil
+
+		return
+	}
+
+	if m.currentCommand == cmd {
+		return
 	}
 
 	m.currentCommand = cmd
+	m.refreshSuggestions(cmd)
 }

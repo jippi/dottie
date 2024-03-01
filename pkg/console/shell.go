@@ -13,7 +13,7 @@ type (
 )
 
 type model struct {
-	input          textinput.Model
+	input          InputModel
 	senderStyle    lipgloss.Style
 	err            error
 	rootCommand    *cobra.Command
@@ -49,7 +49,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.input.Reset()
 
 		default:
-			commands = append(commands, tea.Printf(">> Runes: %v (%s) | %s", msg.Runes, string(msg.Runes), m.input.Value()))
+			words := SafeSplitWords(m.input.Value())
+			commands = append(commands, tea.Printf(">> Runes: %v (%s) | %v | %s | %s", msg.Runes, string(msg.Runes), words, m.input.currentWordQuoted(), m.input.Value()))
+			commands = append(commands, tea.Printf(">> Words:  %v", words))
+			commands = append(commands, tea.Printf(">> Current Word A:  %s", m.input.currentWord()))
+			commands = append(commands, tea.Printf(">> Current Word B:  %v", m.input.currentWordQuoted()))
+
+			m.findCommand()
+
+			if m.currentCommand != nil {
+				commands = append(commands, tea.Println("Found command!", m.currentCommand.Name()))
+			} else {
+				commands = append(commands, tea.Println("not found command yet"))
+			}
 		}
 
 	// We handle errors just like any other message
