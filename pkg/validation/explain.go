@@ -79,7 +79,9 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 		for _, rule := range err {
 			askToFix := applyFixer
 
-			primary.Print("    * ")
+			dark.Print("    ")
+			primary.Print("*")
+			dark.Print(" ")
 
 			if rule.Field() != assignment.Name {
 				dark.Print("Field ")
