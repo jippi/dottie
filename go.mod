@@ -13,6 +13,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 // replace github.com/reeflective/console => ./3rd-party/go-console
 
 require (
+	github.com/atotto/clipboard v0.1.4
 	github.com/caarlos0/go-version v0.1.1
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
@@ -26,10 +27,12 @@ require (
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/lmittmann/tint v1.0.4
 	github.com/lrstanley/bubblezone v0.0.0-20240125042004-b7bafc493195
+	github.com/mattn/go-runewidth v0.0.15
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.15
 	github.com/reugn/pkgslog v0.0.0-20231009090135-bbaf4951c7eb
+	github.com/rivo/uniseg v0.4.7
 	github.com/rsteube/carapace v0.50.2
 	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
@@ -49,7 +52,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.4 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
-	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
@@ -77,7 +79,6 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
@@ -85,7 +86,6 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.0.13 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rsteube/carapace-shlex v0.1.2 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
