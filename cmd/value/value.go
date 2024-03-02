@@ -6,9 +6,7 @@ import (
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
-	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 func NewCommand() *cobra.Command {
@@ -59,8 +57,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	if err := document.InterpolateStatement(cmd.Context(), assignment); err != nil {
 		return err
 	}
-
-	slogctx.Info(cmd.Context(), "value.assignment.Interpolated", tui.StringDump("assignment.Interpolated", assignment.Interpolated))
 
 	fmt.Fprint(cmd.OutOrStdout(), assignment.Interpolated)
 

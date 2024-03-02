@@ -77,7 +77,7 @@ func (c *Completer) Get() CobraCompleter {
 			key := strings.TrimSuffix(toComplete, "=")
 
 			if assignment := doc.Get(key); assignment != nil {
-				return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoSpace
+				return []string{assignment.Name + "=" + assignment.GetSafeLiteral()}, cobra.ShellCompDirectiveNoSpace
 			}
 		}
 
@@ -95,7 +95,7 @@ func (c *Completer) Get() CobraCompleter {
 				assignment := doc.Get(key)
 
 				if assignment != nil {
-					return []string{assignment.Name + "=" + assignment.Literal}, cobra.ShellCompDirectiveNoFileComp
+					return []string{assignment.Name + "=" + assignment.GetSafeLiteral()}, cobra.ShellCompDirectiveNoFileComp
 				}
 			}
 

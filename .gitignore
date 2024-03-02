@@ -10,6 +10,7 @@ dottie.exe
 .task/
 .idea/
 .direnv
+.dottie.hist
 
 manpages/
 completions/
