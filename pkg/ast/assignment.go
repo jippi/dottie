@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -176,4 +177,8 @@ func (a *Assignment) Unquote(ctx context.Context) (string, error) {
 	slogctx.Debug(ctx, "Assignment.Unquote() output", tui.StringDump("literal", str))
 
 	return str, nil
+}
+
+func (a *Assignment) GetSafeLiteral() string {
+	return fmt.Sprintf("%s%s%s", a.Quote, a.Literal, a.Quote)
 }

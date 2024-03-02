@@ -89,11 +89,8 @@ func runE(cmd *cobra.Command, args []string) error {
 	//
 
 	var (
-		allErrors      error
-		stdout, stderr = tui.WritersFromContext(cmd.Context())
-	)
-
-	var (
+		allErrors        error
+		stdout, stderr   = tui.WritersFromContext(cmd.Context())
 		argumentCounter  int
 		skipNextArgument bool
 	)
