@@ -13,10 +13,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 // replace github.com/reeflective/console => ./3rd-party/go-console
 
 require (
-	github.com/atotto/clipboard v0.1.4
 	github.com/caarlos0/go-version v0.1.1
-	github.com/charmbracelet/bubbles v0.17.2-0.20240108170749-ec883029c8e6
-	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
@@ -26,7 +23,6 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/lmittmann/tint v1.0.4
-	github.com/mattn/go-runewidth v0.0.15
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.15
@@ -50,10 +46,13 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.4 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
+	github.com/charmbracelet/bubbles v0.17.2-0.20240108170749-ec883029c8e6 // indirect
+	github.com/charmbracelet/bubbletea v0.25.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -77,6 +76,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
