@@ -11,10 +11,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/go-playground/validator/v10"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/validation"
-	zone "github.com/lrstanley/bubblezone"
 )
 
 var (
@@ -29,14 +27,15 @@ var (
 )
 
 type form struct {
-	id       string
-	name     string
-	document *ast.Document
+	id        string
+	groupName string
+	document  *ast.Document
 
 	focusIndex int
-	inputs     []tea.Model
 	ctx        context.Context
 	viewport   viewport.Model
+	fields     []tea.Model
+	errors     map[string]string
 	ready      bool
 }
 
@@ -77,6 +76,7 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					key.WithHelp("↓/j", "down"),
 				),
 			}
+			m.errors = make(map[string]string)
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
@@ -91,7 +91,7 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
-			if str == "enter" && m.focusIndex == len(m.inputs) {
+			if str == "enter" && m.focusIndex == len(m.fields) {
 				return m, tea.Quit
 			}
 
@@ -102,48 +102,62 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs) {
+			if m.focusIndex > len(m.fields) {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs)
+				m.focusIndex = len(m.fields)
 			}
 
 			offset := 0
 
-			for i := 0; i <= len(m.inputs)-1; i++ {
+			for i := 0; i <= len(m.fields)-1; i++ {
 				if i == m.focusIndex {
-					cmds = append(cmds, m.inputs[i].(*huh.Input).Focus()) //nolint
+					cmds = append(cmds, m.fields[i].(*huh.Input).Focus()) //nolint
 
 					m.viewport.SetYOffset(offset)
 
 					continue
 				}
 
-				newLines := strings.Split(m.inputs[i].View(), "\n")
+				newLines := strings.Split(m.fields[i].View(), "\n")
 				offset += len(newLines) + 1
 
-				cmds = append(cmds, m.inputs[i].(*huh.Input).Blur()) //nolint
+				cmds = append(cmds, m.fields[i].(*huh.Input).Blur()) //nolint
 			}
 		}
 
 	case changeGroupMsg:
-		m.name = msg.name
+		m.groupName = msg.name
 
-		inputs := []tea.Model{}
+		fields := []tea.Model{}
 
-		for i, field := range m.document.GetGroup(m.name).Assignments() {
+		for i, field := range m.document.GetGroup(m.groupName).Assignments() {
+			field := field
+
 			input := huh.NewInput().
 				Title(field.Name).
 				Value(&field.Literal).
 				Key(field.Name).
 				Description(strings.TrimSpace(field.Documentation(true))).
 				Validate(func(s string) error {
-					err := validator.New().Var(s, field.ValidationRules())
-					if err != nil {
-						z := ast.NewError(field, err)
-
-						return errors.New(validation.Explain(m.ctx, m.document, z, field, false, false))
+					if m.errors == nil {
+						m.errors = make(map[string]string)
 					}
+
+					valErr, err := m.document.ValidateSingleAssignment(m.ctx, field, nil, nil)
+					if err != nil {
+						m.errors[field.Name] = err.Error()
+
+						return err
+					}
+
+					if valErr != nil {
+						m.errors[field.Name] = validation.Explain(m.ctx, m.document, valErr, field, false, false)
+
+						return errors.New(m.errors[field.Name])
+					}
+
+					delete(m.errors, field.Name)
 
 					return nil
 				})
@@ -152,10 +166,10 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, input.Focus())
 			}
 
-			inputs = append(inputs, input)
+			fields = append(fields, input)
 		}
 
-		m.inputs = inputs
+		m.fields = fields
 	}
 
 	// Handle character input and blinking
@@ -163,35 +177,32 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *form) propagate(msg tea.Msg, commands ...tea.Cmd) (tea.Model, tea.Cmd) {
-	for i := range m.inputs {
+	for i, field := range m.fields {
 		var cmd tea.Cmd
 
-		m.inputs[i], cmd = m.inputs[i].Update(msg)
+		m.fields[i], cmd = field.Update(msg)
 		commands = append(commands, cmd)
 	}
 
 	var cmd tea.Cmd
-
 	m.viewport, cmd = m.viewport.Update(msg)
 	commands = append(commands, cmd)
 
-	m.viewport.SetContent(m.render())
+	var output string
 
-	return m, tea.Batch(commands...)
-}
+	for _, field := range m.fields {
+		output += field.View() + "\n\n"
 
-func (m form) render() string {
-	var buf strings.Builder
+		realField := field.(*huh.Input) //nolint
 
-	for i := range m.inputs {
-		buf.WriteString(zone.Mark(fmt.Sprintf("%s-%d", m.id, i), m.inputs[i].View()))
-
-		if i < len(m.inputs)-1 {
-			buf.WriteString("\n\n")
+		if err := m.errors[realField.GetKey()]; len(err) > 0 {
+			output += "Error: " + err + "\n"
 		}
 	}
 
-	return buf.String()
+	m.viewport.SetContent(output)
+
+	return m, tea.Batch(commands...)
 }
 
 func (m form) View() string {
