@@ -90,7 +90,7 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 		buff.WriteString("\n")
 	}
 
-	return buff.String()
+	return strings.TrimSpace(buff.String()) + "\n"
 }
 
 func (a *Assignment) Annotation(name string) []string {

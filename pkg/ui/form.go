@@ -9,10 +9,12 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jippi/dottie/pkg/ast"
+	"github.com/jippi/dottie/pkg/tui"
+	"github.com/jippi/dottie/pkg/ui/component/textinput"
 	"github.com/jippi/dottie/pkg/validation"
+	zone "github.com/lrstanley/bubblezone"
 )
 
 var (
@@ -21,21 +23,18 @@ var (
 	cursorStyle  = focusedStyle.Copy()
 	noStyle      = lipgloss.NewStyle()
 	helpStyle    = blurredStyle.Copy()
-
-	focusedButton = focusedStyle.Copy().Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
 type form struct {
 	id        string
 	groupName string
 	document  *ast.Document
+	theme     tui.Writer
 
 	focusIndex int
 	ctx        context.Context
 	viewport   viewport.Model
-	fields     []tea.Model
-	errors     map[string]string
+	fields     []textinput.Model
 	ready      bool
 }
 
@@ -44,7 +43,9 @@ func (m form) Init() tea.Cmd {
 }
 
 func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmds []tea.Cmd
+	var commands []tea.Cmd
+
+	m.theme = tui.StderrFromContext(m.ctx)
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -60,12 +61,10 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					key.WithHelp("b/pgup", "page up"),
 				),
 				HalfPageUp: key.NewBinding(
-					key.WithKeys("u", "ctrl+u"),
-					key.WithHelp("u", "½ page up"),
+					key.WithKeys("ctrl+u"),
 				),
 				HalfPageDown: key.NewBinding(
-					key.WithKeys("d", "ctrl+d"),
-					key.WithHelp("d", "½ page down"),
+					key.WithKeys("ctrl+d"),
 				),
 				Up: key.NewBinding(
 					key.WithKeys("up"),
@@ -76,11 +75,22 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					key.WithHelp("↓/j", "down"),
 				),
 			}
-			m.errors = make(map[string]string)
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
 			m.viewport.Height = msg.Height
+		}
+
+	case tea.MouseMsg:
+		if msg.Button == tea.MouseButtonLeft {
+			// Check individual items if they were targeted
+			for idx := range m.fields {
+				if zone.Get(fmt.Sprintf("%s-%d", m.id, idx)).InBounds(msg) {
+					m.fields[idx].Focus()
+				} else {
+					m.fields[idx].Blur()
+				}
+			}
 		}
 
 	case tea.KeyMsg:
@@ -109,12 +119,15 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			offset := 0
+			height := m.viewport.Height
 
 			for i := 0; i <= len(m.fields)-1; i++ {
 				if i == m.focusIndex {
-					cmds = append(cmds, m.fields[i].(*huh.Input).Focus()) //nolint
+					commands = append(commands, m.fields[i].Focus()) //nolint
 
-					m.viewport.SetYOffset(offset)
+					if offset > height {
+						m.viewport.SetYOffset(offset)
+					}
 
 					continue
 				}
@@ -122,48 +135,39 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				newLines := strings.Split(m.fields[i].View(), "\n")
 				offset += len(newLines) + 1
 
-				cmds = append(cmds, m.fields[i].(*huh.Input).Blur()) //nolint
+				m.fields[i].Blur()
 			}
 		}
 
 	case changeGroupMsg:
 		m.groupName = msg.name
 
-		fields := []tea.Model{}
+		var fields []textinput.Model
 
-		for i, field := range m.document.GetGroup(m.groupName).Assignments() {
-			field := field
+		for i, assignment := range m.document.GetGroup(m.groupName).Assignments() {
+			assignment := assignment
 
-			input := huh.NewInput().
-				Title(field.Name).
-				Value(&field.Literal).
-				Key(field.Name).
-				Description(strings.TrimSpace(field.Documentation(true))).
-				Validate(func(s string) error {
-					if m.errors == nil {
-						m.errors = make(map[string]string)
-					}
+			input := textinput.New(assignment)
+			input.Prompt = m.promptFor(assignment, input)
+			input.SetValue(assignment.Literal)
+			input.Width = m.viewport.Width
+			input.Validate = func(s string) error {
+				assignment.Literal = s
 
-					valErr, err := m.document.ValidateSingleAssignment(m.ctx, field, nil, nil)
-					if err != nil {
-						m.errors[field.Name] = err.Error()
+				valErr, err := m.document.ValidateSingleAssignment(m.ctx, assignment, nil, nil)
+				if err != nil {
+					return err
+				}
 
-						return err
-					}
+				if valErr != nil {
+					return errors.New(validation.Explain(m.ctx, m.document, valErr, assignment, false, false))
+				}
 
-					if valErr != nil {
-						m.errors[field.Name] = validation.Explain(m.ctx, m.document, valErr, field, false, false)
-
-						return errors.New(m.errors[field.Name])
-					}
-
-					delete(m.errors, field.Name)
-
-					return nil
-				})
+				return nil
+			}
 
 			if i == 0 {
-				cmds = append(cmds, input.Focus())
+				commands = append(commands, input.Focus())
 			}
 
 			fields = append(fields, input)
@@ -173,34 +177,23 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Handle character input and blinking
-	return m.propagate(msg, cmds...)
+	return m.propagate(msg, commands...)
 }
 
 func (m *form) propagate(msg tea.Msg, commands ...tea.Cmd) (tea.Model, tea.Cmd) {
-	for i, field := range m.fields {
+	for i := range m.fields {
 		var cmd tea.Cmd
-
-		m.fields[i], cmd = field.Update(msg)
+		m.fields[i], cmd = m.fields[i].Update(msg)
 		commands = append(commands, cmd)
+
+		m.fields[i].Prompt = m.promptFor(m.fields[i].Assignment, m.fields[i])
 	}
 
 	var cmd tea.Cmd
 	m.viewport, cmd = m.viewport.Update(msg)
+	m.viewport.SetContent(m.renderFields())
+
 	commands = append(commands, cmd)
-
-	var output string
-
-	for _, field := range m.fields {
-		output += field.View() + "\n\n"
-
-		realField := field.(*huh.Input) //nolint
-
-		if err := m.errors[realField.GetKey()]; len(err) > 0 {
-			output += "Error: " + err + "\n"
-		}
-	}
-
-	m.viewport.SetContent(output)
 
 	return m, tea.Batch(commands...)
 }
@@ -211,4 +204,33 @@ func (m form) View() string {
 	}
 
 	return m.viewport.View()
+}
+
+func (m *form) renderFields() string {
+	var output string
+
+	for idx, field := range m.fields {
+		str := field.View()
+
+		if err := field.Err; err != nil {
+			str += "\n\n" + lipgloss.NewStyle().Foreground(tui.Red500).Render(strings.TrimSpace(err.Error()))
+		}
+
+		str = zone.Mark(fmt.Sprintf("%s-%d", m.id, idx), str)
+
+		output += lipgloss.NewStyle().Padding(1).Render(strings.TrimSpace(str))
+	}
+
+	return output
+}
+
+func (m *form) promptFor(assignment *ast.Assignment, field textinput.Model) string {
+	docs := m.theme.Success().Sprint(assignment.Documentation(false))
+	name := m.theme.Primary().Sprint(assignment.Name)
+
+	if field.Err != nil {
+		name = m.theme.Danger().Sprint(assignment.Name)
+	}
+
+	return strings.TrimSpace(docs) + strings.TrimSpace(name) + m.theme.Dark().Sprint("=")
 }
