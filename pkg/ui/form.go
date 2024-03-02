@@ -112,10 +112,10 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.fields) {
+			if m.focusIndex >= len(m.fields) {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.fields)
+				m.focusIndex = len(m.fields) - 1
 			}
 
 			offset := 0
@@ -216,7 +216,7 @@ func (m *form) renderFields() string {
 			str += "\n\n" + lipgloss.NewStyle().Foreground(tui.Red500).Render(strings.TrimSpace(err.Error()))
 		}
 
-		str = zone.Mark(fmt.Sprintf("%s-%d", m.id, idx), str)
+		str = zone.Mark(fmt.Sprintf("%s-%d", m.id, idx), strings.TrimSpace(str))
 
 		output += lipgloss.NewStyle().Padding(1).Render(strings.TrimSpace(str))
 	}

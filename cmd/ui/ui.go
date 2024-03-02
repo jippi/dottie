@@ -27,8 +27,17 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	p := tea.NewProgram(pkgui.NewModel(cmd.Context(), document), tea.WithAltScreen(), tea.WithMouseCellMotion())
-	_, err = p.Run()
+	program := tea.NewProgram(
+		pkgui.NewModel(
+			cmd.Context(),
+			document,
+		),
+		tea.WithContext(cmd.Context()),
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
+	)
+
+	_, err = program.Run()
 
 	return err
 }
