@@ -14,6 +14,8 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 
 require (
 	github.com/caarlos0/go-version v0.1.1
+	github.com/charmbracelet/bubbles v0.18.0
+	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/davecgh/go-spew v1.1.1
@@ -23,6 +25,7 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/hashicorp/go-getter v1.7.3
 	github.com/lmittmann/tint v1.0.4
+	github.com/lrstanley/bubblezone v0.0.0-20240125042004-b7bafc493195
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.15
@@ -51,8 +54,6 @@ require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
-	github.com/charmbracelet/bubbles v0.17.2-0.20240108170749-ec883029c8e6 // indirect
-	github.com/charmbracelet/bubbletea v0.25.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -84,7 +85,7 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.0.13 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.6 // indirect
 	github.com/rsteube/carapace-shlex v0.1.1 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
