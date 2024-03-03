@@ -244,8 +244,10 @@ func (m *form) promptFor(assignment *ast.Assignment, field textinput.Model) stri
 }
 
 func (m *form) populateFields() tea.Cmd {
-	var commands []tea.Cmd
-	var fields []textinput.Model
+	var (
+		commands []tea.Cmd
+		fields   = make([]textinput.Model, 0)
+	)
 
 	for i, assignment := range m.document.GetGroup(m.groupName).Assignments(m.selectors...) {
 		assignment := assignment
@@ -334,12 +336,12 @@ func parseRules(tag string) *cTag {
 		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 		orGroups := strings.Split(alias, orSeparator)
 
-		for j := 0; j < len(orGroups); j++ {
-			name, params, _ := strings.Cut(orGroups[j], tagKeySeparator)
+		for groupIdx := 0; groupIdx < len(orGroups); groupIdx++ {
+			name, params, _ := strings.Cut(orGroups[groupIdx], tagKeySeparator)
 
 			current.Tag = name
 
-			if j > 0 {
+			if groupIdx > 0 {
 				current.Next = &cTag{}
 				current = current.Next
 			}
@@ -347,7 +349,7 @@ func parseRules(tag string) *cTag {
 			current.HasParam = len(params) > 0
 
 			if len(current.Tag) == 0 {
-				panic("invalid 1: " + tag + " || " + alias + " || " + name + " || " + params + " || " + orGroups[j] + " || " + spew.Sdump(current) + " || " + spew.Sdump(first))
+				panic("invalid 1: " + tag + " || " + alias + " || " + name + " || " + params + " || " + orGroups[groupIdx] + " || " + spew.Sdump(current) + " || " + spew.Sdump(first))
 			}
 
 			if len(params) > 1 {
