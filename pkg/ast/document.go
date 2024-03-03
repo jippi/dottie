@@ -154,9 +154,9 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 
 	ctx = slogctx.With(ctx, slog.String("interpolation_key", target.Name))
 
-	if !target.Enabled {
-		return
-	}
+	// if !target.Enabled {
+	// 	return
+	// }
 
 	target.Initialize(ctx)
 
@@ -165,6 +165,12 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 		ref := doc.Get(dependency.Name)
 		if ref == nil {
 			slogctx.Warn(ctx, fmt.Sprintf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
+
+			continue
+		}
+
+		if !ref.Enabled {
+			slogctx.Warn(ctx, fmt.Sprintf("KEY [ %s ] references KEY [ %s ] that is disabled", target.Name, dependency.Name))
 
 			continue
 		}
@@ -303,10 +309,19 @@ func (d *Document) GetConfig(name string) (string, error) {
 	return "", fmt.Errorf("could not find config key: [%s]", name)
 }
 
-func (d *Document) Assignments() []*Assignment {
+func (d *Document) Assignments(selectors ...Selector) []*Assignment {
 	var assignments []*Assignment
 
+NEXT_STATEMENT:
 	for _, statement := range d.Statements {
+		// Filter
+		for _, selector := range selectors {
+			if selector(statement) == Exclude {
+				continue NEXT_STATEMENT
+			}
+		}
+
+		// Collect
 		if assign, ok := statement.(*Assignment); ok {
 			assignments = append(assignments, assign)
 		}
@@ -400,25 +415,7 @@ func (document *Document) Validate(ctx context.Context, selectors []Selector, ig
 		fieldOrder = []string{}
 	)
 
-NEXT:
-	for _, assignment := range document.AllAssignments() {
-		for _, selector := range selectors {
-			status := selector(assignment)
-
-			switch status {
-			// Stop processing the statement and return nothing
-			case Exclude:
-				continue NEXT
-
-			// Continue to next handler (or default behavior if we run out of handlers)
-			case Keep:
-
-			// Unknown signal
-			default:
-				panic(fmt.Errorf("unknown selector result: %v", status))
-			}
-		}
-
+	for _, assignment := range document.AllAssignments(selectors...) {
 		validationRules := assignment.ValidationRules()
 		if len(validationRules) == 0 {
 			continue
@@ -481,7 +478,6 @@ func (document *Document) ValidateSingleAssignment(ctx context.Context, assignme
 		ctx,
 		append(
 			[]Selector{
-				ExcludeDisabledAssignments,
 				RetainExactKey(assignment.Name),
 			},
 			selectors...,

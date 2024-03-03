@@ -10,14 +10,14 @@ var (
 	listStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), false, true, false, false).
 			BorderForeground(subtle).
-			MarginRight(2)
+			PaddingRight(1).
+			MarginRight(1)
 
 	listHeader = lipgloss.NewStyle().
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderBottom(true).
 			BorderForeground(subtle).
-			MarginRight(2).
-			Render
+			MarginRight(1)
 
 	listItemStyle = lipgloss.NewStyle().PaddingLeft(2).Render
 
@@ -98,7 +98,9 @@ func (m group) Update(msg tea.Msg) (group, tea.Cmd) {
 }
 
 func (m group) View() string {
-	out := []string{listHeader(m.title)}
+	out := []string{
+		listHeader.Width(18).Render(m.title),
+	}
 
 	for _, item := range m.items {
 		if item.active {
@@ -110,7 +112,7 @@ func (m group) View() string {
 		out = append(out, zone.Mark(m.id+item.name, listItemStyle(item.name)))
 	}
 
-	return listStyle.Render(
+	return listStyle.Copy().Height(m.height - 4).Render(
 		zone.Mark(
 			m.id,
 			lipgloss.JoinVertical(

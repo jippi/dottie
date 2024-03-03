@@ -78,7 +78,7 @@ var DefaultKeyMap = KeyMap{
 	LineStart:               key.NewBinding(key.WithKeys("home", "ctrl+a")),
 	LineEnd:                 key.NewBinding(key.WithKeys("end", "ctrl+e")),
 	Paste:                   key.NewBinding(key.WithKeys("ctrl+v")),
-	AcceptSuggestion:        key.NewBinding(key.WithKeys("tab")),
+	AcceptSuggestion:        key.NewBinding(key.WithKeys("tab", "enter")),
 	NextSuggestion:          key.NewBinding(key.WithKeys("down", "ctrl+n")),
 	PrevSuggestion:          key.NewBinding(key.WithKeys("up", "ctrl+p")),
 }
@@ -278,6 +278,7 @@ func (m *Model) Reset() {
 // SetSuggestions sets the suggestions for the input.
 func (m *Model) SetSuggestions(suggestions []string) {
 	m.suggestions = make([][]rune, len(suggestions))
+
 	for i, s := range suggestions {
 		m.suggestions[i] = []rune(s)
 	}
@@ -887,13 +888,19 @@ func (m *Model) CurrentSuggestion() string {
 
 // canAcceptSuggestion returns whether there is an acceptable suggestion to
 // autocomplete the current value.
+func (m *Model) ShowingAcceptSuggestion() bool {
+	return m.ShowSuggestions && len(m.suggestions) > 0 && len(m.matchedSuggestions) > 0
+}
+
+// canAcceptSuggestion returns whether there is an acceptable suggestion to
+// autocomplete the current value.
 func (m *Model) canAcceptSuggestion() bool {
 	return len(m.matchedSuggestions) > 0
 }
 
 // updateSuggestions refreshes the list of matching suggestions.
 func (m *Model) updateSuggestions() {
-	if !m.ShowSuggestions {
+	if !m.ShowSuggestions || len(m.suggestions) == 0 {
 		return
 	}
 
@@ -907,6 +914,11 @@ func (m *Model) updateSuggestions() {
 
 	for _, s := range m.suggestions {
 		suggestion := string(s)
+
+		// if strings are equal, its no longer a suggestion
+		if strings.EqualFold(string(m.value), suggestion) {
+			continue
+		}
 
 		if strings.HasPrefix(strings.ToLower(suggestion), strings.ToLower(string(m.value))) {
 			matches = append(matches, []rune(suggestion))
