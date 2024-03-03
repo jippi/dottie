@@ -66,7 +66,7 @@ func (m group) Update(msg tea.Msg) (group, tea.Cmd) {
 		m.height = msg.Height
 
 	case tea.MouseMsg:
-		if msg.Button != tea.MouseButtonLeft {
+		if msg.String() != "left press" {
 			return m, nil
 		}
 
