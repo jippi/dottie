@@ -13,7 +13,7 @@ type Statement interface {
 }
 
 type StatementCollection interface {
-	Assignments() []*Assignment
+	Assignments(selectors ...Selector) []*Assignment
 	GetAssignmentIndex(name string) (int, *Assignment)
 }
 

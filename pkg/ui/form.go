@@ -10,9 +10,11 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/jippi/dottie/pkg/ui/component/textinput"
+	"github.com/jippi/dottie/pkg/ui/layout"
 	"github.com/jippi/dottie/pkg/validation"
 	zone "github.com/lrstanley/bubblezone"
 )
@@ -30,6 +32,7 @@ type form struct {
 	groupName string
 	document  *ast.Document
 	theme     tui.Writer
+	selectors []ast.Selector
 
 	focusIndex int
 	ctx        context.Context
@@ -42,7 +45,7 @@ func (m form) Init() tea.Cmd {
 	return changeGroupCmd(m.document.Groups[0].String())
 }
 
-func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m form) Update(msg tea.Msg) (form, tea.Cmd) {
 	var commands []tea.Cmd
 
 	m.theme = tui.StderrFromContext(m.ctx)
@@ -50,7 +53,7 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		if !m.ready {
-			m.viewport = viewport.New(msg.Width, msg.Height)
+			m.viewport = viewport.New(msg.Width, msg.Height-FooterHeight)
 			m.viewport.KeyMap = viewport.KeyMap{
 				PageDown: key.NewBinding(
 					key.WithKeys("pgdown"),
@@ -78,18 +81,21 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.ready = true
 		} else {
 			m.viewport.Width = msg.Width
-			m.viewport.Height = msg.Height
+			m.viewport.Height = msg.Height - FooterHeight
 		}
 
 	case tea.MouseMsg:
-		if msg.Button == tea.MouseButtonLeft {
-			// Check individual items if they were targeted
-			for idx := range m.fields {
-				if zone.Get(fmt.Sprintf("%s-%d", m.id, idx)).InBounds(msg) {
-					m.fields[idx].Focus()
-				} else {
-					m.fields[idx].Blur()
-				}
+		if msg.String() != "left press" {
+			break
+		}
+
+		// Check individual items if they were targeted
+		for idx := range m.fields {
+			if zone.Get(fmt.Sprintf("%s-%d", m.id, idx)).InBounds(msg) {
+				m.focusIndex = idx
+				m.fields[idx].Focus()
+			} else {
+				m.fields[idx].Blur()
 			}
 		}
 
@@ -97,105 +103,101 @@ func (m form) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		// Set focus to next input
 		case "tab", "shift+tab", "enter", "up", "down":
-			str := msg.String()
+			if !m.showingCompletion() {
+				str := msg.String()
 
-			// Did the user press enter while the submit button was focused?
-			// If so, exit.
-			if str == "enter" && m.focusIndex == len(m.fields) {
-				return m, tea.Quit
-			}
+				// Cycle indexes
+				if str == "up" || str == "shift+tab" {
+					m.focusIndex--
+				} else {
+					m.focusIndex++
+				}
 
-			// Cycle indexes
-			if str == "up" || str == "shift+tab" {
-				m.focusIndex--
-			} else {
-				m.focusIndex++
-			}
+				if m.focusIndex >= len(m.fields) {
+					m.focusIndex = 0
+				} else if m.focusIndex < 0 {
+					m.focusIndex = len(m.fields) - 1
+				}
 
-			if m.focusIndex >= len(m.fields) {
-				m.focusIndex = 0
-			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.fields) - 1
-			}
+				offset := 0
+				height := m.viewport.Height
 
-			offset := 0
-			height := m.viewport.Height
+				for i := 0; i <= len(m.fields)-1; i++ {
+					if i == m.focusIndex {
+						commands = append(commands, m.fields[i].Focus()) //nolint
 
-			for i := 0; i <= len(m.fields)-1; i++ {
-				if i == m.focusIndex {
-					commands = append(commands, m.fields[i].Focus()) //nolint
+						if offset > height {
+							m.viewport.SetYOffset(offset)
+						}
 
-					if offset > height {
-						m.viewport.SetYOffset(offset)
+						continue
 					}
 
-					continue
+					newLines := strings.Split(m.fields[i].View(), "\n")
+					offset += len(newLines) + 1
+
+					m.fields[i].Blur()
 				}
-
-				newLines := strings.Split(m.fields[i].View(), "\n")
-				offset += len(newLines) + 1
-
-				m.fields[i].Blur()
 			}
 		}
+
+	case layout.ShowHiddenMsg:
+		m.selectors = []ast.Selector{}
+
+		if msg.Hide {
+			m.selectors = []ast.Selector{ast.ExcludeDisabledAssignments}
+		}
+
+		commands = append(commands, m.populateFields())
 
 	case changeGroupMsg:
+		m.focusIndex = 0
 		m.groupName = msg.name
 
-		var fields []textinput.Model
-
-		for i, assignment := range m.document.GetGroup(m.groupName).Assignments() {
-			assignment := assignment
-
-			input := textinput.New(assignment)
-			input.Prompt = m.promptFor(assignment, input)
-			input.SetValue(assignment.Literal)
-			input.Width = m.viewport.Width
-			input.Validate = func(s string) error {
-				assignment.Literal = s
-
-				valErr, err := m.document.ValidateSingleAssignment(m.ctx, assignment, nil, nil)
-				if err != nil {
-					return err
-				}
-
-				if valErr != nil {
-					return errors.New(validation.Explain(m.ctx, m.document, valErr, assignment, false, false))
-				}
-
-				return nil
-			}
-
-			if i == 0 {
-				commands = append(commands, input.Focus())
-			}
-
-			fields = append(fields, input)
-		}
-
-		m.fields = fields
+		commands = append(commands, m.populateFields())
 	}
 
 	// Handle character input and blinking
 	return m.propagate(msg, commands...)
 }
 
-func (m *form) propagate(msg tea.Msg, commands ...tea.Cmd) (tea.Model, tea.Cmd) {
-	for i := range m.fields {
-		var cmd tea.Cmd
-		m.fields[i], cmd = m.fields[i].Update(msg)
-		commands = append(commands, cmd)
+func (m *form) propagate(msg tea.Msg, commands ...tea.Cmd) (form, tea.Cmd) {
+	// Fields
+	{
+		for i := range m.fields {
+			var cmd tea.Cmd
+			m.fields[i], cmd = m.fields[i].Update(msg)
+			commands = append(commands, cmd)
 
-		m.fields[i].Prompt = m.promptFor(m.fields[i].Assignment, m.fields[i])
+			m.fields[i].Prompt = m.promptFor(m.fields[i].Assignment, m.fields[i])
+		}
 	}
 
-	var cmd tea.Cmd
-	m.viewport, cmd = m.viewport.Update(msg)
-	m.viewport.SetContent(m.renderFields())
+	// Viewport
+	{
+		// Don't update viewport if we're doing field completion (to avoid hijacking keyboard input)
+		if !m.showingCompletion() {
+			var cmd tea.Cmd
+			m.viewport, cmd = m.viewport.Update(msg)
+			commands = append(commands, cmd)
+		}
 
-	commands = append(commands, cmd)
+		m.viewport.SetContent(
+			listHeader.
+				Width(m.viewport.Width).
+				Render("Group: "+m.groupName) + m.renderFields(),
+		)
+	}
 
-	return m, tea.Batch(commands...)
+	return *m, tea.Batch(commands...)
+}
+
+func (m *form) showingCompletion() bool {
+	if len(m.fields) == 0 {
+		return false
+	}
+
+	return m.fields[m.focusIndex].ShowingAcceptSuggestion()
 }
 
 func (m form) View() string {
@@ -227,10 +229,132 @@ func (m *form) renderFields() string {
 func (m *form) promptFor(assignment *ast.Assignment, field textinput.Model) string {
 	docs := m.theme.Success().Sprint(assignment.Documentation(false))
 	name := m.theme.Primary().Sprint(assignment.Name)
+	prefix := ""
 
 	if field.Err != nil {
 		name = m.theme.Danger().Sprint(assignment.Name)
 	}
 
-	return strings.TrimSpace(docs) + strings.TrimSpace(name) + m.theme.Dark().Sprint("=")
+	if !assignment.Enabled {
+		name = m.theme.Dark().Sprint(assignment.Name)
+		prefix = m.theme.Dark().Sprint("#")
+	}
+
+	return strings.TrimSpace(docs) + prefix + strings.TrimSpace(name) + m.theme.Dark().Sprint("=")
+}
+
+func (m *form) populateFields() tea.Cmd {
+	var commands []tea.Cmd
+	var fields []textinput.Model
+
+	for i, assignment := range m.document.GetGroup(m.groupName).Assignments(m.selectors...) {
+		assignment := assignment
+
+		input := textinput.New(assignment)
+		input.ShowSuggestions = true
+
+		for rule := parseRules(assignment.ValidationRules()); rule != nil; rule = rule.Next {
+			if rule.Tag == "oneof" {
+				input.SetSuggestions(strings.Split(rule.Param, " "))
+			}
+		}
+
+		input.Prompt = m.promptFor(assignment, input)
+		input.PromptStyle = lipgloss.NewStyle()
+		input.TextStyle = lipgloss.NewStyle()
+		input.SetValue(assignment.Literal)
+		input.Width = m.viewport.Width
+		input.Validate = func(s string) error {
+			assignment.Literal = s
+
+			valErr, err := m.document.ValidateSingleAssignment(m.ctx, assignment, nil, nil)
+			if err != nil {
+				return err
+			}
+
+			if valErr != nil {
+				return errors.New(validation.Explain(m.ctx, m.document, valErr, assignment, false, false))
+			}
+
+			return nil
+		}
+
+		if i == 0 {
+			commands = append(commands, input.Focus())
+		}
+
+		fields = append(fields, input)
+	}
+
+	m.fields = fields
+
+	return tea.Batch(commands...)
+}
+
+type cTag struct {
+	Tag      string
+	Param    string
+	HasParam bool
+	Next     *cTag
+}
+
+const (
+	tagSeparator    = ","
+	orSeparator     = "|"
+	tagKeySeparator = "="
+	utf8HexComma    = "0x2C"
+	utf8Pipe        = "0x7C"
+)
+
+func parseRules(tag string) *cTag {
+	if len(tag) == 0 {
+		return nil
+	}
+
+	var (
+		alias   string
+		first   *cTag
+		current *cTag
+		tags    = strings.Split(tag, tagSeparator)
+	)
+
+	for i := 0; i < len(tags); i++ {
+		alias = tags[i]
+
+		if i == 0 {
+			current = &cTag{}
+			first = current
+		} else {
+			current.Next = &cTag{}
+			current = current.Next
+		}
+
+		current.Tag = tags[i]
+
+		// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
+		orGroups := strings.Split(alias, orSeparator)
+
+		for j := 0; j < len(orGroups); j++ {
+			name, params, _ := strings.Cut(orGroups[j], tagKeySeparator)
+
+			current.Tag = name
+
+			if j > 0 {
+				current.Next = &cTag{}
+				current = current.Next
+			}
+
+			current.HasParam = len(params) > 0
+
+			if len(current.Tag) == 0 {
+				panic("invalid 1: " + tag + " || " + alias + " || " + name + " || " + params + " || " + orGroups[j] + " || " + spew.Sdump(current) + " || " + spew.Sdump(first))
+			}
+
+			if len(params) > 1 {
+				current.Param = strings.Replace(strings.Replace(params, utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+			}
+		}
+	}
+
+	return first
 }

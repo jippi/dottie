@@ -44,10 +44,18 @@ func (g *Group) String() string {
 	return strings.TrimPrefix(g.Name, "# ")
 }
 
-func (g *Group) Assignments() []*Assignment {
+func (g *Group) Assignments(selectors ...Selector) []*Assignment {
 	var assignments []*Assignment
 
+NEXT_STATEMENT:
 	for _, statement := range g.Statements {
+		// Filter
+		for _, selector := range selectors {
+			if selector(statement) == Exclude {
+				continue NEXT_STATEMENT
+			}
+		}
+
 		if assign, ok := statement.(*Assignment); ok {
 			assignments = append(assignments, assign)
 		}
