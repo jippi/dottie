@@ -236,6 +236,7 @@ func (m *form) promptFor(assignment *ast.Assignment, field textinput.Model) stri
 	}
 
 	if !assignment.Enabled {
+		docs = m.theme.Dark().Sprint(assignment.Documentation(false))
 		name = m.theme.Dark().Sprint(assignment.Name)
 		prefix = m.theme.Dark().Sprint("#")
 	}
