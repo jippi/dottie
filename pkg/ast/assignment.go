@@ -86,7 +86,7 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 			val = strings.TrimPrefix(val, "#")
 		}
 
-		buff.WriteString(val)
+		buff.WriteString(strings.TrimSpace(val))
 		buff.WriteString("\n")
 	}
 
@@ -164,7 +164,7 @@ func (a *Assignment) SetLiteral(ctx context.Context, in string) {
 	slogctx.Debug(ctx, "Assignment.SetLiteral() output", tui.StringDump("literal", a.Literal))
 }
 
-func (a *Assignment) Unquote(ctx context.Context) (string, error) {
+func (a *Assignment) Unescape(ctx context.Context) (string, error) {
 	slogctx.Debug(ctx, "Assignment.Unquote() input", tui.StringDump("literal", a.Literal))
 
 	str, err := token.Unescape(ctx, a.Literal, a.Quote)

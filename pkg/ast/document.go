@@ -182,7 +182,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 	}
 
 	// Unquote the literal
-	unquotedLiteral, err := target.Unquote(ctx)
+	unquotedLiteral, err := target.Unescape(ctx)
 	if err != nil {
 		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, err))
 
