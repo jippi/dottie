@@ -15,7 +15,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 require (
 	github.com/caarlos0/go-version v0.1.1
 	github.com/charmbracelet/huh v0.3.0
-	github.com/charmbracelet/lipgloss v0.9.1
+	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-cz/devslog v0.0.8
@@ -84,7 +84,7 @@ require (
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.0.13 // indirect
-	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rsteube/carapace-shlex v0.1.1 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
