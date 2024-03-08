@@ -27,7 +27,7 @@ require (
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.15
 	github.com/reugn/pkgslog v0.0.0-20231009090135-bbaf4951c7eb
-	github.com/rsteube/carapace v0.46.3-0.20231214181515-27e49f3c3b69
+	github.com/rsteube/carapace v0.50.2
 	github.com/samber/slog-multi v1.0.2
 	github.com/sebdah/goldie/v2 v2.5.3
 	github.com/spf13/cobra v1.8.0
@@ -85,7 +85,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.0.13 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rsteube/carapace-shlex v0.1.1 // indirect
+	github.com/rsteube/carapace-shlex v0.1.2 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
