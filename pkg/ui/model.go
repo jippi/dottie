@@ -106,7 +106,7 @@ func (m *model) propagate(msg tea.Msg, commands ...tea.Cmd) (tea.Model, tea.Cmd)
 		commands = append(commands, cmd)
 	}
 
-	return m, tea.Sequentially(commands...)
+	return m, tea.Sequence(commands...)
 }
 
 func (m model) View() string {
