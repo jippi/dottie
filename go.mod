@@ -1,6 +1,6 @@
 module github.com/jippi/dottie
 
-go 1.21.8
+go 1.22
 
 replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
 
