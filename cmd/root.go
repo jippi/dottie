@@ -15,6 +15,7 @@ import (
 	print_cmd "github.com/jippi/dottie/cmd/print"
 	"github.com/jippi/dottie/cmd/set"
 	"github.com/jippi/dottie/cmd/shell"
+	"github.com/jippi/dottie/cmd/ui"
 	"github.com/jippi/dottie/cmd/update"
 	"github.com/jippi/dottie/cmd/validate"
 	"github.com/jippi/dottie/cmd/value"
@@ -46,6 +47,7 @@ func NewRootCommand() *cobra.Command {
 	root.AddCommand(enable.NewCommand())
 	root.AddCommand(disable.NewCommand())
 	root.AddCommand(update.NewCommand())
+	root.AddCommand(ui.NewCommand())
 	root.AddCommand(shell.NewCommand())
 
 	root.AddCommand(print_cmd.NewCommand())
