@@ -147,7 +147,7 @@ brews:
   - repository:
       owner: jippi
       name: homebrew-tap
-    folder: Formula
+    directory: Formula
     goarm: "7"
     homepage: https://github.com/jippi/dottie
     description: Makes working with .env files easy
@@ -191,7 +191,7 @@ scoops:
   - repository:
       owner: jippi
       name: scoop-bucket
-    folder: bucket
+    directory: bucket
     homepage: https://github.com/jippi/dottie
     description: Make working with .env files easier
     license: MIT
