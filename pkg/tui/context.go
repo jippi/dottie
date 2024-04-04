@@ -43,7 +43,7 @@ func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 				).
 				Pipe(
 					slogdedup.NewOverwriteMiddleware(&slogdedup.OverwriteHandlerOptions{
-						ResolveBuiltinKeyConflict: slogdedup.KeepIfBuiltinKeyConflict,
+						ResolveKey: slogdedup.KeepIfBuiltinKeyConflict,
 					}),
 				).
 				Handler(
