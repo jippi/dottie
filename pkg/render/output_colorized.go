@@ -33,6 +33,10 @@ func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignmen
 		printer.Danger().Print("#")
 	}
 
+	if settings.export {
+		printer.Dark().Print("export ")
+	}
+
 	val := assignment.Literal
 
 	if settings.InterpolatedValues {

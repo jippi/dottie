@@ -29,6 +29,10 @@ func (PlainOutput) Assignment(ctx context.Context, assignment *ast.Assignment, s
 		buf.WriteString("#")
 	}
 
+	if settings.export {
+		buf.WriteString("export ")
+	}
+
 	val := assignment.Literal
 
 	if settings.InterpolatedValues {

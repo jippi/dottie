@@ -20,6 +20,7 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("pretty", false, "implies --color --comments --blank-lines --group-banners")
+	cmd.Flags().Bool("export", false, "prefix all key/value pairs with [export] statement")
 
 	cmd.Flags().String("key-prefix", "", "Filter by key prefix")
 	cmd.Flags().String("group", "", "Filter by group name")
@@ -97,6 +98,10 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 
 	if boolFlag("pretty") {
 		settings.Apply(render.WithFormattedOutput(true))
+	}
+
+	if boolFlag("export") {
+		settings.Apply(render.WithExport(true))
 	}
 
 	return doc, settings, allErrors
