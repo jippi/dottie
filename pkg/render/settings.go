@@ -19,6 +19,7 @@ type Settings struct {
 	showComments       bool
 	ShowGroupBanners   bool
 	formatOutput       bool
+	export             bool
 	InterpolatedValues bool
 	outputter          Output
 }

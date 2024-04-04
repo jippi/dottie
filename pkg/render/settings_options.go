@@ -59,6 +59,12 @@ func WithFormattedOutput(boolean bool) SettingsOption {
 	}
 }
 
+func WithExport(boolean bool) SettingsOption {
+	return func(s *Settings) {
+		s.export = boolean
+	}
+}
+
 func WithInterpolation(b bool) SettingsOption {
 	return func(s *Settings) {
 		s.InterpolatedValues = b
