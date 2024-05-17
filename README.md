@@ -141,7 +141,7 @@ Download the `.deb`, `.rpm` or `.apk` packages from the [releases page](https://
 ### go install
 
 ```shell
-go install github.com/jippi/dottie/cmd@latest
+go install github.com/jippi/dottie@latest
 ```
 
 ## Verifying the artifacts
