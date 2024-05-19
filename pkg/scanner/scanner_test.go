@@ -225,7 +225,7 @@ func TestScanner_NextToken_Valid_Identifier(t *testing.T) {
 			expectedLiteral:   `valid value \n"`,
 		},
 		{
-			name:              "multiline double quote with double single inside OK",
+			name:              "multiline double quote with single quote inside OK",
 			input:             `"valid value \n'"`,
 			expectedTokenType: token.Value,
 			expectedLiteral:   "valid value \n'",
