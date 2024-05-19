@@ -282,11 +282,13 @@ func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote tok
 	start := s.offset
 
 	escapes := 0
+	foundEndQuote := false
 
 	for {
 		escapingPrevious := escapes == 1
 
-		if isEOF(s.rune) || isNewLine(s.rune) {
+		// If we reach EOF before any closing rune; its a bad syntax
+		if isEOF(s.rune) {
 			tType = token.Illegal
 
 			break
@@ -295,6 +297,8 @@ func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote tok
 		// Break parsing if we hit our quote style,
 		// and the previous token IS NOT an escape sequence
 		if quote.Is(s.rune) && !escapingPrevious {
+			foundEndQuote = true
+
 			break
 		}
 
@@ -309,6 +313,11 @@ func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote tok
 		}
 
 		s.next()
+	}
+
+	// If we did not get an end quote while parsing, then its a syntax error
+	if !foundEndQuote {
+		tType = token.Illegal
 	}
 
 	offset := s.offset

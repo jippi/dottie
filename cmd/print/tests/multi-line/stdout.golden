@@ -1,0 +1,20 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/multi-line.run]:
+- [print --no-color --pretty]
+--------------------------------------------------------------------------------
+
+multi_double="first
+second"
+multi_single='first
+second'
+multi_double_literal_newline="first
+
+second"
+multi_single_literal_newline='first\n
+second'
+multi_double_literal_newline_with_tab="first
+
+    second"
+multi_single_literal_newline_with_tab='first\n
+\tsecond'
+
