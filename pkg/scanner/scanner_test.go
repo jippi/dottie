@@ -212,6 +212,24 @@ func TestScanner_NextToken_Valid_Identifier(t *testing.T) {
 			expectedTokenType: token.Identifier,
 			expectedLiteral:   "一个类型",
 		},
+		{
+			name:              "mixed quotes should fail",
+			input:             `'valid value \n"`,
+			expectedTokenType: token.Illegal,
+			expectedLiteral:   `valid value \n"`,
+		},
+		{
+			name:              "multiline single quote with double quote inside OK",
+			input:             `'valid value \n"'`,
+			expectedTokenType: token.RawValue,
+			expectedLiteral:   `valid value \n"`,
+		},
+		{
+			name:              "multiline double quote with single quote inside OK",
+			input:             `"valid value \n'"`,
+			expectedTokenType: token.Value,
+			expectedLiteral:   "valid value \n'",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -222,7 +240,7 @@ func TestScanner_NextToken_Valid_Identifier(t *testing.T) {
 			sc := scanner.New(tt.input)
 
 			actual := sc.NextToken(context.TODO())
-			assert.Equal(t, tt.expectedTokenType, actual.Type)
+			assert.Equal(t, tt.expectedTokenType.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
 	}
@@ -274,7 +292,7 @@ func TestScanner_NextToken_Naked_Value(t *testing.T) {
 			assert.Equal(t, token.Assign.String(), assign.Literal)
 
 			actual := sc.NextToken(context.TODO())
-			assert.Equal(t, tt.expectedTokenType, actual.Type)
+			assert.Equal(t, tt.expectedTokenType.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
 	}
@@ -299,10 +317,15 @@ func TestScanner_NextToken_Illegal(t *testing.T) {
 			expectedLiteral: "quotes must be closed",
 		},
 		{
+			name:            "not-paired mixed quotes",
+			input:           `"quotes should not be mixed'`,
+			expectedLiteral: "quotes should not be mixed'",
+		},
+		{
 			name: "not-paired double quotes with new line",
 			input: `"quotes must be closed
 `,
-			expectedLiteral: "quotes must be closed",
+			expectedLiteral: "quotes must be closed\n",
 		},
 		{
 			name:            "not-paired single quotes",
@@ -313,7 +336,7 @@ func TestScanner_NextToken_Illegal(t *testing.T) {
 			name: "not-paired single quotes with new line",
 			input: `'quotes must be closed
 `,
-			expectedLiteral: "quotes must be closed",
+			expectedLiteral: "quotes must be closed\n",
 		},
 	}
 	for _, tt := range tests {
@@ -325,7 +348,7 @@ func TestScanner_NextToken_Illegal(t *testing.T) {
 			sc := scanner.New(tt.input)
 
 			actual := sc.NextToken(context.TODO())
-			assert.Equal(t, token.Illegal, actual.Type)
+			assert.Equal(t, token.Illegal.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
 	}
@@ -340,14 +363,24 @@ func TestScanner_NextToken(t *testing.T) {
 		expected []token.Token
 	}{
 		{
-			name: "illegal value",
+			name: "illegal value quote double quotes",
 			input: `x="yxc
 `,
 			expected: []token.Token{
 				{Type: token.Identifier, Literal: "x"},
 				{Type: token.Assign, Literal: token.Assign.String()},
-				{Type: token.Illegal, Literal: "yxc"},
-				{Type: token.NewLine, Literal: "\n"},
+				{Type: token.Illegal, Literal: "yxc\n"},
+				{Type: token.EOF, Literal: token.EOF.String()},
+			},
+		},
+		{
+			name: "illegal value quote single quotes",
+			input: `x='yxc
+`,
+			expected: []token.Token{
+				{Type: token.Identifier, Literal: "x"},
+				{Type: token.Assign, Literal: token.Assign.String()},
+				{Type: token.Illegal, Literal: "yxc\n"},
 				{Type: token.EOF, Literal: token.EOF.String()},
 			},
 		},
