@@ -39,6 +39,9 @@ jobs:
           mkdir -p $HOME/.cache/snapcraft/download
           mkdir -p $HOME/.cache/snapcraft/stage-packages
 
+      # https://github.com/goreleaser/goreleaser/issues/4816#issuecomment-2093607649
+      - run: sudo snap refresh snapcraft --revision 11040
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
