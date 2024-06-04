@@ -125,23 +125,23 @@ func (doc *Document) InterpolateAll(ctx context.Context) error {
 	}()
 
 	for _, assignment := range doc.AllAssignments() {
-		doc.doInterpolation(ctx, assignment)
+		doc.doInterpolation(ctx, assignment, false)
 	}
 
 	return doc.interpolateErrors
 }
 
-func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment) error {
+func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignment, includeDisabled bool) error {
 	defer func() {
 		doc.interpolateErrors = nil
 	}()
 
-	doc.doInterpolation(ctx, target)
+	doc.doInterpolation(ctx, target, includeDisabled)
 
 	return doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
+func (doc *Document) doInterpolation(ctx context.Context, target *Assignment, includeDisabled bool) {
 	ctx = slogctx.With(ctx, slog.String("source", "ast.Document"))
 
 	slogctx.Debug(ctx, "Starting interpolation", slog.Any("assignment", target))
@@ -154,7 +154,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 
 	ctx = slogctx.With(ctx, slog.String("interpolation_key", target.Name))
 
-	if !target.Enabled {
+	if !target.Enabled && !includeDisabled {
 		return
 	}
 
@@ -171,7 +171,7 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment) {
 
 		ctx := slogctx.With(ctx, slog.String("dependent_key", target.Name))
 
-		doc.doInterpolation(ctx, doc.Get(dependency.Name))
+		doc.doInterpolation(ctx, doc.Get(dependency.Name), false) // when doing recursive interpolation, do not include disabled key/value pairs
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -424,7 +424,7 @@ NEXT:
 			continue
 		}
 
-		if err := document.InterpolateStatement(ctx, assignment); err != nil {
+		if err := document.InterpolateStatement(ctx, assignment, false); err != nil {
 			errors = multierr.Append(errors, err)
 		}
 

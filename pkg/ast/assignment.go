@@ -15,7 +15,7 @@ import (
 
 type Assignment struct {
 	Complete     bool                         `json:"complete"`     // The key/value had no value/content after the "=" sign
-	Enabled      bool                         `json:"enabled"`      // The assignment was enabled out (#KEY=VALUE)
+	Enabled      bool                         `json:"enabled"`      // The assignment was commented out (#KEY=VALUE)
 	Interpolated string                       `json:"interpolated"` // Value of the key (after interpolation)
 	Literal      string                       `json:"literal"`      // Value of the key (right hand side of the "=" sign)
 	Name         string                       `json:"key"`          // Name of the key (left hand side of the "=" sign)

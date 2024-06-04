@@ -142,7 +142,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 
 	// Interpolate the Assignment if it is enabled
 	if existing.Enabled {
-		if err = u.document.InterpolateStatement(ctx, existing); err != nil {
+		if err = u.document.InterpolateStatement(ctx, existing, false); err != nil {
 			return nil, err
 		}
 	}

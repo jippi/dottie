@@ -20,6 +20,7 @@ func NewCommand() *cobra.Command {
 	}
 
 	cmd.Flags().Bool("literal", false, "Show literal value instead of interpolated")
+	cmd.Flags().Bool("with-disabled", false, "Include disabled assignments")
 
 	return cmd
 }
@@ -39,8 +40,10 @@ func runE(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Key [ %s ] does not exists", key)
 	}
 
-	if !assignment.Enabled && !shared.BoolFlag(cmd.Flags(), "include-commented") {
-		return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--include-commented] to include it", key)
+	includeDisabled := shared.BoolFlag(cmd.Flags(), "with-disabled")
+
+	if !assignment.Enabled && !includeDisabled {
+		return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--with-disabled] to include it", key)
 	}
 
 	if ok, _ := cmd.Flags().GetBool("literal"); ok {
@@ -54,7 +57,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	if err := document.InterpolateStatement(cmd.Context(), assignment); err != nil {
+	if err := document.InterpolateStatement(cmd.Context(), assignment, includeDisabled); err != nil {
 		return err
 	}
 

@@ -21,13 +21,13 @@ func NewCommand() *cobra.Command {
 
 	cmd.Flags().Bool("pretty", false, "implies --color --comments --blank-lines --group-banners")
 	cmd.Flags().Bool("export", false, "prefix all key/value pairs with [export] statement")
+	cmd.Flags().Bool("with-disabled", false, "Include disabled assignments")
 
 	cmd.Flags().String("key-prefix", "", "Filter by key prefix")
 	cmd.Flags().String("group", "", "Filter by group name")
 
 	shared.BoolWithInverse(cmd, "blank-lines", true, "Show blank lines", "Do not show blank lines")
 	shared.BoolWithInverse(cmd, "color", true, "Enable color output", "Disable color output")
-	shared.BoolWithInverse(cmd, "commented", false, "Show disabled assignments", "Do not show disabled assignments")
 	shared.BoolWithInverse(cmd, "comments", false, "Show comments", "Do not show comments")
 	shared.BoolWithInverse(cmd, "group-banners", false, "Show group banners", "Do not show group banners")
 	shared.BoolWithInverse(cmd, "interpolation", true, "Enable interpolation", "Disable interpolation")
@@ -69,15 +69,15 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 	}
 
 	settings := render.NewSettings(
-		render.WithOutputType(render.Plain),
+		render.WithBlankLines(shared.BoolWithInverseValue(flags, "blank-lines")),
 		render.WithColors(shared.BoolWithInverseValue(flags, "color")),
 		render.WithComments(shared.BoolWithInverseValue(flags, "comments")),
-		render.WithBlankLines(shared.BoolWithInverseValue(flags, "blank-lines")),
-		render.WithGroupBanners(shared.BoolWithInverseValue(flags, "group-banners")),
-		render.WithIncludeDisabled(shared.BoolWithInverseValue(flags, "commented")),
-		render.WithInterpolation(shared.BoolWithInverseValue(flags, "interpolation")),
 		render.WithFilterGroup(stringFlag("group")),
 		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
+		render.WithGroupBanners(shared.BoolWithInverseValue(flags, "group-banners")),
+		render.WithIncludeDisabled(boolFlag("with-disabled")),
+		render.WithInterpolation(shared.BoolWithInverseValue(flags, "interpolation")),
+		render.WithOutputType(render.Plain),
 	)
 
 	var allErrors error
@@ -90,7 +90,7 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 				continue
 			}
 
-			err = doc.InterpolateStatement(cmd.Context(), assignment)
+			err = doc.InterpolateStatement(cmd.Context(), assignment, false)
 
 			allErrors = multierr.Append(allErrors, err)
 		}

@@ -82,7 +82,7 @@ dottie print --pretty
 
 # Print the file again, but include commented disabled keys
 # NOTE: the DB_PORT key/value is printed (but still disabled)
-dottie print --pretty --include-commented
+dottie print --pretty --with-disabled
 
 # Enable the DB_PORT key again
 dottie enable DB_PORT
