@@ -86,11 +86,7 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 		var err error
 
 		for _, assignment := range doc.AllAssignments() {
-			if !assignment.Enabled {
-				continue
-			}
-
-			err = doc.InterpolateStatement(cmd.Context(), assignment, false)
+			err = doc.InterpolateStatement(cmd.Context(), assignment, boolFlag("with-disabled"))
 
 			allErrors = multierr.Append(allErrors, err)
 		}
