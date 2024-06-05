@@ -399,8 +399,8 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929 h1:CUAidR7Uz3/jR5rK7ieXP+mWt1FU8gAlnLGmxtxVjhs=
 github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929/go.mod h1:U2i+gzsZ5mT9LZHLzoeuOJ7BtcyXy7l+psRZSu4zmQU=
-github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa h1:QNE3sE2JjV4/eQL2DeCGIJJaR7a6TXLWb/o1q4b+LX4=
-github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa/go.mod h1:9iXMNT7sEkjXb0I+enO7QXmzG6QCsPWY4zveKFVRSyU=
+github.com/jippi/go-validator/v10 v10.0.0-20240114044943-55313dbe0086 h1:aePkHZhw2yncMIFXu7r0/KJGm3AI+JuCjmEciLLl8Bw=
+github.com/jippi/go-validator/v10 v10.0.0-20240114044943-55313dbe0086/go.mod h1:9iXMNT7sEkjXb0I+enO7QXmzG6QCsPWY4zveKFVRSyU=
 github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3 h1:WvgVlCGHWSh2O7JavSFcd5FMCWrQTK2nIZpC/a90fCY=
 github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3/go.mod h1:Gb0SqIq+BCzAeTeWdHxiVz4S206U30WBd6gSsnjfMxo=
 github.com/jmespath/go-jmespath v0.4.0 h1:BEgLn5cpjn8UN1mAw4NjwDrS35OdebyEtFe+9YPoQUg=
