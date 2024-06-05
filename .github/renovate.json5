@@ -26,6 +26,11 @@
       matchDepTypes: ["golang-version"],
       prPriority: 999,
     },
+    {
+      description: "Group charmbracelet packages",
+      groupName: "charmbracelet",
+      matchPackagePrefixes: ["github.com/charmbracelet/"],
+    },
   ],
   customManagers: [
     {
