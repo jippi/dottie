@@ -146,7 +146,7 @@ func (p Printer) Box(header string, bodies ...string) {
 	body := strings.Join(bodies, " ")
 
 	// Copy the box styles to avoid leaking changes to the styles
-	headerStyle, bodyStyle := p.boxHeaderStyle.Copy(), p.boxBodyStyle.Copy()
+	headerStyle, bodyStyle := p.boxHeaderStyle, p.boxBodyStyle
 
 	// If there are no body, just render the header box directly
 	if len(body) == 0 {
@@ -232,7 +232,7 @@ func (p Printer) Copy(options ...PrinterOption) Printer {
 
 // TextStyle returns a *copy* of the current [lipgloss.Style]
 func (p Printer) Style() lipgloss.Style {
-	return p.textStyle.Copy()
+	return p.textStyle
 }
 
 // ApplyTextStyle returns a new copy of [StylePrint] instance with the [Style] based on the callback changes
