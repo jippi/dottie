@@ -21,6 +21,12 @@
     enabled: true,
     labels: ["security"],
   },
+  packageRules: [
+    {
+      matchDepTypes: ["golang-version"],
+      prPriority: 999,
+    },
+  ],
   customManagers: [
     {
       customType: "regex",
