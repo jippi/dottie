@@ -1,0 +1,50 @@
+{
+  extends: [
+    "config:recommended",
+    ":pinDevDependencies",
+    ":separateMultipleMajorReleases",
+    "default:pinDigestsDisabled",
+  ],
+  schedule: [
+    "* */8 * * *", // every 8 hours (4 times a day)
+  ],
+  commitMessageSuffix: " in {{packageFile}}",
+  dependencyDashboardAutoclose: true,
+  automerge: true,
+  baseBranches: ["main"],
+  platformAutomerge: true,
+  labels: ["dependencies"],
+  prHourlyLimit: 10,
+  osvVulnerabilityAlerts: true,
+  vulnerabilityAlerts: {
+    enabled: true,
+    labels: ["security"],
+  },
+  customManagers: [
+    {
+      customType: "regex",
+      fileMatch: ["(^|/)Dockerfile$", "(^|/)Dockerfile\\.[^/]*$"],
+      matchStrings: [
+        // example:
+        //
+        // # renovate: datasource=github-releases depName=hashicorp/terraform versioning=hashicorp
+        // ENV DEFAULT_TERRAFORM_VERSION=x.x.x
+        //
+        // # renovate: datasource=github-releases depName=open-policy-agent/conftest
+        // ARG DEFAULT_CONFTEST_VERSION=x.x.x
+        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s(ARG|ENV) .*?_VERSION=(?<currentValue>.*)\\s",
+      ],
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+      extractVersionTemplate: "^v(?<version>\\d+\\.\\d+\\.\\d+)",
+    },
+    {
+      customType: "regex",
+      fileMatch: ["^\\.github/workflows/[^/]+\\.ya?ml$"],
+      matchStrings: [
+        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION: (?<currentValue>.*)\\s",
+      ],
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
+      extractVersionTemplate: "^v(?<version>\\d+\\.\\d+\\.\\d+)",
+    },
+  ],
+}
