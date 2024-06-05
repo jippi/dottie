@@ -6,7 +6,7 @@ replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/
 
 replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
-replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929
+replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-20231218121117-c93dbdcad5d8
 
 // replace github.com/reeflective/console => ./3rd-party/go-console
 
