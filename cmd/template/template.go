@@ -1,6 +1,7 @@
 package template
 
 import (
+	"os"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
@@ -15,7 +16,7 @@ func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "template",
 		Short:   "Render a template",
-		Args:    cobra.MinimumNArgs(1),
+		Args:    cobra.ExactArgs(1),
 		GroupID: "output",
 		RunE:    runE,
 	}
@@ -31,7 +32,18 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	return template.Must(template.New(cmd.Flags().Arg(0)).Funcs(sprig.FuncMap()).ParseFiles(cmd.Flags().Args()...)).Execute(cmd.OutOrStdout(), document)
+	out, err := os.ReadFile(args[0])
+	if err != nil {
+		return err
+	}
+
+	tmpl := template.Must(
+		template.New("dottie").
+			Funcs(sprig.FuncMap()).
+			Parse(string(out)),
+	)
+
+	return tmpl.Execute(cmd.OutOrStdout(), document)
 }
 
 func setup(cmd *cobra.Command) (*ast.Document, error) {
