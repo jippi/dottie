@@ -22,6 +22,7 @@ func New() *cobra.Command {
 	}
 
 	shared.BoolWithInverse(cmd, "interpolation", true, "Enable interpolation", "Disable interpolation")
+	cmd.Flags().Bool("with-disabled", false, "Include disabled assignments")
 
 	return cmd
 }
