@@ -6,18 +6,19 @@ import (
 	"strings"
 
 	goversion "github.com/caarlos0/go-version"
-	"github.com/jippi/dottie/cmd/disable"
-	"github.com/jippi/dottie/cmd/enable"
-	"github.com/jippi/dottie/cmd/exec"
-	"github.com/jippi/dottie/cmd/fmt"
-	"github.com/jippi/dottie/cmd/groups"
-	"github.com/jippi/dottie/cmd/json"
+	disable_cmd "github.com/jippi/dottie/cmd/disable"
+	enable_cmd "github.com/jippi/dottie/cmd/enable"
+	exec_cmd "github.com/jippi/dottie/cmd/exec"
+	fmt_cmd "github.com/jippi/dottie/cmd/fmt"
+	groups_cmd "github.com/jippi/dottie/cmd/groups"
+	json_cmd "github.com/jippi/dottie/cmd/json"
 	print_cmd "github.com/jippi/dottie/cmd/print"
-	"github.com/jippi/dottie/cmd/set"
-	"github.com/jippi/dottie/cmd/shell"
-	"github.com/jippi/dottie/cmd/update"
-	"github.com/jippi/dottie/cmd/validate"
-	"github.com/jippi/dottie/cmd/value"
+	set_cmd "github.com/jippi/dottie/cmd/set"
+	shell_cmd "github.com/jippi/dottie/cmd/shell"
+	template_cmd "github.com/jippi/dottie/cmd/template"
+	update_cmd "github.com/jippi/dottie/cmd/update"
+	validate_cmd "github.com/jippi/dottie/cmd/validate"
+	value_cmd "github.com/jippi/dottie/cmd/value"
 	"github.com/jippi/dottie/pkg/tui"
 	"github.com/spf13/cobra"
 )
@@ -40,19 +41,20 @@ func NewRootCommand() *cobra.Command {
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
-	root.AddCommand(set.NewCommand())
-	root.AddCommand(exec.NewCommand())
-	root.AddCommand(fmt.NewCommand())
-	root.AddCommand(enable.NewCommand())
-	root.AddCommand(disable.NewCommand())
-	root.AddCommand(update.NewCommand())
-	root.AddCommand(shell.NewCommand())
+	root.AddCommand(disable_cmd.New())
+	root.AddCommand(enable_cmd.New())
+	root.AddCommand(exec_cmd.New())
+	root.AddCommand(fmt_cmd.New())
+	root.AddCommand(set_cmd.New())
+	root.AddCommand(shell_cmd.New())
+	root.AddCommand(template_cmd.New())
+	root.AddCommand(update_cmd.New())
 
-	root.AddCommand(print_cmd.NewCommand())
-	root.AddCommand(value.NewCommand())
-	root.AddCommand(validate.NewCommand())
-	root.AddCommand(groups.NewCommand())
-	root.AddCommand(json.NewCommand())
+	root.AddCommand(print_cmd.New())
+	root.AddCommand(value_cmd.New())
+	root.AddCommand(validate_cmd.New())
+	root.AddCommand(groups_cmd.New())
+	root.AddCommand(json_cmd.New())
 
 	return root
 }

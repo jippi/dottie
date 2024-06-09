@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func NewCommand() *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "shell",
 		Short:   "Dottie shell",

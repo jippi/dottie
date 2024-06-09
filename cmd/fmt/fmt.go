@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewCommand() *cobra.Command {
+func New() *cobra.Command {
 	return &cobra.Command{
 		Use:     "fmt",
 		Short:   "Format a .env file",

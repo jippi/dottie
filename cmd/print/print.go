@@ -10,7 +10,7 @@ import (
 	"go.uber.org/multierr"
 )
 
-func NewCommand() *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "print",
 		Short:   "Print environment variables",

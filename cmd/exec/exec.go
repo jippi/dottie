@@ -17,7 +17,7 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 )
 
-func NewCommand() *cobra.Command {
+func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "exec",
 		Short:   "Update the .env file from a source",

@@ -68,7 +68,7 @@ func (a *Assignment) DocumentationSummary() string {
 		return ""
 	}
 
-	return strings.TrimPrefix(a.Comments[0].String(), "#")
+	return strings.TrimPrefix(a.Comments[0].String(), "# ")
 }
 
 func (a *Assignment) Documentation(withoutPrefix bool) string {
@@ -84,6 +84,7 @@ func (a *Assignment) Documentation(withoutPrefix bool) string {
 
 		if withoutPrefix {
 			val = strings.TrimPrefix(val, "#")
+			val = strings.TrimPrefix(val, " ")
 		}
 
 		buff.WriteString(val)

@@ -40,7 +40,7 @@ func BoolWithInverseValue(flags *pflag.FlagSet, name string) bool {
 
 		return !val
 
-		// Otherwise, use the default (positive) flag
+	// Otherwise, use the default (positive) flag
 	default:
 		val, _ := flags.GetBool(name)
 
