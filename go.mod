@@ -1,5 +1,6 @@
 module github.com/jippi/dottie
 
+// datasource=golang-version depName=golang/go
 go 1.22.4
 
 replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa
