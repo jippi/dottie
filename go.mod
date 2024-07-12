@@ -25,7 +25,7 @@ require (
 	github.com/lmittmann/tint v1.0.4
 	github.com/muesli/termenv v0.15.2
 	github.com/neilotoole/slogt v1.1.0
-	github.com/reeflective/console v0.1.15
+	github.com/reeflective/console v0.1.16
 	github.com/reugn/pkgslog v0.2.0
 	github.com/rsteube/carapace v0.50.2
 	github.com/samber/slog-multi v1.1.0
