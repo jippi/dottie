@@ -29,7 +29,7 @@ require (
 	github.com/reugn/pkgslog v0.2.0
 	github.com/rsteube/carapace v0.50.2
 	github.com/samber/slog-multi v1.2.0
-	github.com/sebdah/goldie/v2 v2.5.3
+	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
