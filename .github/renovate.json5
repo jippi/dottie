@@ -6,7 +6,7 @@
     "default:pinDigestsDisabled",
   ],
   schedule: [
-    "* */8 * * *", // every 8 hours (4 times a day)
+    "* */2 * * *", // every 2 hours
   ],
   postUpdateOptions: ["gomodTidy", "gomodUpdateImportPaths"],
   commitMessageSuffix: " in {{packageFile}}",
@@ -15,7 +15,7 @@
   baseBranches: ["main"],
   platformAutomerge: true,
   labels: ["dependencies"],
-  prHourlyLimit: 10,
+  prHourlyLimit: 1,
   osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     enabled: true,
