@@ -6,7 +6,7 @@
     "default:pinDigestsDisabled",
   ],
   schedule: [
-    "* */2 * * *", // every 2 hours
+    "* */1 * * *", // every 1 hour
   ],
   postUpdateOptions: ["gomodTidy", "gomodUpdateImportPaths"],
   commitMessageSuffix: " in {{packageFile}}",
