@@ -23,6 +23,11 @@
   },
   packageRules: [
     {
+      matchPackageNames: ["go", "golang"],
+      versioning: "go",
+      groupName: "go",
+    },
+    {
       matchDepTypes: ["golang-version"],
       prPriority: 999,
     },
@@ -53,7 +58,7 @@
       customType: "regex",
       fileMatch: ["^\\.github/workflows/[^/]+\\.ya?ml$"],
       matchStrings: [
-        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?_VERSION: (?<currentValue>.*)\\s",
+        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?: (?<currentValue>.*)\\s",
       ],
       versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
       extractVersionTemplate: "^v(?<version>\\d+\\.\\d+\\.\\d+)",
