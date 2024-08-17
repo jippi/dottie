@@ -91,7 +91,7 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 
 			switch rule.ActualTag() {
 			case "dir":
-				light.Println("(dir) The directory [" + bold.Sprintf(assignment.Interpolated) + "] does not exist.")
+				light.Println("(dir) The directory [" + bold.Sprint(assignment.Interpolated) + "] does not exist.")
 
 				if askToFix {
 					fmt.Fprintln(tui.StderrFromContext(ctx).NoColor(), buff.String())
