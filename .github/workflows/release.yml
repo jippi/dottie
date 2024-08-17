@@ -25,7 +25,7 @@ jobs:
       - uses: arduino/setup-task@v2
         with:
           # renovate: datasource=github-releases depName=go-task/task
-          version: 3.37.2
+          version: 3.38.0
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/setup-qemu-action@v3
