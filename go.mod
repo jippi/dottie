@@ -14,6 +14,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/caarlos0/go-version v0.1.1
+	github.com/carapace-sh/carapace v1.1.5
 	github.com/charmbracelet/huh v0.5.2
 	github.com/charmbracelet/lipgloss v0.12.1
 	github.com/davecgh/go-spew v1.1.1
@@ -27,7 +28,6 @@ require (
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.18
 	github.com/reugn/pkgslog v0.2.0
-	github.com/rsteube/carapace v0.50.2
 	github.com/samber/slog-multi v1.2.0
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cobra v1.8.1
@@ -52,6 +52,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.122 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
+	github.com/carapace-sh/carapace-shlex v1.0.1 // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.18.0 // indirect
 	github.com/charmbracelet/bubbletea v0.26.6 // indirect
@@ -97,7 +98,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.0.13 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rsteube/carapace-shlex v0.1.2 // indirect
+	github.com/rsteube/carapace v0.46.3-0.20231214181515-27e49f3c3b69 // indirect
+	github.com/rsteube/carapace-shlex v0.1.1 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
