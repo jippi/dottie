@@ -45,8 +45,6 @@ func TestUnescape(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -101,8 +99,6 @@ func TestUnquote(t *testing.T) {
 	t.Parallel()
 
 	for idx, tt := range unescapeTests {
-		tt := tt
-
 		t.Run(fmt.Sprintf("unquote-tests-%d", idx), func(t *testing.T) {
 			t.Parallel()
 
@@ -111,8 +107,6 @@ func TestUnquote(t *testing.T) {
 	}
 
 	for idx, tt := range quotetests {
-		tt := tt
-
 		t.Run(fmt.Sprintf("quote-tests-%d", idx), func(t *testing.T) {
 			t.Parallel()
 

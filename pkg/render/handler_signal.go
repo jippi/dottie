@@ -1,6 +1,6 @@
 package render
 
-type HandlerSignal uint
+type HandlerSignal int
 
 const (
 	Continue HandlerSignal = iota

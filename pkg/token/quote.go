@@ -7,7 +7,7 @@ import (
 
 var ErrInvalidQuoteStyle = errors.New("Invalid quote style")
 
-type Quote uint
+type Quote int
 
 const (
 	InvalidQuote Quote = iota

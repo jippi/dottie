@@ -115,8 +115,6 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 	const sep = "-"
 
 	for _, tt := range tests {
-		tt := tt
-
 		header := strings.Repeat(sep, 80) + "\n"
 		footer := "\n" + strings.Repeat(sep, 80) + "\n\n"
 

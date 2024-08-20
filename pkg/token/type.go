@@ -3,7 +3,7 @@ package token
 import "strconv"
 
 // Type is the set of lexical tokens.
-type Type uint
+type Type int
 
 // The list of tokens.
 const (

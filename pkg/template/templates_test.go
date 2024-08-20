@@ -89,8 +89,6 @@ func TestInvalid(t *testing.T) {
 	}
 
 	for i, tt := range invalidTemplates {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -282,8 +280,6 @@ func TestInterpolationExternalInterference(t *testing.T) {
 	}
 
 	for i, tt := range testCases {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -336,8 +332,6 @@ func TestDefaultsWithNestedExpansion(t *testing.T) {
 	}
 
 	for i, tt := range testCases {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -378,8 +372,6 @@ func TestMandatoryVariableErrors(t *testing.T) {
 	}
 
 	for i, tt := range testCases {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -410,8 +402,6 @@ func TestMandatoryVariableErrorsWithNestedExpansion(t *testing.T) {
 	}
 
 	for i, tt := range testCases {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -490,8 +480,6 @@ func TestPrecedence(t *testing.T) {
 	}
 
 	for i, tt := range testCases {
-		tt := tt
-
 		t.Run(fmt.Sprintf("case-%d", i), func(t *testing.T) {
 			t.Parallel()
 
@@ -629,8 +617,6 @@ func TestExtractVariables(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		tt := tt
-
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

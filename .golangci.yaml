@@ -48,7 +48,7 @@ linters:
     - exhaustive
 
     # checks for pointers to enclosing loop variables
-    - exportloopref
+    - copyloopvar
 
     # finds forced type assertions
     - forcetypeassert
