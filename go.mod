@@ -16,7 +16,7 @@ require (
 	github.com/caarlos0/go-version v0.1.1
 	github.com/carapace-sh/carapace v1.1.6
 	github.com/charmbracelet/huh v0.5.2
-	github.com/charmbracelet/lipgloss v0.12.1
+	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/golang-cz/devslog v0.0.9
