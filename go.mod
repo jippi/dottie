@@ -28,7 +28,7 @@ require (
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.18
 	github.com/reugn/pkgslog v0.2.0
-	github.com/samber/slog-multi v1.2.0
+	github.com/samber/slog-multi v1.2.1
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
