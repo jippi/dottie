@@ -24,7 +24,7 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/hashicorp/go-getter v1.7.6
 	github.com/lmittmann/tint v1.0.5
-	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a
+	github.com/muesli/termenv v0.15.3-0.20240912151726-82936c5ea257
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.18
 	github.com/reugn/pkgslog v0.2.0
