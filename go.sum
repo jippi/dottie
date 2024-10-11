@@ -209,8 +209,8 @@ github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d h1:xDfNPAt8lFiC1U
 github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d/go.mod h1:6QX/PXZ00z/TKoufEY6K/a0k6AhaJrQKdFe6OfVXsa4=
 github.com/caarlos0/go-version v0.1.1 h1:1bikKHkGGVIIxqCmufhSSs3hpBScgHGacrvsi8FuIfc=
 github.com/caarlos0/go-version v0.1.1/go.mod h1:Ze5Qx4TsBBi5FyrSKVg1Ibc44KGV/llAaKGp86oTwZ0=
-github.com/carapace-sh/carapace v1.3.0 h1:mvi6hPcU+Umd+9Z0IRA8oehKStsTWOS0SSQMhzUKfvw=
-github.com/carapace-sh/carapace v1.3.0/go.mod h1:djegtVDi/3duSAqZNU+/nCq7XtDRMRZUb5bW0O/HnEs=
+github.com/carapace-sh/carapace v1.3.1 h1:F9rQIYRjpukCpFdKZSPNC+Byb8n6wPhfy0WD9RcYSNU=
+github.com/carapace-sh/carapace v1.3.1/go.mod h1:djegtVDi/3duSAqZNU+/nCq7XtDRMRZUb5bW0O/HnEs=
 github.com/carapace-sh/carapace-shlex v1.0.1 h1:ww0JCgWpOVuqWG7k3724pJ18Lq8gh5pHQs9j3ojUs1c=
 github.com/carapace-sh/carapace-shlex v1.0.1/go.mod h1:lJ4ZsdxytE0wHJ8Ta9S7Qq0XpjgjU0mdfCqiI2FHx7M=
 github.com/catppuccin/go v0.2.0 h1:ktBeIrIP42b/8FGiScP9sgrWOss3lw0Z5SktRoithGA=
