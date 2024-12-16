@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: anchore/scan-action@v5
+      - uses: anchore/scan-action@v6
         with:
           path: "."
           fail-build: true
