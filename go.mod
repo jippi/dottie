@@ -21,7 +21,7 @@ require (
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-cz/devslog v0.0.11
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/gosimple/slug v1.14.0
+	github.com/gosimple/slug v1.15.0
 	github.com/hashicorp/go-getter v1.7.6
 	github.com/lmittmann/tint v1.0.6
 	github.com/muesli/termenv v0.15.3-0.20241212154518-8c990cd6cf4b
