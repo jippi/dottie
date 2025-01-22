@@ -14,7 +14,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.0
-	github.com/carapace-sh/carapace v1.5.3
+	github.com/carapace-sh/carapace v1.6.1
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/davecgh/go-spew v1.1.1
@@ -22,7 +22,7 @@ require (
 	github.com/golang-cz/devslog v0.0.11
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.15.0
-	github.com/hashicorp/go-getter v1.7.7
+	github.com/hashicorp/go-getter v1.7.8
 	github.com/lmittmann/tint v1.0.6
 	github.com/muesli/termenv v0.15.3-0.20241212154518-8c990cd6cf4b
 	github.com/neilotoole/slogt v1.1.0
