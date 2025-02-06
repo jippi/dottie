@@ -21,15 +21,6 @@
   },
   packageRules: [
     {
-      matchPackageNames: ["go", "golang"],
-      versioning: "go",
-      groupName: "go",
-    },
-    {
-      matchDepTypes: ["golang-version"],
-      prPriority: 999,
-    },
-    {
       description: "Group charmbracelet packages",
       groupName: "charmbracelet",
       matchPackageNames: ["github.com/charmbracelet/{/,}**"],
