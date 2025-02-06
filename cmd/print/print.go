@@ -14,7 +14,7 @@ func New() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "print",
 		Short:   "Print environment variables",
-		Args:    cobra.ExactArgs(0),
+		Args:    cobra.ArbitraryArgs,
 		GroupID: "output",
 		RunE:    runE,
 	}
@@ -86,9 +86,9 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 		var err error
 
 		for _, assignment := range doc.AllAssignments() {
-			err = doc.InterpolateStatement(cmd.Context(), assignment, boolFlag("with-disabled"))
-
-			allErrors = multierr.Append(allErrors, err)
+			if err = doc.InterpolateStatement(cmd.Context(), assignment, boolFlag("with-disabled")); err != nil {
+				allErrors = multierr.Append(allErrors, err)
+			}
 		}
 	}
 
@@ -98,6 +98,10 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 
 	if boolFlag("export") {
 		settings.Apply(render.WithExport(true))
+	}
+
+	if cmd.Flags().NArg() > 0 {
+		settings.Apply(render.WithFilterKeys(cmd.Flags().Args()...))
 	}
 
 	return doc, settings, allErrors

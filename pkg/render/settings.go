@@ -11,6 +11,7 @@ const (
 )
 
 type Settings struct {
+	retainKeys         []string
 	retainKeyPrefix    string
 	retainGroup        string
 	includeDisabled    bool
@@ -59,6 +60,10 @@ func (rs Settings) Handlers() []ast.Selector {
 
 	if len(rs.retainKeyPrefix) > 0 {
 		res = append(res, ast.RetainKeyPrefix(rs.retainKeyPrefix))
+	}
+
+	if len(rs.retainKeys) > 0 {
+		res = append(res, ast.RetainExactKey(rs.retainKeys...))
 	}
 
 	return res

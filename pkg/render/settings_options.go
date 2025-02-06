@@ -2,6 +2,12 @@ package render
 
 type SettingsOption func(*Settings)
 
+func WithFilterKeys(keys ...string) SettingsOption {
+	return func(s *Settings) {
+		s.retainKeys = keys
+	}
+}
+
 func WithFilterKeyPrefix(prefix string) SettingsOption {
 	return func(s *Settings) {
 		s.retainKeyPrefix = prefix

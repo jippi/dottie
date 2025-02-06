@@ -1,0 +1,8 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/specific-keys.run]:
+- [print --no-color KEY_A GROUP_TWO_A]
+--------------------------------------------------------------------------------
+
+KEY_A="I'm key A"
+GROUP_TWO_A="hello"
+
