@@ -27,9 +27,10 @@ func New() *cobra.Command {
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
-
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
 	cmd.Flags().StringSlice("exclude-key-prefix", []string{}, "Ignore these KEY prefixes")
+
+	cmd.Flags().Bool("ignore-disabled", true, "Ignore disabled KEY/VALUE pairs from the [.env] file")
 
 	shared.BoolWithInverse(cmd, "backup", true, "Should the .env file be backed up before updating it?", "Skip backup of the env file before updating")
 	cmd.Flags().String("backup-file", "", "File path to write the backup to (by default it will write a '.env.dottie-backup' file in the same directory)")
@@ -52,10 +53,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	success := stdout.Success()
 	primary := stdout.Primary()
 
-	info.Box("Starting update of " + filename + " from upstream")
+	info.Box("Starting update of env file from source")
 	info.Println()
 
-	noColor.Println("Looking for upstream source")
+	noColor.Println("Looking for source configuration")
 
 	oldDocument, err := pkg.Load(cmd.Context(), filename)
 	if err != nil {
@@ -118,7 +119,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println()
 
 	// Take current assignments and set them in the new doc
-	noColor.Println("Updating upstream with key/value pairs from", primary.Sprint(filename))
+	noColor.Println("Updating source with key/value pairs from", primary.Sprint(filename))
 	noColor.Println()
 
 	sawError := false
@@ -127,7 +128,9 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	var selectors []ast.Selector
 
-	selectors = append(selectors, ast.ExcludeDisabledAssignments)
+	if shared.BoolFlag(cmd.Flags(), "ignore-disabled") {
+		selectors = append(selectors, ast.ExcludeDisabledAssignments)
+	}
 
 	if slice := shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix"); len(slice) > 0 {
 		for _, prefix := range slice {
@@ -136,10 +139,6 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	for _, oldStatement := range oldDocument.AllAssignments(selectors...) {
-		if !oldStatement.Enabled {
-			continue
-		}
-
 		upserter, err := upsert.New(
 			newDocument,
 			upsert.EnableSetting(upsert.SkipIfSame),
@@ -229,7 +228,7 @@ func runE(cmd *cobra.Command, args []string) error {
 				counter++
 			}
 
-			color.Print("  ", oldStatement.Name)
+			color.Print("  [", oldStatement.Name, "]")
 			stderr.NoColor().Print(" was skipped: ")
 			color.Println(skippedStatementWarning.Reason)
 
@@ -253,9 +252,10 @@ func runE(cmd *cobra.Command, args []string) error {
 
 			lastWasError = false
 
-			success.Print("  ", oldStatement.Name)
+			success.Print("  [", oldStatement.Name, "]")
 			noColor.Print(" was successfully set to ")
-			primary.Println(oldStatement.Literal)
+			primary.Print("[", oldStatement.Literal, "]")
+			primary.Println()
 		}
 	}
 
