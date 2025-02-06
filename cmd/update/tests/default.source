@@ -1,0 +1,33 @@
+# NOTE: THIS IS THE .env SOURCE FILE
+#       COMMENTS FROM THIS FILE (INCLUDING THIS ONE)
+#       WILL END UP IN THE [default/env.golden] FILE
+#
+# @dottie/source tests/default.source
+
+# This is a simple KEY/VALUE pair
+KEY="source"
+
+# This key is DISABLED out in the USER .env file
+#
+# Outcome: should be DISABLED in the golden file
+#DISABLED_IN_USER_FILE="source"
+
+# This key is enabled in the USER .env file
+#
+# Outcome: should be enabled in the golden file
+#ENABLED_IN_USER_FILE="source"
+
+# This key is disabled in the USER .env file
+#
+# Outcome: should be enabled in the golden file
+ENABLED_IN_SOURCE_DISABLED_IN_USER_FILE="source"
+
+# This is enabled in the USER .env file with same value
+#
+# Outcome: should be enabled in the golden file
+#DISABLED_IN_SOURCE_ENABLED_IN_USER_FILE_SAME_VALUE="value"
+
+# This is disabled in both USER and SOURCE file
+#
+# Outcome: should be disabled in the golden file
+#DISABLED_IN_SOURCE_AND_USER_FILE="source"

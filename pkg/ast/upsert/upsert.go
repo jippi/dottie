@@ -80,7 +80,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 		return nil, SkippedStatementError{Key: input.Name, Reason: "the key is already set to a non-empty value (SkipIfSet)"}
 
 	// The assignment exists, the literal values are the same
-	case exists && u.settings.Has(SkipIfSame) && existing.Literal == input.Literal:
+	case exists && u.settings.Has(SkipIfSame) && existing.Literal == input.Literal && existing.Enabled == input.Enabled:
 		return nil, SkippedStatementError{Key: input.Name, Reason: "the key has same value in both documents (SkipIfSame)"}
 
 	// The KEY was *NOT* found, and all other preconditions are not triggering

@@ -1,9 +1,6 @@
 --------------------------------------------------------------------------------
-- Output of command from line 1 in [tests/no-groups.run]:
-- [groups]
+- Output of command from line 1 in [tests/default.run]:
+- [update --no-backup]
 --------------------------------------------------------------------------------
 
-Error: No groups found
-Run 'dottie groups --help' for usage.
-
-(Command exited with error)
+(no output to stderr)

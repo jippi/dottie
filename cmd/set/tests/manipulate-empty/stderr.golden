@@ -58,6 +58,7 @@
 Error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
 Run 'dottie set --help' for usage.
 
+(Command exited with error)
 --------------------------------------------------------------------------------
 - Output of command from line 9 in [tests/manipulate-empty.run]:
 - [set A_NUMBER=2]

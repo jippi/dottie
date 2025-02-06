@@ -72,6 +72,7 @@ FILE_KEY_ERR_3 (tests/validation-rules.env:162)
 Error: Validation failed
 Run 'dottie validate --help' for usage.
 
+(Command exited with error)
 --------------------------------------------------------------------------------
 - Output of command from line 2 in [tests/validation-rules.run]:
 - [validate --no-fix --exclude-prefix BOOLEAN_]
@@ -134,6 +135,7 @@ FILE_KEY_ERR_3 (tests/validation-rules.env:162)
 Error: Validation failed
 Run 'dottie validate --help' for usage.
 
+(Command exited with error)
 --------------------------------------------------------------------------------
 - Output of command from line 3 in [tests/validation-rules.run]:
 - [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
@@ -178,6 +180,7 @@ HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
 Error: Validation failed
 Run 'dottie validate --help' for usage.
 
+(Command exited with error)
 --------------------------------------------------------------------------------
 - Output of command from line 4 in [tests/validation-rules.run]:
 - [validate --no-fix --ignore-rule boolean]
@@ -240,6 +243,7 @@ FILE_KEY_ERR_3 (tests/validation-rules.env:162)
 Error: Validation failed
 Run 'dottie validate --help' for usage.
 
+(Command exited with error)
 --------------------------------------------------------------------------------
 - Output of command from line 5 in [tests/validation-rules.run]:
 - [validate --no-fix --ignore-rule boolean,dir,file,http]
@@ -283,3 +287,5 @@ HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
 
 Error: Validation failed
 Run 'dottie validate --help' for usage.
+
+(Command exited with error)

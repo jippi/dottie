@@ -1,79 +1,47 @@
 {
   extends: [
-    'config:recommended',
-    ':pinDevDependencies',
-    ':separateMultipleMajorReleases',
-    'default:pinDigestsDisabled',
+    "config:recommended",
+    ":pinDevDependencies",
+    ":separateMultipleMajorReleases",
+    "default:pinDigestsDisabled",
   ],
-  schedule: [
-    '* */1 * * *',
-  ],
-  postUpdateOptions: [
-    'gomodTidy',
-    'gomodUpdateImportPaths',
-  ],
-  commitMessageSuffix: ' in {{packageFile}}',
+  schedule: ["* */1 * * *"],
+  postUpdateOptions: ["gomodTidy", "gomodUpdateImportPaths"],
+  commitMessageSuffix: " in {{packageFile}}",
   dependencyDashboardAutoclose: true,
   automerge: true,
-  baseBranches: [
-    'main',
-  ],
+  baseBranches: ["main"],
   platformAutomerge: true,
-  labels: [
-    'dependencies',
-  ],
+  labels: ["dependencies"],
   prHourlyLimit: 1,
   osvVulnerabilityAlerts: true,
   vulnerabilityAlerts: {
     enabled: true,
-    labels: [
-      'security',
-    ],
+    labels: ["security"],
   },
   packageRules: [
     {
-      matchPackageNames: [
-        'go',
-        'golang',
-      ],
-      versioning: 'go',
-      groupName: 'go',
-    },
-    {
-      matchDepTypes: [
-        'golang-version',
-      ],
-      prPriority: 999,
-    },
-    {
-      description: 'Group charmbracelet packages',
-      groupName: 'charmbracelet',
-      matchPackageNames: [
-        'github.com/charmbracelet/{/,}**',
-      ],
+      description: "Group charmbracelet packages",
+      groupName: "charmbracelet",
+      matchPackageNames: ["github.com/charmbracelet/{/,}**"],
     },
   ],
   customManagers: [
     {
-      customType: 'regex',
-      fileMatch: [
-        '(^|/)Dockerfile$',
-        '(^|/)Dockerfile\\.[^/]*$',
-      ],
+      customType: "regex",
+      fileMatch: ["(^|/)Dockerfile$", "(^|/)Dockerfile\\.[^/]*$"],
       matchStrings: [
-        'renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s(ARG|ENV) .*?_VERSION=(?<currentValue>.*)\\s',
+        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s(ARG|ENV) .*?_VERSION=(?<currentValue>.*)\\s",
       ],
-      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}',
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
     },
     {
-      customType: 'regex',
-      fileMatch: [
-        '^\\.github/workflows/[^/]+\\.ya?ml$',
-      ],
+      customType: "regex",
+      fileMatch: ["^\\.github/workflows/[^/]+\\.ya?ml$"],
       matchStrings: [
-        'renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?: (?<currentValue>.*)\\s',
+        "renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?\\s.*?: (?<currentValue>.*)\\s",
       ],
-      versioningTemplate: '{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}',
+      versioningTemplate: "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}",
     },
   ],
 }

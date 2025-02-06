@@ -1,0 +1,34 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/default.run]:
+- [update --no-backup]
+--------------------------------------------------------------------------------
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                   Starting update of env file from source                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for source configuration
+  Found source via [dottie/source] annotation in file __TMP__/tmp.env
+
+Copying source from tests/default.source
+  OK
+
+Loading and parsing source
+  OK
+
+Updating source with key/value pairs from __TMP__/tmp.env
+
+  [KEY] was successfully set to [user]
+  [ENABLED_IN_USER_FILE] was successfully set to [user]
+  [DISABLED_IN_SOURCE_ENABLED_IN_USER_FILE_SAME_VALUE] was successfully set to [value]
+
+Saving the new __TMP__/tmp.env
+  OK
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                        Update successfully completed                         │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘

@@ -120,11 +120,12 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+			tempDir := t.TempDir()
 
 			dotEnvFile := "tests/" + tt.envFile
 
 			if !settings.Has(ReadOnly) {
-				dotEnvFile = t.TempDir() + "/tmp.env"
+				dotEnvFile = tempDir + "/tmp.env"
 
 				if _, err := os.Stat("tests/" + tt.envFile); errors.Is(err, os.ErrNotExist) {
 					// Create a temporary empty .env file
@@ -166,7 +167,11 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 					ctx    = CreateTestContext(t, &stdout, &stderr)
 				)
 
-				out, _ := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
+				out, err := cmd.RunCommand(ctx, commandArgs, &stdout, &stderr)
+				if err != nil {
+					stderr.WriteString("\n")
+					stderr.WriteString("(Command exited with error)")
+				}
 
 				if stdout.Len() == 0 {
 					stdout.WriteString("(no output to stdout)\n")
@@ -187,9 +192,15 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 				require.NotNil(t, out, "expected a return value")
 			}
 
+			stdout := combinedStdout.Bytes()
+			stdout = bytes.ReplaceAll(stdout, []byte(tempDir), []byte("__TMP__"))
+
+			stderr := combinedStderr.Bytes()
+			stderr = bytes.ReplaceAll(stderr, []byte(tempDir), []byte("__TMP__"))
+
 			// Assert stdout + stderr + modified env file is as expected
-			golden.Assert(t, tt.goldenStdout, combinedStdout.Bytes())
-			golden.Assert(t, tt.goldenStderr, combinedStderr.Bytes())
+			golden.Assert(t, tt.goldenStdout, stdout)
+			golden.Assert(t, tt.goldenStderr, stderr)
 
 			if !settings.Has(ReadOnly) {
 				// Read the modified .env file back
