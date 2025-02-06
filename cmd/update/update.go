@@ -27,8 +27,12 @@ func New() *cobra.Command {
 	}
 
 	cmd.Flags().String("source", "", "URL or local file path to the upstream source file. This will take precedence over any [@dottie/source] annotation in the file")
+
 	cmd.Flags().StringSlice("ignore-rule", []string{}, "Ignore this validation rule (e.g. 'dir')")
 	cmd.Flags().StringSlice("exclude-key-prefix", []string{}, "Ignore these KEY prefixes")
+
+	shared.BoolWithInverse(cmd, "backup", true, "Should the .env file be backed up before updating it?", "Skip backup of the env file before updating")
+	cmd.Flags().String("backup-file", "", "File path to write the backup to (by default it will write a '.env.dottie-backup' file in the same directory)")
 
 	shared.BoolWithInverse(cmd, "error-on-missing-key", false, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
@@ -269,20 +273,28 @@ func runE(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	noColor.Print("Backing up ")
-	primary.Print(filename)
-	noColor.Print(" to ")
-	primary.Print(filename, ".dottie-backup")
-	primary.Println()
+	if shared.BoolWithInverseValue(cmd.Flags(), "backup") {
+		backup_file := filename + ".dottie-backup"
 
-	if err := Copy(filename, filename+".dottie-backup"); err != nil {
-		danger.Println("  ERROR", err.Error())
+		if f := shared.StringFlag(cmd.Flags(), "backup-file"); len(f) > 0 {
+			backup_file = f
+		}
 
-		return err
+		noColor.Print("Backing up ")
+		primary.Print(filename)
+		noColor.Print(" to ")
+		primary.Print(backup_file)
+		primary.Println()
+
+		if err := Copy(filename, backup_file); err != nil {
+			danger.Println("  ERROR", err.Error())
+
+			return err
+		}
+
+		success.Println("  OK")
+		success.Println()
 	}
-
-	success.Println("  OK")
-	success.Println()
 
 	noColor.Println("Saving the new", primary.Sprint(filename))
 
