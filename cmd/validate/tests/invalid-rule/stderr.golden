@@ -5,3 +5,5 @@
 
 Error: validation configuration error: Undefined validation function 'invalid-rule' on field ''
 Run 'dottie validate --help' for usage.
+
+(Command exited with error)
