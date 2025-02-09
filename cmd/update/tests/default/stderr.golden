@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 - Output of command from line 1 in [tests/default.run]:
-- [update --no-backup]
+- [update --backup-file /tmp/dottie-test-backup.env --no-validate]
 --------------------------------------------------------------------------------
 
 (no output to stderr)

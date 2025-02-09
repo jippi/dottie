@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 - Output of command from line 1 in [tests/default.run]:
-- [update --no-backup]
+- [update --backup-file /tmp/dottie-test-backup.env --no-validate]
 --------------------------------------------------------------------------------
 
 ┌──────────────────────────────────────────────────────────────────────────────┐
@@ -23,6 +23,9 @@ Updating source with key/value pairs from __TMP__/tmp.env
   [KEY] was successfully set to [user]
   [ENABLED_IN_USER_FILE] was successfully set to [user]
   [DISABLED_IN_SOURCE_ENABLED_IN_USER_FILE_SAME_VALUE] was successfully set to [value]
+
+Backing up __TMP__/tmp.env to /tmp/dottie-test-backup.env
+  OK
 
 Saving the new __TMP__/tmp.env
   OK
