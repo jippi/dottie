@@ -183,3 +183,31 @@ cosign verify \
 
 > [!NOTE]
 > The `.pem` and `.sig` files are the image `name:tag`, replacing `/` and `:` with `-`.
+
+## Development Setup
+
+To compile the module yourself, you can setup this repository for development.
+
+You will need:
+
+- [Git](https://git-scm.com/)
+- [Go](https://go.dev/doc/install)
+
+1. Clone the repository:
+
+  ```sh
+  git clone https://github.com/jippi/dottie.git
+  cd dottie
+  ```
+
+2. Build the module:
+
+  ```sh
+  go build
+  ```
+
+3. Build the docker container:
+
+  ```sh
+  docker build --file Dockerfile.release --tag ghcr.io/jippi/dottie:v0.15.1 .
+  ```
