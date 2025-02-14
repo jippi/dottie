@@ -55,10 +55,6 @@
       matchPackageNames: ["golang.org/x/{/,}**"],
       groupName: "x",
     },
-    {
-      matchPackageNames: ["github.com/hashicorp/go-getter"],
-      allowedVersions: "<=1",
-    },
   ],
   customManagers: [
     {

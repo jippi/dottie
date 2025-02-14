@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/go-getter"
+	"github.com/hashicorp/go-getter/v2"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/ast/upsert"
@@ -94,13 +94,25 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	client := getter.Client{
 		DisableSymlinks: true,
-		Mode:            getter.ClientModeFile,
-		Src:             source,
-		Dst:             tmp.Name(),
-		Pwd:             pwd,
+		Getters: []getter.Getter{
+			&getter.FileGetter{},
+			&getter.GitGetter{},
+			&getter.HttpGetter{
+				XTerraformGetDisabled: true,
+				Netrc:                 true,
+				DoNotCheckHeadFirst:   true,
+			},
+		},
 	}
 
-	if err := client.Get(); err != nil {
+	opts := &getter.Request{
+		Pwd:     pwd,
+		GetMode: getter.ModeFile,
+		Dst:     tmp.Name(),
+		Src:     source,
+	}
+
+	if _, err := client.Get(cmd.Context(), opts); err != nil {
 		return err
 	}
 
