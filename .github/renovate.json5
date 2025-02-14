@@ -45,6 +45,10 @@
       groupName: "charmbracelet",
       matchPackageNames: ["github.com/charmbracelet/{/,}**"],
     },
+    {
+      matchPackageNames: ["github.com/hashicorp/go-getter"],
+      allowedVersions: "<=1",
+    },
   ],
   customManagers: [
     {
