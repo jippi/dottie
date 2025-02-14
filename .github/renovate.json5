@@ -30,15 +30,12 @@
       matchDatasources: ["golang-version"],
       rangeStrategy: "bump",
       groupName: "go",
+      prPriority: 999,
     },
     {
       matchManagers: ["gomod"],
       matchDepTypes: ["indirect"],
       enabled: true,
-    },
-    {
-      matchDepTypes: ["golang-version"],
-      prPriority: 999,
     },
     {
       description: "Group charmbracelet packages",
