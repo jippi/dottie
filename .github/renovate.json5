@@ -42,8 +42,13 @@
     },
     {
       description: "Group charmbracelet packages",
-      groupName: "charmbracelet",
       matchPackageNames: ["github.com/charmbracelet/{/,}**"],
+      groupName: "charmbracelet",
+    },
+    {
+      description: "Group googleapis packages",
+      matchPackageNames: ["google.golang.org/genproto/googleapis/{/,}**"],
+      groupName: "googleapis",
     },
     {
       matchPackageNames: ["github.com/hashicorp/go-getter"],
