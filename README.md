@@ -2,7 +2,7 @@
 
 ## About
 
-`dottie` (`dot` ⚫ `tie` 👔 or `dotty`) is a tool for working with dot-env (`.env`) files more enjoyable and safe.
+`dottie` (pronounced `dotty`) is a tool for working with dot-env (`.env`) files more enjoyable and safe.
 
 * Grouping of keys into logical sections
 * Rich validation of key/value pairs via comment "annotations"
