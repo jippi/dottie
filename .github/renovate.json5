@@ -41,16 +41,13 @@
       description: "Group charmbracelet packages",
       matchPackageNames: ["github.com/charmbracelet/{/,}**"],
       groupName: "charmbracelet",
-    },
-    {
-      description: "Group googleapis packages",
-      matchPackageNames: ["google.golang.org/genproto/googleapis/{/,}**"],
-      groupName: "googleapis",
+      prPriority: 800,
     },
     {
       description: "Group golang.org/x/ packages",
       matchPackageNames: ["golang.org/x/{/,}**"],
       groupName: "x",
+      prPriority: 900,
     },
   ],
   customManagers: [
