@@ -93,7 +93,7 @@ func doTest(t *testing.T, expected string) { //nolint thelper
 		return
 	}
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	dotEnvFile := t.TempDir() + "/tmp.env"
 

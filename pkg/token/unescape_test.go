@@ -1,7 +1,6 @@
 package token_test
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -48,7 +47,7 @@ func TestUnescape(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual, err := token.Unescape(context.TODO(), tt.input, token.DoubleQuote)
+			actual, err := token.Unescape(t.Context(), tt.input, token.DoubleQuote)
 			require.NoError(t, err)
 
 			require.Equal(t, tt.expected, actual)
@@ -137,7 +136,7 @@ func TestUnescapeInvalidUTF8(t *testing.T) {
 func testUnescapeHelper(t *testing.T, in, want string, quote token.Quote) {
 	t.Helper()
 
-	got, err := token.Unescape(context.TODO(), in, quote)
+	got, err := token.Unescape(t.Context(), in, quote)
 	require.NoError(t, err)
 	require.Equal(t, want, got)
 }

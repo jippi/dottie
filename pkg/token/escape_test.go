@@ -1,7 +1,6 @@
 package token_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/token"
@@ -48,7 +47,7 @@ func TestEscape(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := token.Escape(context.TODO(), tt.input, token.DoubleQuote)
+			actual := token.Escape(t.Context(), tt.input, token.DoubleQuote)
 
 			require.EqualValues(t, tt.expected, actual)
 		})
@@ -78,7 +77,7 @@ func TestEscapeFromGo(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quotetests {
-		out := token.Escape(context.TODO(), tt.in, token.DoubleQuote)
+		out := token.Escape(t.Context(), tt.in, token.DoubleQuote)
 		assert.Equal(t, tt.out, out)
 	}
 }
@@ -87,7 +86,7 @@ func TestEscapeFromGoASCII(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quotetests {
-		out := token.EscapeFull(context.TODO(), tt.in, token.DoubleQuote, true, false)
+		out := token.EscapeFull(t.Context(), tt.in, token.DoubleQuote, true, false)
 		assert.Equal(t, tt.ascii, out)
 	}
 }
@@ -96,7 +95,7 @@ func TestEscapeFromGoGraphic(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quotetests {
-		out := token.EscapeFull(context.TODO(), tt.in, token.DoubleQuote, false, true)
+		out := token.EscapeFull(t.Context(), tt.in, token.DoubleQuote, false, true)
 		assert.Equal(t, tt.graphic, out)
 	}
 }
@@ -129,7 +128,7 @@ func TestEscapeFromGoRune(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quoterunetests {
-		out := token.EscapeRune(context.TODO(), nil, tt.in, token.SingleQuote, false, false)
+		out := token.EscapeRune(t.Context(), nil, tt.in, token.SingleQuote, false, false)
 		assert.Equal(t, tt.out, string(out))
 	}
 }
@@ -138,7 +137,7 @@ func TestEscapeFromGoRuneASCII(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quoterunetests {
-		out := token.EscapeRune(context.TODO(), nil, tt.in, token.SingleQuote, true, false)
+		out := token.EscapeRune(t.Context(), nil, tt.in, token.SingleQuote, true, false)
 		assert.Equal(t, tt.ascii, string(out))
 	}
 }
@@ -147,7 +146,7 @@ func TestEscapeFromGoRuneGraphic(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range quoterunetests {
-		out := token.EscapeRune(context.TODO(), nil, tt.in, token.SingleQuote, false, true)
+		out := token.EscapeRune(t.Context(), nil, tt.in, token.SingleQuote, false, true)
 		assert.Equal(t, tt.graphic, string(out))
 	}
 }

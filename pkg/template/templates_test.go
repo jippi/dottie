@@ -15,7 +15,6 @@
 package template_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -620,7 +619,7 @@ func TestExtractVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := templatepkg.ExtractVariables(context.TODO(), tt.dict)
+			actual := templatepkg.ExtractVariables(t.Context(), tt.dict)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

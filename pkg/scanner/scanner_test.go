@@ -1,7 +1,6 @@
 package scanner_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/scanner"
@@ -128,7 +127,7 @@ func TestScanner_NextToken_Trivial(t *testing.T) {
 
 			sc := scanner.New(tt.input)
 
-			actual := sc.NextToken(context.TODO())
+			actual := sc.NextToken(t.Context())
 			assert.Equal(t, tt.expectedTokenType, actual.Type)
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
@@ -235,7 +234,7 @@ func TestScanner_NextToken_Valid_Identifier(t *testing.T) {
 
 			sc := scanner.New(tt.input)
 
-			actual := sc.NextToken(context.TODO())
+			actual := sc.NextToken(t.Context())
 			assert.Equal(t, tt.expectedTokenType.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
@@ -281,11 +280,11 @@ func TestScanner_NextToken_Naked_Value(t *testing.T) {
 			t.Parallel()
 
 			sc := scanner.New(tt.input)
-			assign := sc.NextToken(context.TODO())
+			assign := sc.NextToken(t.Context())
 			assert.Equal(t, token.Assign, assign.Type)
 			assert.Equal(t, token.Assign.String(), assign.Literal)
 
-			actual := sc.NextToken(context.TODO())
+			actual := sc.NextToken(t.Context())
 			assert.Equal(t, tt.expectedTokenType.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
@@ -339,7 +338,7 @@ func TestScanner_NextToken_Illegal(t *testing.T) {
 
 			sc := scanner.New(tt.input)
 
-			actual := sc.NextToken(context.TODO())
+			actual := sc.NextToken(t.Context())
 			assert.Equal(t, token.Illegal.String(), actual.Type.String())
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
@@ -399,7 +398,7 @@ func TestScanner_NextToken(t *testing.T) {
 			counter := 0
 
 			for {
-				actual := sc.NextToken(context.TODO())
+				actual := sc.NextToken(t.Context())
 				expected := tt.expected[counter]
 
 				assert.Equal(t, expected.Type, actual.Type)

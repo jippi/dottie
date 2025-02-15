@@ -1,7 +1,6 @@
 package token_test
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
@@ -77,7 +76,7 @@ func TestEscapeAndUnescape(t *testing.T) {
 			t.Log("tt.input")
 			t.Log("-----------------------")
 
-			for _, line := range token.DebugStringSlice(context.TODO(), tt.input) {
+			for _, line := range token.DebugStringSlice(t.Context(), tt.input) {
 				t.Log(line)
 			}
 
@@ -90,7 +89,7 @@ func TestEscapeAndUnescape(t *testing.T) {
 
 			strconvQuoted := strconv.Quote(tt.input)
 
-			for _, line := range token.DebugStringSlice(context.TODO(), strconvQuoted[1:len(strconvQuoted)-1]) {
+			for _, line := range token.DebugStringSlice(t.Context(), strconvQuoted[1:len(strconvQuoted)-1]) {
 				t.Log(line)
 			}
 
@@ -99,9 +98,9 @@ func TestEscapeAndUnescape(t *testing.T) {
 			t.Log("-----------------------")
 
 			// Quote the string
-			tuiQuoted := token.Escape(context.TODO(), tt.input, token.DoubleQuote)
+			tuiQuoted := token.Escape(t.Context(), tt.input, token.DoubleQuote)
 
-			for _, line := range token.DebugStringSlice(context.TODO(), tuiQuoted) {
+			for _, line := range token.DebugStringSlice(t.Context(), tuiQuoted) {
 				t.Log(line)
 			}
 
@@ -115,19 +114,19 @@ func TestEscapeAndUnescape(t *testing.T) {
 			s, err := strconv.Unquote(strconvQuoted)
 			require.NoError(t, err)
 
-			for _, line := range token.DebugStringSlice(context.TODO(), s) {
+			for _, line := range token.DebugStringSlice(t.Context(), s) {
 				t.Log(line)
 			}
 
 			// Unquote the string back
-			unquoted, err := token.Unescape(context.TODO(), tuiQuoted, token.DoubleQuote)
+			unquoted, err := token.Unescape(t.Context(), tuiQuoted, token.DoubleQuote)
 			require.NoError(t, err)
 
 			t.Log("-----------------------")
 			t.Log("tui.unquoted")
 			t.Log("-----------------------")
 
-			for _, line := range token.DebugStringSlice(context.TODO(), unquoted) {
+			for _, line := range token.DebugStringSlice(t.Context(), unquoted) {
 				t.Log(line)
 			}
 

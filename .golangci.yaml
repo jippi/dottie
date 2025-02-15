@@ -1,6 +1,5 @@
 run:
   modules-download-mode: readonly
-  skip-dirs-use-default: true
 
 linters:
   disable-all: true
@@ -88,7 +87,7 @@ linters:
     - reassign
 
     # tenv is analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
-    - tenv
+    - usetesting
 
     # linter that makes you use a separate _test package
     - testpackage
@@ -145,18 +144,9 @@ linters:
     # - gochecknoglobals
 
 issues:
+  exclude-dirs-use-default: true
+
   exclude-rules:
-    # ignoring this check from 'unused' since setID is indeed used, but
-    # the linter fail to recognize its being used through an interface
-    - path: internal/pkg/system/checks/
-      text: setID` is unused
-      linters: [unused]
-    - path: internal/pkg/system/checks/
-      text: asEntry()` is unused
-      linters: [unused]
-    - path: internal/pkg/system/checks/
-      text: setState()` is unused
-      linters: [unused]
     # ignore (nil, nil) return errors
     - path: ".*"
       text: "use a sentinel error instead"
@@ -169,11 +159,6 @@ issues:
     # we're fine with forced typed assertions in tests
     - path: ".*_test.go"
       linters: [forcetypeassert, goconst]
-    # these tests can not run in parallel
-    - path: "internal/pkg/meta/version_test.go"
-      linters: [paralleltest]
-    - path: "internal/pkg/meta/version.go"
-      linters: [forcetypeassert]
     # true/false as strings shouldn't need a constant
     - path: ".*"
       text: "string `true|false`"
@@ -201,11 +186,6 @@ linters-settings:
         deny:
           - pkg: "github.com/pkg/errors"
             desc: Should be replaced by standard lib errors package
-
-  # See https://golangci-lint.run/usage/linters/#gomnd
-  gomnd:
-    ignored-functions:
-      - "cobra.RangeArgs"
 
   # See https://golangci-lint.run/usage/linters#gosec
   gosec:
