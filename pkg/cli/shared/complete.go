@@ -16,8 +16,6 @@ type Completer struct {
 	suffixIsLiteral bool
 }
 
-type CobraCompleter func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective)
-
 func NewCompleter() *Completer {
 	return (&Completer{}).
 		WithSettings(render.WithOutputType(render.CompletionKeyOnly))
@@ -47,7 +45,7 @@ func (c *Completer) WithSettings(options ...render.SettingsOption) *Completer {
 	return c
 }
 
-func (c *Completer) Get() CobraCompleter {
+func (c *Completer) Get() cobra.CompletionFunc {
 	c.selectors = append(
 		c.selectors,
 		ast.ExcludeComments,
