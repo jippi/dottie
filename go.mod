@@ -13,7 +13,7 @@ replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-202
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.0
-	github.com/carapace-sh/carapace v1.7.0
+	github.com/carapace-sh/carapace v1.7.1
 	github.com/charmbracelet/huh v0.6.0
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/davecgh/go-spew v1.1.1
