@@ -85,8 +85,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.1.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rsteube/carapace v0.50.2 // indirect
-	github.com/rsteube/carapace-shlex v0.1.2 // indirect
+	github.com/rsteube/carapace v0.46.3-0.20231214181515-27e49f3c3b69 // indirect
+	github.com/rsteube/carapace-shlex v0.1.1 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
