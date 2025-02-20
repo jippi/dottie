@@ -91,8 +91,8 @@ github.com/huandu/xstrings v1.5.0 h1:2ag3IFq9ZDANvthTwTiqSSZLjDc+BedvHPAp5tJy2TI
 github.com/huandu/xstrings v1.5.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929 h1:CUAidR7Uz3/jR5rK7ieXP+mWt1FU8gAlnLGmxtxVjhs=
-github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929/go.mod h1:U2i+gzsZ5mT9LZHLzoeuOJ7BtcyXy7l+psRZSu4zmQU=
+github.com/jippi/go-console v0.0.0-20250211203744-269d85bb7017 h1:BU/4Z6S66r5aZocq2hgoq4VZFttYWKsfZ89KDt4zPKA=
+github.com/jippi/go-console v0.0.0-20250211203744-269d85bb7017/go.mod h1:gE6b9EpUfEZNjEhywH6c1y9px8om+ujTm/m7BzlXQTk=
 github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa h1:QNE3sE2JjV4/eQL2DeCGIJJaR7a6TXLWb/o1q4b+LX4=
 github.com/jippi/go-validator/v10 v10.0.0-20240202193343-be965b89f3aa/go.mod h1:9iXMNT7sEkjXb0I+enO7QXmzG6QCsPWY4zveKFVRSyU=
 github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3 h1:WvgVlCGHWSh2O7JavSFcd5FMCWrQTK2nIZpC/a90fCY=
