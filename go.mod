@@ -86,7 +86,7 @@ require (
 	github.com/reeflective/readline v1.1.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rsteube/carapace v0.50.2 // indirect
-	github.com/rsteube/carapace-shlex v0.1.2 // indirect
+	github.com/rsteube/carapace-shlex v0.2.0 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
