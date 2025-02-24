@@ -6,10 +6,6 @@ replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/
 
 replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
-replace github.com/reeflective/console => github.com/jippi/go-console v0.0.0-20240302001452-e5453feb8929
-
-// replace github.com/reeflective/console => ./3rd-party/go-console
-
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.0
@@ -25,7 +21,7 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/muesli/termenv v0.16.0
 	github.com/neilotoole/slogt v1.1.0
-	github.com/reeflective/console v0.1.22
+	github.com/reeflective/console v0.1.23-0.20250224010029-c24827dad903
 	github.com/reugn/pkgslog v0.2.0
 	github.com/samber/slog-multi v1.4.0
 	github.com/sebdah/goldie/v2 v2.5.5
@@ -85,8 +81,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.1.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/rsteube/carapace v0.50.2 // indirect
-	github.com/rsteube/carapace-shlex v0.1.2 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect

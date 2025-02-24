@@ -45,7 +45,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	setupPrompt(menu)
 
-	return app.Start(cmd.Context())
+	return app.StartContext(cmd.Context())
 }
 
 func mainMenuCommands(rootCmd *cobra.Command, _ *console.Console) console.Commands {
