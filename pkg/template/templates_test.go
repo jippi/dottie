@@ -237,44 +237,44 @@ func TestInterpolationExternalInterference(t *testing.T) {
 		expected string
 	}{
 		{
-			template: "-ok ${BAR:-defaultValue}",
-			expected: "-ok defaultValue",
+			template: "[0] - [${BAR:-defaultValue}]",
+			expected: "[0] - [defaultValue]",
 		},
 		{
-			template: "+ok ${UNSET:-${BAR-defaultValue}}",
-			expected: "+ok ",
+			template: "[1] - [${UNSET:-${BAR-defaultValue}}]",
+			expected: "[1] - []",
 		},
 		{
-			template: "-ok ${FOO:-defaultValue}",
-			expected: "-ok first",
+			template: "[2] [${FOO:-defaultValue}]",
+			expected: "[2] [first]",
 		},
 		{
-			template: ":-ok ${UNSET-defaultValue}",
-			expected: ":-ok defaultValue",
+			template: "[3] [${UNSET-defaultValue}]",
+			expected: "[3] [defaultValue]",
 		},
 		{
-			template: ":-ok ${BAR-defaultValue}",
-			expected: ":-ok ",
+			template: "[4] [${BAR-defaultValue}]",
+			expected: "[4] []",
 		},
 		{
-			template: ":?ok ${BAR-defaultValue}",
-			expected: ":?ok ",
+			template: "[5] [${BAR-defaultValue}]",
+			expected: "[5] []",
 		},
 		{
-			template: ":?ok ${BAR:-defaultValue}",
-			expected: ":?ok defaultValue",
+			template: "[6] [${BAR:-defaultValue}]",
+			expected: "[6] [defaultValue]",
 		},
 		{
-			template: ":+ok ${BAR:-defaultValue}",
-			expected: ":+ok defaultValue",
+			template: "[7] [${BAR:-defaultValue}]",
+			expected: "[7] [defaultValue]",
 		},
 		{
-			template: "+ok ${BAR-defaultValue}",
-			expected: "+ok ",
+			template: "[8] [${BAR-defaultValue}]",
+			expected: "[8] []",
 		},
 		{
-			template: "?ok ${BAR:-defaultValue}",
-			expected: "?ok defaultValue",
+			template: "[9] [${BAR:-defaultValue}]",
+			expected: "[9] [defaultValue]",
 		},
 	}
 
