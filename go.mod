@@ -32,7 +32,7 @@ require (
 	github.com/veqryn/slog-context v0.7.0
 	github.com/veqryn/slog-dedup v0.5.0
 	go.uber.org/multierr v1.11.0
-	mvdan.cc/sh/v3 v3.10.0
+	mvdan.cc/sh/v3 v3.11.0
 )
 
 require (
