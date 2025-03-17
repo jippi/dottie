@@ -26,8 +26,8 @@ github.com/charmbracelet/bubbles v0.20.0 h1:jSZu6qD8cRQ6k9OMfR1WlM+ruM8fkPWkHvQW
 github.com/charmbracelet/bubbles v0.20.0/go.mod h1:39slydyswPy+uVOHZ5x/GjwVAFkCsV8IIVy+4MhzwwU=
 github.com/charmbracelet/bubbletea v1.3.4 h1:kCg7B+jSCFPLYRA52SDZjr51kG/fMUEoPoZrkaDHyoI=
 github.com/charmbracelet/bubbletea v1.3.4/go.mod h1:dtcUCyCGEX3g9tosuYiut3MXgY/Jsv9nKVdibKKRRXo=
-github.com/charmbracelet/colorprofile v0.2.3-0.20250317101845-ee57c1e5598a h1:mXkFYcVLEDRI+07qCdumCJRruiR7CKBfjIr7TYaLI70=
-github.com/charmbracelet/colorprofile v0.2.3-0.20250317101845-ee57c1e5598a/go.mod h1:90887DmCo4CB0CFm8+YaA/4E9NpakxntEb+jkepZfNs=
+github.com/charmbracelet/colorprofile v0.2.3-0.20250317141405-06f135bea2c0 h1:M6NgKTeeSTpi3FuC4101VTdgLxRZ0DFGMk1whrxIFl8=
+github.com/charmbracelet/colorprofile v0.2.3-0.20250317141405-06f135bea2c0/go.mod h1:90887DmCo4CB0CFm8+YaA/4E9NpakxntEb+jkepZfNs=
 github.com/charmbracelet/huh v0.6.0 h1:mZM8VvZGuE0hoDXq6XLxRtgfWyTI3b2jZNKh0xWmax8=
 github.com/charmbracelet/huh v0.6.0/go.mod h1:GGNKeWCeNzKpEOh/OJD8WBwTQjV3prFAtQPpLv+AVwU=
 github.com/charmbracelet/lipgloss v1.1.0 h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=
