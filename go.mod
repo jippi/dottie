@@ -23,6 +23,7 @@ require (
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.23-0.20250224010029-c24827dad903
 	github.com/reugn/pkgslog v0.2.0
+	github.com/ryanuber/go-glob v1.0.0
 	github.com/samber/slog-multi v1.4.0
 	github.com/sebdah/goldie/v2 v2.5.5
 	github.com/spf13/cobra v1.9.1
@@ -46,7 +47,7 @@ require (
 	github.com/catppuccin/go v0.3.0 // indirect
 	github.com/charmbracelet/bubbles v0.20.0 // indirect
 	github.com/charmbracelet/bubbletea v1.3.4 // indirect
-	github.com/charmbracelet/colorprofile v0.2.3-0.20250317141405-06f135bea2c0 // indirect
+	github.com/charmbracelet/colorprofile v0.2.3-0.20250325181848-9c2d5e8bd00c // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd // indirect
 	github.com/charmbracelet/x/exp/strings v0.0.0-20250324105510-c72bdbf70572 // indirect
@@ -83,7 +84,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/reeflective/readline v1.1.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
