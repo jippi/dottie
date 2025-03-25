@@ -1,1 +1,5 @@
 --no-color --pretty
+--no-color --pretty --group '*Third*'
+--no-color --pretty --group '*group*'
+--no-color --pretty --group 'My Second group'
+--no-color --pretty --group 'my-second-group'

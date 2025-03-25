@@ -24,7 +24,7 @@ func New() *cobra.Command {
 	cmd.Flags().Bool("with-disabled", false, "Include disabled assignments")
 
 	cmd.Flags().String("key-prefix", "", "Filter by key prefix")
-	cmd.Flags().String("group", "", "Filter by group name")
+	cmd.Flags().String("group", "", "Filter by group name (*glob* wildcard supported)")
 
 	shared.BoolWithInverse(cmd, "blank-lines", true, "Show blank lines", "Do not show blank lines")
 	shared.BoolWithInverse(cmd, "color", true, "Enable color output", "Disable color output")

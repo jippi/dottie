@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/ryanuber/go-glob"
 )
 
 type Group struct {
@@ -37,7 +38,7 @@ func (g *Group) BelongsToGroup(name string) bool {
 		return true
 	}
 
-	return g.String() == name || slug.Make(g.String()) == name
+	return glob.Glob(name, g.String()) || glob.Glob(name, slug.Make(g.String()))
 }
 
 func (g *Group) String() string {
