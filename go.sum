@@ -153,8 +153,8 @@ github.com/neilotoole/slogt v1.1.0/go.mod h1:RCrGXkPc/hYybNulqQrMHRtvlQ7F6NktNVL
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/reeflective/console v0.1.23-0.20250224010029-c24827dad903 h1:3P94JU2fQOfQsJ0w17c2oCXIa5+c0yUjEIbHqve2KMA=
-github.com/reeflective/console v0.1.23-0.20250224010029-c24827dad903/go.mod h1:Evx15csJ+0sV7vEbPnfr3P8/PMuSuWhjHJI1Z0ydhac=
+github.com/reeflective/console v0.1.23 h1:6BOSmyQ34B46kJ2IiKTvcjvO5GUkTu2kxkx1BogxHwo=
+github.com/reeflective/console v0.1.23/go.mod h1:It/IqEjo0PowaBuxBS9pEi5EYUgmtvQd0ytMtlS77kk=
 github.com/reeflective/readline v1.1.3 h1:meGkuEmujZHmalJ9eT3pYkwtkufH5EwYFPTnaph0T0s=
 github.com/reeflective/readline v1.1.3/go.mod h1:CwNkh9BmFBBCSO6mdDaNWb34rOqQsI9eYbxyqvOEazY=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
