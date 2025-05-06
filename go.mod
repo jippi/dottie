@@ -21,7 +21,7 @@ require (
 	github.com/lmittmann/tint v1.0.7
 	github.com/muesli/termenv v0.16.0
 	github.com/neilotoole/slogt v1.1.0
-	github.com/reeflective/console v0.1.23
+	github.com/reeflective/console v0.1.24
 	github.com/reugn/pkgslog v0.2.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/samber/slog-multi v1.4.0
