@@ -14,7 +14,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/golang-cz/devslog v0.0.14
+	github.com/golang-cz/devslog v0.0.15
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.15.0
 	github.com/hashicorp/go-getter/v2 v2.2.3
