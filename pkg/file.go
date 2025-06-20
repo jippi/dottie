@@ -31,7 +31,7 @@ func Save(ctx context.Context, filename string, doc *ast.Document) error {
 
 	res := render.NewFormatter().Statement(ctx, doc)
 	if res.IsEmpty() {
-		return errors.New("The rendered .env file is unexpectedly 0 bytes long - please report this as a bug (unless your file is empty)")
+		return errors.New("the rendered .env file is unexpectedly 0 bytes long - please report this as a bug (unless your file is empty)")
 	}
 
 	_, err = file.WriteString(res.String())

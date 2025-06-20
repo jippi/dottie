@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-var ErrInvalidQuoteStyle = errors.New("Invalid quote style")
+var ErrInvalidQuoteStyle = errors.New("invalid quote style")
 
 type Quote int
 

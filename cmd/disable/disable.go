@@ -29,13 +29,13 @@ func New() *cobra.Command {
 
 			assignment := env.Get(key)
 			if assignment == nil {
-				return fmt.Errorf("Could not find KEY [ %s ]", key)
+				return fmt.Errorf("could not find KEY [ %s ]", key)
 			}
 
 			if !assignment.Enabled {
 				tui.StderrFromContext(cmd.Context()).
 					Warning().
-					Println(fmt.Errorf("WARNING: The key [ %s ] is already disabled", key))
+					Println(fmt.Errorf("warning: the key [ %s ] is already disabled", key))
 
 				return nil
 			}

@@ -129,7 +129,7 @@ func (u *Upserter) Upsert(ctx context.Context, input *ast.Assignment) (*ast.Assi
 	existing.Initialize(ctx)
 
 	if _, ok := existing.Dependencies[existing.Name]; ok {
-		return nil, fmt.Errorf("Key [%s] may not reference itself!", existing.Name)
+		return nil, fmt.Errorf("key [%s] may not reference itself", existing.Name)
 	}
 
 	// Replace the Assignment in the document

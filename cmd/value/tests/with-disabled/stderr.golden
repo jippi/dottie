@@ -3,7 +3,7 @@
 - [value disabled]
 --------------------------------------------------------------------------------
 
-Error: Key [ disabled ] exists, but is commented out - use [--with-disabled] to include it
+Error: key [ disabled ] exists, but is commented out - use [--with-disabled] to include it
 Run 'dottie value --help' for usage.
 
 (Command exited with error)

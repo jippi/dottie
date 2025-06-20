@@ -49,7 +49,7 @@ func TestEscape(t *testing.T) {
 
 			actual := token.Escape(t.Context(), tt.input, token.DoubleQuote)
 
-			require.EqualValues(t, tt.expected, actual)
+			require.Equal(t, tt.expected, actual)
 		})
 	}
 }

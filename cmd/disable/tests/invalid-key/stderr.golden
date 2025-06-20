@@ -3,7 +3,7 @@
 - [disable NONEXISTING_KEY]
 --------------------------------------------------------------------------------
 
-Error: Could not find KEY [ NONEXISTING_KEY ]
+Error: could not find KEY [ NONEXISTING_KEY ]
 Run 'dottie disable --help' for usage.
 
 (Command exited with error)

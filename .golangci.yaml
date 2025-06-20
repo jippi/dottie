@@ -1,23 +1,12 @@
+version: "2"
 run:
   modules-download-mode: readonly
 
 linters:
-  disable-all: true
+  default: none
   enable:
-    # (vet, vetshadow): Vet examines Go source code and reports suspicious constructs, such as Printf calls whose arguments do not align with the format string [fast: false, auto-fix: false]
-    - govet
-
-    # Detects when assignments to existing variables are not used [fast: true, auto-fix: false]
-    - ineffassign
-
-    # (megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
-    - staticcheck
-
-    # Like the front-end of a Go compiler, parses and type-checks Go code [fast: false, auto-fix: false]
-    - typecheck
-
-    # (gas): Inspects source code for security problems [fast: false, auto-fix: false]
-    - gosec
+    # check for pass []any as any in variadic func(...any)
+    - asasalint
 
     # Simple linter to check that your code does not contain non-ASCII identifiers
     - asciicheck
@@ -31,8 +20,21 @@ linters:
     # check the function whether use a non-inherited context
     - contextcheck
 
+    # checks for pointers to enclosing loop variables
+    - copyloopvar
+
     # check declaration order and count of types, constants, variables and functions
     - decorder
+
+    # Go linter that checks if package imports are in a list of acceptable packages
+    - depguard
+
+    # Checks assignments with too many blank identifiers (e.g. x, , , _, := f())
+    - dogsled
+    - dupl
+
+    # check for two durations multiplied together
+    - durationcheck
 
     # Checks types passed to the json encoding functions. Reports unsupported types and optionally reports occasions, where the check for the returned error can be omitted.
     - errchkjson
@@ -46,21 +48,25 @@ linters:
     # check exhaustiveness of enum switch statements
     - exhaustive
 
-    # checks for pointers to enclosing loop variables
-    - copyloopvar
-
     # finds forced type assertions
     - forcetypeassert
-
-    # Gofumpt checks whether code was gofumpt-ed.
-    - gofumpt
 
     # Allow and block list linter for direct Go module dependencies
     - gomodguard
 
-    # Reports deeply nested if statements
-    # TODO(jippi): activate again
-    # - nestif
+    # (gas): Inspects source code for security problems [fast: false, auto-fix: false]
+    - gosec
+    - govet
+    - inamedparam
+
+    # Detects when assignments to existing variables are not used [fast: true, auto-fix: false]
+    - ineffassign
+
+    # Reports wrong mirror patterns of bytes/strings usage.
+    - mirror
+
+    # Finds commonly misspelled English words in comments
+    - misspell
 
     # Finds the code that returns nil even if it checks that the error is not nil.
     - nilerr
@@ -76,6 +82,7 @@ linters:
 
     # paralleltest detects missing usage of t.Parallel() method in your Go test
     - paralleltest
+    - perfsprint
 
     # Finds slice declarations that could potentially be pre-allocated
     - prealloc
@@ -86,8 +93,12 @@ linters:
     # Checks that package variables are not reassigned
     - reassign
 
-    # tenv is analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
-    - usetesting
+    # (megacheck): Staticcheck is a go vet on steroids, applying a ton of static analysis checks [fast: false, auto-fix: false]
+    - staticcheck
+
+    # Align and sort struct tags consistently
+    - tagalign
+    - testifylint
 
     # linter that makes you use a separate _test package
     - testpackage
@@ -104,153 +115,156 @@ linters:
     # Reports unused function parameters
     - unparam
 
-    # wastedassign finds wasted assignment statements.
-    - wastedassign
-
-    # Whitespace Linter - Forces you to use empty lines!
-    - wsl
-    - whitespace
-
     # A linter that detect the possibility to use variables/constants from the Go standard library.
     - usestdlibvars
 
-    # Checks assignments with too many blank identifiers (e.g. x, , , _, := f())
-    - dogsled
-
-    # check for two durations multiplied together
-    - durationcheck
-
-    # check for pass []any as any in variadic func(...any)
-    - asasalint
-
-    # Go linter that checks if package imports are in a list of acceptable packages
-    - depguard
-
-    # Finds commonly misspelled English words in comments
-    - misspell
-
-    # Align and sort struct tags consistently
-    - tagalign
-
-    # Reports wrong mirror patterns of bytes/strings usage.
-    - mirror
-
-    - dupl
-    - inamedparam
-    - perfsprint
-    - testifylint
-    - usestdlibvars
+    # tenv is analyzer that detects using os.Setenv instead of t.Setenv since Go1.17
+    - usetesting
     - varnamelen
-    # - gochecknoglobals
 
-issues:
-  exclude-dirs-use-default: true
+    # wastedassign finds wasted assignment statements.
+    - wastedassign
+    - whitespace
 
-  exclude-rules:
-    # ignore (nil, nil) return errors
-    - path: ".*"
-      text: "use a sentinel error instead"
-      linters: [nilnil]
-    # ignore logger not being referenced, as it's very likely that the logger is in fact used in a Go file
-    # that just happen to be for another GOOS than linux where CI runs (e.g. _windows.go file)
-    - path: ".*"
-      text: logger` is unused
-      linters: [unused]
-    # we're fine with forced typed assertions in tests
-    - path: ".*_test.go"
-      linters: [forcetypeassert, goconst]
-    # true/false as strings shouldn't need a constant
-    - path: ".*"
-      text: "string `true|false`"
-      linters: [goconst]
-    # "string" literal shouldn't need a constant
-    - path: ".*"
-      text: "string `string`"
-      linters: [goconst]
-    # MarshalText is an interface that we must implement
-    - path: ".*"
-      text: "MarshalText"
-      linters: [unparam]
-    # MarshalYAML is an interface that we must implement
-    - path: ".*"
-      text: "MarshalYAML"
-      linters: [unparam]
+    # Whitespace Linter - Forces you to use empty lines!
+    - wsl
+  settings:
+    depguard:
+      rules:
+        DontUse:
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: Should be replaced by standard lib errors package
 
-linters-settings:
-  nestif:
-    min-complexity: 6
-
-  depguard:
-    rules:
-      DontUse:
-        deny:
-          - pkg: "github.com/pkg/errors"
-            desc: Should be replaced by standard lib errors package
-
-  # See https://golangci-lint.run/usage/linters#gosec
-  gosec:
-    includes: []
-    excludes: []
-
-  exhaustive:
     # Program elements to check for exhaustiveness.
-    check:
-      - switch
-      - map
-    # Presence of "default" case in switch statements satisfies exhaustiveness, even if all enum members are not listed.
-    # Default: false
-    default-signifies-exhaustive: true
+    exhaustive:
+      check:
+        - switch
+        - map
+      # Presence of "default" case in switch statements satisfies exhaustiveness, even if all enum members are not listed.
+      # Default: false
+      default-signifies-exhaustive: true
 
-  unparam:
-    check-exported: true
+    nestif:
+      min-complexity: 6
 
-  varnamelen:
-    check-return: true
-    check-type-param: true
-    ignore-names:
-      - tt
-      - err
-      - i
+    tagalign:
+      # Align and sort can be used together or separately.
+      #
+      # Whether enable align. If true, the struct tags will be aligned.
+      # eg:
+      # type FooBar struct {
+      #     Bar    string `json:"bar" validate:"required"`
+      #     FooFoo int8   `json:"foo_foo" validate:"required"`
+      # }
+      # will be formatted to:
+      # type FooBar struct {
+      #     Bar    string `json:"bar"     validate:"required"`
+      #     FooFoo int8   `json:"foo_foo" validate:"required"`
+      # }
+      # Default: true.
+      align: true
 
-  tagalign:
-    # Align and sort can be used together or separately.
-    #
-    # Whether enable align. If true, the struct tags will be aligned.
-    # eg:
-    # type FooBar struct {
-    #     Bar    string `json:"bar" validate:"required"`
-    #     FooFoo int8   `json:"foo_foo" validate:"required"`
-    # }
-    # will be formatted to:
-    # type FooBar struct {
-    #     Bar    string `json:"bar"     validate:"required"`
-    #     FooFoo int8   `json:"foo_foo" validate:"required"`
-    # }
-    # Default: true.
-    align: true
-    # Whether enable tags sort.
-    # If true, the tags will be sorted by name in ascending order.
-    # eg: `xml:"bar" json:"bar" validate:"required"` -> `json:"bar" validate:"required" xml:"bar"`
-    # Default: true
-    sort: true
-    # Specify the order of tags, the other tags will be sorted by name.
-    # This option will be ignored if `sort` is false.
-    # Default: []
-    order:
-      # config/dependency injection
-      - default
-      - koanf
-      - wire
-      - letsgo
-      # encode and decode
-      - json
-      - yaml
-      - mapstructure
-      # misc
-      - validate
-    # Whether enable strict style.
-    # In this style, the tags will be sorted and aligned in the dictionary order,
-    # and the tags with the same name will be aligned together.
-    # Note: This option will be ignored if 'align' or 'sort' is false.
-    # Default: false
-    strict: true
+      # Whether enable tags sort.
+      # If true, the tags will be sorted by name in ascending order.
+      # eg: `xml:"bar" json:"bar" validate:"required"` -> `json:"bar" validate:"required" xml:"bar"`
+      # Default: true
+      sort: true
+
+      # Specify the order of tags, the other tags will be sorted by name.
+      # This option will be ignored if `sort` is false.
+      # Default: []
+      order:
+        # config/dependency injection
+        - default
+        - koanf
+        - wire
+        # encode and decode
+        - json
+        - yaml
+        - mapstructure
+        # misc
+        - validate
+
+      # Whether enable strict style.
+      # In this style, the tags will be sorted and aligned in the dictionary order,
+      # and the tags with the same name will be aligned together.
+      # Note: This option will be ignored if 'align' or 'sort' is false.
+      # Default: false
+      strict: true
+
+    unparam:
+      check-exported: true
+
+    varnamelen:
+      check-return: true
+      check-type-param: true
+      ignore-names:
+        - tt
+        - err
+        - i
+
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      # ignore (nil, nil) return errors
+      - linters:
+          - nilnil
+        path: .*
+        text: use a sentinel error instead
+
+      # ignore logger not being referenced, as it's very likely that the logger is in fact used in a Go file
+      # that just happen to be for another GOOS than linux where CI runs (e.g. _windows.go file)
+      - linters:
+          - unused
+        path: .*
+        text: logger` is unused
+
+      # we're fine with forced typed assertions in tests
+      - linters:
+          - forcetypeassert
+          - goconst
+        path: .*_test.go
+
+      # true/false as strings shouldn't need a constant
+      - linters:
+          - goconst
+        path: .*
+        text: string `true|false`
+
+      # "string" literal shouldn't need a constant
+      - linters:
+          - goconst
+        path: .*
+        text: string `string`
+
+      # MarshalText is an interface that we must implement
+      - linters:
+          - unparam
+        path: .*
+        text: MarshalText
+
+      # MarshalYAML is an interface that we must implement
+      - linters:
+          - unparam
+        path: .*
+        text: MarshalYAML
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

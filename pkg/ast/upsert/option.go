@@ -52,7 +52,7 @@ func DisableSetting(setting Setting) Option {
 func WithPlacementRelativeToKey(placement Placement, key string) Option {
 	return func(upserter *Upserter) error {
 		if len(key) == 0 {
-			return errors.New("empty 'KEY' was provided to placement logic.")
+			return errors.New("empty 'KEY' was provided to placement logic")
 		}
 
 		if !placement.RequiresKey() {

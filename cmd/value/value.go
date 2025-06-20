@@ -37,13 +37,13 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	assignment := document.Get(key)
 	if assignment == nil {
-		return fmt.Errorf("Key [ %s ] does not exists", key)
+		return fmt.Errorf("key [ %s ] does not exists", key)
 	}
 
 	includeDisabled := shared.BoolFlag(cmd.Flags(), "with-disabled")
 
 	if !assignment.Enabled && !includeDisabled {
-		return fmt.Errorf("Key [ %s ] exists, but is commented out - use [--with-disabled] to include it", key)
+		return fmt.Errorf("key [ %s ] exists, but is commented out - use [--with-disabled] to include it", key)
 	}
 
 	if ok, _ := cmd.Flags().GetBool("literal"); ok {

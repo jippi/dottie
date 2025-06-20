@@ -27,7 +27,7 @@ func New() *cobra.Command {
 
 			groups := document.Groups
 			if len(groups) == 0 {
-				return errors.New("No groups found")
+				return errors.New("no groups found")
 			}
 
 			maxWidth := longesGroupName(groups)

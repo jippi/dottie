@@ -87,7 +87,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	// Get the pwd
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("Error getting working directory: %w", err)
+		return fmt.Errorf("error getting working directory: %w", err)
 	}
 
 	// Grab source file
@@ -276,7 +276,7 @@ func runE(cmd *cobra.Command, args []string) error {
 	if sawError && shared.BoolWithInverseValue(cmd.Flags(), "validate") {
 		stdout.NoColor().Println()
 
-		return errors.New("some fields failed validation, aborting ...")
+		return errors.New("some fields failed validation, aborting")
 	}
 
 	if !shared.BoolWithInverseValue(cmd.Flags(), "save") {

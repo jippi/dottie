@@ -249,7 +249,7 @@ func (doc *Document) InterpolationMapper(target *Assignment) func(input string) 
 			// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
 			// which would trigger infinite recursive loop
 			if dependency.Name == target.Name {
-				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must not reference itself", target.Name)))
+				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] must not reference itself", target.Name)))
 
 				continue
 			}
@@ -259,7 +259,7 @@ func (doc *Document) InterpolationMapper(target *Assignment) func(input string) 
 
 			// If it does not exists or is not enabled, abort
 			if prerequisite == nil {
-				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("Key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
+				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
 
 				continue
 			}
@@ -353,7 +353,7 @@ func (document *Document) Initialize(ctx context.Context) {
 func (document *Document) Replace(assignment *Assignment) error {
 	existing := document.Get(assignment.Name)
 	if existing == nil {
-		return fmt.Errorf("No KEY named [%s] exists in the document", assignment.Name)
+		return fmt.Errorf("no KEY named [%s] exists in the document", assignment.Name)
 	}
 
 	if existing.Group != nil {
@@ -384,7 +384,7 @@ func (document *Document) Replace(assignment *Assignment) error {
 		}
 	}
 
-	return fmt.Errorf("Could not find+replace KEY named [%s] in document", assignment.Name)
+	return fmt.Errorf("could not find+replace KEY named [%s] in document", assignment.Name)
 }
 
 func (document *Document) Validate(ctx context.Context, selectors []Selector, ignoreErrors []string) ([]*ValidationError, error) {

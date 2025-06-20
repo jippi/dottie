@@ -123,7 +123,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			argumentCounter++
 
 			if argumentCounter >= len(args) {
-				allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument", stringPair))
+				allErrors = multierr.Append(allErrors, fmt.Errorf("key [ %s ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument", stringPair))
 
 				break
 			}
@@ -136,7 +136,7 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		// Fail
 		if len(key) == 0 {
-			allErrors = multierr.Append(allErrors, fmt.Errorf("Key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
+			allErrors = multierr.Append(allErrors, fmt.Errorf("key [ %s ] Error: expected KEY=VALUE pair, missing '='", stringPair))
 
 			continue
 		}

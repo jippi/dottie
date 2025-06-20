@@ -69,7 +69,7 @@ FILE_KEY_ERR_2 (tests/validation-rules.env:159)
 FILE_KEY_ERR_3 (tests/validation-rules.env:162)
     * (file) The file [] does not exist.
 
-Error: Validation failed
+Error: validation failed
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)
@@ -132,7 +132,7 @@ FILE_KEY_ERR_2 (tests/validation-rules.env:159)
 FILE_KEY_ERR_3 (tests/validation-rules.env:162)
     * (file) The file [] does not exist.
 
-Error: Validation failed
+Error: validation failed
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)
@@ -177,7 +177,7 @@ HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
     * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
 
-Error: Validation failed
+Error: validation failed
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)
@@ -240,7 +240,7 @@ FILE_KEY_ERR_2 (tests/validation-rules.env:159)
 FILE_KEY_ERR_3 (tests/validation-rules.env:162)
     * (file) The file [] does not exist.
 
-Error: Validation failed
+Error: validation failed
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)
@@ -285,7 +285,7 @@ HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
     * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
 
-Error: Validation failed
+Error: validation failed
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)

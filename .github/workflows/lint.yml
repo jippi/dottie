@@ -33,10 +33,10 @@ jobs:
           cache: false
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
           # renovate: datasource=github-releases depName=golangci/golangci-lint
-          version: v1.64.8
+          version: v2.1.6
           args: --timeout=5m
 
   # ------------------------------

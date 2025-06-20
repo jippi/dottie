@@ -120,5 +120,5 @@ func runE(cmd *cobra.Command, args []string) error {
 			)
 	}
 
-	return errors.New("Validation failed")
+	return errors.New("validation failed")
 }
