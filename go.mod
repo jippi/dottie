@@ -9,7 +9,7 @@ replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-202402241832
 require (
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.1
-	github.com/carapace-sh/carapace v1.8.4
+	github.com/carapace-sh/carapace v1.8.5
 	github.com/charmbracelet/huh v0.7.0
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/davecgh/go-spew v1.1.1
