@@ -44,7 +44,7 @@ jobs:
 
       - uses: sigstore/cosign-installer@v3.10.0
 
-      - uses: anchore/sbom-action/download-syft@v0.20.6
+      - uses: anchore/sbom-action/download-syft@v0.20.7
 
       - name: ghcr-login
         uses: docker/login-action@v3
