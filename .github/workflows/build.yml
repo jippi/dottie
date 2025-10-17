@@ -83,7 +83,7 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - uses: sigstore/cosign-installer@v3.10.1
+      - uses: sigstore/cosign-installer@v4.0.0
 
       - uses: anchore/sbom-action/download-syft@v0.20.8
 
