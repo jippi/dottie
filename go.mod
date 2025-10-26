@@ -53,7 +53,8 @@ require (
 	github.com/charmbracelet/x/exp/golden v0.0.0-20251023181713-f594ac034d6b // indirect
 	github.com/charmbracelet/x/exp/strings v0.0.0-20251023181713-f594ac034d6b // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
