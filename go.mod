@@ -50,9 +50,9 @@ require (
 	github.com/charmbracelet/colorprofile v0.3.2 // indirect
 	github.com/charmbracelet/x/ansi v0.10.2 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20251031130508-fec2c544fd57 // indirect
-	github.com/charmbracelet/x/exp/strings v0.0.0-20251031130508-fec2c544fd57 // indirect
-	github.com/charmbracelet/x/term v0.2.1 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20251031172406-4542a189d0fb // indirect
+	github.com/charmbracelet/x/exp/strings v0.0.0-20251031172406-4542a189d0fb // indirect
+	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
