@@ -48,10 +48,10 @@ require (
 	github.com/charmbracelet/bubbles v0.21.1-0.20250623103423-23b8fd6302d7 // indirect
 	github.com/charmbracelet/bubbletea v1.3.10 // indirect
 	github.com/charmbracelet/colorprofile v0.3.3 // indirect
-	github.com/charmbracelet/x/ansi v0.11.0 // indirect
+	github.com/charmbracelet/x/ansi v0.11.1 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20251113172435-cef867b85f6a // indirect
-	github.com/charmbracelet/x/exp/strings v0.0.0-20251113172435-cef867b85f6a // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20251114164322-09e6ba8ffbfc // indirect
+	github.com/charmbracelet/x/exp/strings v0.0.0-20251114164322-09e6ba8ffbfc // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.5.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
