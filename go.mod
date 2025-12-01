@@ -50,8 +50,8 @@ require (
 	github.com/charmbracelet/colorprofile v0.3.3 // indirect
 	github.com/charmbracelet/x/ansi v0.11.2 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20251126160633-0b68cdcd21da // indirect
-	github.com/charmbracelet/x/exp/strings v0.0.0-20251126160633-0b68cdcd21da // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20251201123230-aaa0203e60f2 // indirect
+	github.com/charmbracelet/x/exp/strings v0.0.0-20251201122158-c91b6bd2b135 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.6.1 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
