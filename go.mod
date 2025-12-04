@@ -26,7 +26,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/samber/slog-multi v1.6.0
 	github.com/sebdah/goldie/v2 v2.8.0
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 	github.com/teacat/noire v1.1.0
