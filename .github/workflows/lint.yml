@@ -36,7 +36,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           # renovate: datasource=github-releases depName=golangci/golangci-lint
-          version: v2.7.1
+          version: v2.7.2
           args: --timeout=5m
 
   # ------------------------------
