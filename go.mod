@@ -18,7 +18,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gosimple/slug v1.15.0
 	github.com/hashicorp/go-getter/v2 v2.2.3
-	github.com/lmittmann/tint v1.1.2
+	github.com/lmittmann/tint v1.1.3
 	github.com/muesli/termenv v0.16.0
 	github.com/neilotoole/slogt v1.1.0
 	github.com/reeflective/console v0.1.25
