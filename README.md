@@ -34,148 +34,6 @@ Most teams start with a small `.env`, then over time it becomes hard to review, 
 * **Disabled keys** are preserved as commented assignments and can be re-enabled later.
 * **Upstream source templates** let you evolve defaults without overwriting local intent.
 
-## Annotation Reference
-
-Annotations are comment lines with this format:
-
-```text
-# @<annotation-key> <annotation-value>
-```
-
-In Dottie, annotations are parsed from comments and attached to the following assignment (or treated as document-level config where relevant).
-
-### Supported `@dottie/*` Annotations
-
-| Annotation | Scope | Value | Used By | Purpose |
-| --- | --- | --- | --- | --- |
-| `@dottie/validate` | Assignment | Validation rule string (e.g. `required,number`) | `dottie validate`, `dottie set`, `dottie exec`, `dottie update` (validation during updates) | Validates assignment values using validator rules |
-| `@dottie/source` | Document-level config | Source URL/path | `dottie update` | Declares default upstream source when `--source` is not provided |
-| `@dottie/exec` | Assignment | Shell command | `dottie exec` | Runs command and writes command output back into assignment value |
-| `@dottie/hidden` | Assignment | Optional/ignored | Shell completion | Hides assignment from interactive key completion suggestions |
-
-### `@dottie/validate` Reference
-
-`@dottie/validate` attaches validation rules to the next assignment.
-
-Syntax:
-
-```env
-# @dottie/validate <rule>[,<rule>...]
-KEY=value
-```
-
-Rules are evaluated by `go-playground/validator/v10` via Dottie (`validator.ValidateMap`), so the annotation value is passed through as validator tags.
-
-Tag syntax (from validator/v10):
-
-* **AND**: separate rules with commas: `required,email`
-* **OR**: separate alternatives with pipe: `rgb|rgba`
-* **Rule parameter**: use `=`: `min=3`, `oneof=dev staging prod`
-* **Escaping separators in parameters**:
-  * Use `0x2C` for literal comma in a parameter value
-  * Use `0x7C` for literal pipe in a parameter value
-
-Commonly used rules in Dottie workflows and fixtures:
-
-| Rule | Meaning | Example |
-| --- | --- | --- |
-| `required` | Value must not be empty | `required` |
-| `omitempty` | Skip remaining rules if empty | `omitempty,email` |
-| `number` | Must be numeric | `required,number` |
-| `boolean` | Must be a boolean value | `required,boolean` |
-| `email` | Must be a valid email | `required,email` |
-| `fqdn` | Must be a fully qualified domain name | `fqdn` |
-| `hostname` | Must be a valid hostname | `hostname` |
-| `http_url` | Must be a valid HTTP/HTTPS URL | `required,http_url` |
-| `domain` | Must be a valid domain | `required,domain` |
-| `dir` | Directory must exist | `required,dir` |
-| `file` | File must exist | `required,file` |
-| `oneof=...` | Value must be one of listed values | `oneof=dev staging production` |
-| `ne=<value>` | Value must not equal `<value>` | `ne=example.com` |
-| `required_with=<field>` | Required when another field is present/non-empty | `required_with=MAIL_DRIVER` |
-| `required_if=<field> <value>` | Required when another field equals a value | `required_if=QUEUE_DRIVER sqs` |
-
-Additional validator/v10 families you can use in `@dottie/validate` include:
-
-* String/length checks: `min`, `max`, `len`, `contains`, `startswith`, `endswith`
-* Format/network checks: `url`, `uri`, `hostname`, `fqdn`, `ip`, `ipv4`, `ipv6`, `cidr`
-* Comparison checks: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`
-* Conditional presence checks: `required_without`, `required_without_all`, `excluded_if`, `excluded_unless`
-
-Examples:
-
-```env
-# @dottie/validate required,oneof=dev staging production
-APP_ENV=dev
-
-# @dottie/validate required_if=QUEUE_DRIVER sqs
-SQS_QUEUE=
-
-# @dottie/validate required,dir
-STORAGE_PATH=/var/lib/myapp
-
-# @dottie/validate omitempty,oneof=debug info warn error
-LOG_LEVEL=info
-
-# @dottie/validate required,email|fqdn
-CONTACT=ops@example.com
-```
-
-Notes:
-
-* Multiple rules are comma-separated.
-* Alternative rules can be expressed with `|` (OR logic).
-* `dottie validate --ignore-rule <tag>` can suppress a specific failing tag (for example `dir`).
-* Invalid rule names (for example `invalid-rule`) are treated as validation configuration errors.
-* Dottie delegates rule behavior to validator/v10; exact availability follows the validator version in Dottie.
-* Validator reference: <https://pkg.go.dev/github.com/go-playground/validator/v10>
-
-#### Validator gotchas
-
-* **Use `required_if` for value-based conditions**
-  * Example: `required_if=QUEUE_DRIVER sqs` means “required only when `QUEUE_DRIVER` is exactly `sqs`”.
-* **Use `required_with` for presence-based conditions**
-  * Example: `required_with=MAIL_DRIVER` means “required when `MAIL_DRIVER` is set to any non-empty value”.
-* **Cross-field rules depend on key names**
-  * Tags like `required_if`, `required_with`, `eqfield`, and `nefield` reference other assignment keys by name; typos in key names make rules behave unexpectedly.
-* **`omitempty` short-circuits the rest of the tag chain**
-  * `omitempty,email` passes on empty values, but validates as email when a value is provided.
-* **OR (`|`) only applies inside the same tag expression**
-  * `email|fqdn` means either format is accepted; combine with commas for additional required checks (e.g. `required,email|fqdn`).
-
-Decision table:
-
-| If you need... | Use | Example |
-| --- | --- | --- |
-| Required only when another key has a specific value | `required_if` | `required_if=QUEUE_DRIVER sqs` |
-| Required when another key is present/non-empty | `required_with` | `required_with=MAIL_DRIVER` |
-| Required when any of several keys are present | `required_with` with multiple fields | `required_with=HOST PORT` |
-| Required when another key is missing/empty | `required_without` | `required_without=REDIS_URL` |
-| Required when all listed keys are missing/empty | `required_without_all` | `required_without_all=REDIS_URL MEMCACHED_URL` |
-| Optional, but must match format when set | `omitempty,<rule>` | `omitempty,email` |
-| Accept one of two formats | `<ruleA>|<ruleB>` | `email|fqdn` |
-
-### Examples
-
-```env
-# @dottie/source https://example.com/.env.template
-
-# @dottie/validate required,number
-PORT=3306
-
-# @dottie/exec ./scripts/resolve-version.sh
-APP_VERSION=""
-
-# @dottie/hidden
-INTERNAL_DEBUG_TOKEN="secret"
-```
-
-### Notes
-
-* `@dottie/validate` supports validator tags (for example: `required`, `number`, `email`, `boolean`, `oneof`, `dir`, `file`, `fqdn`, `hostname`, `http_url`, `ne`, and more).
-* `@dottie/exec` expects exactly one exec annotation per assignment.
-* Any non-`dottie/*` annotation is still parsed and preserved, but has no built-in command behavior unless consumed by your own tooling/templates.
-
 ## Example
 
 > [!WARNING]
@@ -397,6 +255,8 @@ All commands support the following global flags:
 
 Set/update one or multiple key=value pairs.
 
+Related: [Annotation Reference](#annotation-reference)
+
 ```
 dottie set KEY=VALUE [KEY=VALUE ...] [flags]
 ```
@@ -477,6 +337,8 @@ Error: Key: 'PORT' Error:Field validation for 'PORT' failed on the 'number' tag
 [↑ Back to Commands](#commands)
 
 Update the `.env` file from a source.
+
+Related: [Annotation Reference](#annotation-reference)
 
 ```
 dottie update [flags]
@@ -1166,6 +1028,281 @@ dottie completion zsh > ~/.zsh/completions/_dottie
 Then ensure your shell's completion path includes that directory.
 
 </details>
+
+---
+
+## Annotation Reference
+
+Annotations are comment lines with this format:
+
+```text
+# @<annotation-key> <annotation-value>
+```
+
+In Dottie, annotations are parsed from comments and attached to the following assignment (or treated as document-level config where relevant).
+
+### Supported `@dottie/*` Annotations
+
+| Annotation | Scope | Value | Used By | Purpose |
+| --- | --- | --- | --- | --- |
+| `@dottie/validate` | Assignment | Validation rule string (e.g. `required,number`) | `dottie validate`, `dottie set`, `dottie exec`, `dottie update` (validation during updates) | Validates assignment values using validator rules |
+| `@dottie/source` | Document-level config | Source URL/path | `dottie update` | Declares default upstream source when `--source` is not provided |
+| `@dottie/exec` | Assignment | Shell command | `dottie exec` | Runs command and writes command output back into assignment value |
+| `@dottie/hidden` | Assignment | Optional/ignored | Shell completion | Hides assignment from interactive key completion suggestions |
+
+### `@dottie/source` Reference
+
+Declares the default source file/URL used by `dottie update` and `dottie exec` when `--source` is not provided.
+
+Syntax:
+
+```env
+# @dottie/source <url-or-file-path>
+```
+
+Example:
+
+```env
+# @dottie/source https://example.com/.env.template
+APP_NAME="my-app"
+```
+
+Explainer:
+
+* Use this when your project has a canonical upstream template.
+* `--source` always overrides the annotation for that command run.
+
+### `@dottie/exec` Reference
+
+Defines the command used by `dottie exec` to compute/update the value for the annotated key.
+
+Syntax:
+
+```env
+# @dottie/exec <command>
+KEY=""
+```
+
+Example:
+
+```env
+# @dottie/exec ./scripts/git-sha.sh
+APP_VERSION=""
+```
+
+Explainer:
+
+* Command output is used as the assignment value.
+* Keep one `@dottie/exec` annotation per assignment.
+
+### `@dottie/hidden` Reference
+
+Marks an assignment as hidden from shell completion suggestions.
+
+Syntax:
+
+```env
+# @dottie/hidden
+KEY="value"
+```
+
+Example:
+
+```env
+# @dottie/hidden
+INTERNAL_DEBUG_TOKEN="secret"
+```
+
+Explainer:
+
+* Helps reduce noise for internal-only keys.
+* The key still exists and behaves normally in file parsing/commands.
+
+### `@dottie/validate` Reference
+
+`@dottie/validate` attaches validation rules to the next assignment.
+
+Syntax:
+
+```env
+# @dottie/validate <rule>[,<rule>...]
+KEY=value
+```
+
+Rules are evaluated by `go-playground/validator/v10` via Dottie (`validator.ValidateMap`), so the annotation value is passed through as validator tags.
+
+Tag syntax (from validator/v10):
+
+* **AND**: separate rules with commas: `required,email`
+* **OR**: separate alternatives with pipe: `rgb|rgba`
+* **Rule parameter**: use `=`: `min=3`, `oneof=dev staging prod`
+* **Escaping separators in parameters**:
+  * Use `0x2C` for literal comma in a parameter value
+  * Use `0x7C` for literal pipe in a parameter value
+
+Validator tags Dottie can use well (for scalar `.env` values):
+
+#### Presence and conditional tags
+
+| Tag | What it checks | Dottie annotation syntax example |
+| --- | --- | --- |
+| `required` | Value must be set/non-empty | `# @dottie/validate required` |
+| `omitempty` | Skip later checks when value is empty | `# @dottie/validate omitempty,email` |
+| `required_if` | Required when another key equals a value | `# @dottie/validate required_if=QUEUE_DRIVER sqs` |
+| `required_unless` | Required unless another key equals a value | `# @dottie/validate required_unless=APP_ENV local` |
+| `required_with` | Required if any listed keys are present | `# @dottie/validate required_with=MAIL_DRIVER` |
+| `required_with_all` | Required if all listed keys are present | `# @dottie/validate required_with_all=DB_HOST DB_PORT` |
+| `required_without` | Required if any listed keys are missing | `# @dottie/validate required_without=REDIS_URL` |
+| `required_without_all` | Required if all listed keys are missing | `# @dottie/validate required_without_all=REDIS_URL MEMCACHED_URL` |
+| `excluded_if` | Must be empty when condition matches | `# @dottie/validate excluded_if=APP_ENV production` |
+| `excluded_unless` | Must be empty unless condition matches | `# @dottie/validate excluded_unless=APP_ENV local` |
+
+#### Length, comparison, and enum-like tags
+
+| Tag | What it checks | Dottie annotation syntax example |
+| --- | --- | --- |
+| `len` | Exact length / exact numeric size | `# @dottie/validate len=32` |
+| `min` | Minimum length/value | `# @dottie/validate min=8` |
+| `max` | Maximum length/value | `# @dottie/validate max=255` |
+| `eq` | Exactly equals parameter | `# @dottie/validate eq=enabled` |
+| `ne` | Must not equal parameter | `# @dottie/validate ne=changeme` |
+| `gt` | Greater than parameter | `# @dottie/validate gt=0` |
+| `gte` | Greater than or equal | `# @dottie/validate gte=1` |
+| `lt` | Less than parameter | `# @dottie/validate lt=65536` |
+| `lte` | Less than or equal | `# @dottie/validate lte=65535` |
+| `oneof` | Value must be one of allowed options | `# @dottie/validate oneof=dev staging production` |
+| `oneofci` | Case-insensitive `oneof` | `# @dottie/validate oneofci=debug info warn error` |
+
+#### String content tags
+
+| Tag | What it checks | Dottie annotation syntax example |
+| --- | --- | --- |
+| `number` | Numeric format | `# @dottie/validate number` |
+| `numeric` | Basic numeric string | `# @dottie/validate numeric` |
+| `boolean` | Bool-parsable value | `# @dottie/validate boolean` |
+| `alpha` | Letters only | `# @dottie/validate alpha` |
+| `alphanum` | Letters/numbers only | `# @dottie/validate alphanum` |
+| `ascii` | ASCII characters only | `# @dottie/validate ascii` |
+| `lowercase` | Lowercase only | `# @dottie/validate lowercase` |
+| `uppercase` | Uppercase only | `# @dottie/validate uppercase` |
+| `contains` | Must contain substring | `# @dottie/validate contains=://` |
+| `excludes` | Must not contain substring | `# @dottie/validate excludes=@` |
+| `startswith` | Must start with value | `# @dottie/validate startswith=https://` |
+| `endswith` | Must end with value | `# @dottie/validate endswith=.example.com` |
+
+#### URL, host, network, and path tags
+
+| Tag | What it checks | Dottie annotation syntax example |
+| --- | --- | --- |
+| `email` | Valid e-mail format | `# @dottie/validate email` |
+| `url` | Valid URL | `# @dottie/validate url` |
+| `uri` | Valid URI | `# @dottie/validate uri` |
+| `http_url` | Valid HTTP/HTTPS URL | `# @dottie/validate http_url` |
+| `https_url` | Valid HTTPS URL | `# @dottie/validate https_url` |
+| `hostname` | Valid hostname | `# @dottie/validate hostname` |
+| `hostname_rfc1123` | RFC1123 hostname | `# @dottie/validate hostname_rfc1123` |
+| `fqdn` | Fully qualified domain name | `# @dottie/validate fqdn` |
+| `hostname_port` | Hostname + port | `# @dottie/validate hostname_port` |
+| `port` | Port number range | `# @dottie/validate port` |
+| `ip` | Valid IP address | `# @dottie/validate ip` |
+| `ipv4` | Valid IPv4 address | `# @dottie/validate ipv4` |
+| `ipv6` | Valid IPv6 address | `# @dottie/validate ipv6` |
+| `cidr` | Valid CIDR block | `# @dottie/validate cidr` |
+| `mac` | Valid MAC address | `# @dottie/validate mac` |
+| `dir` | Existing directory path | `# @dottie/validate dir` |
+| `dirpath` | Directory path syntax | `# @dottie/validate dirpath` |
+| `file` | Existing file path | `# @dottie/validate file` |
+| `filepath` | File path syntax | `# @dottie/validate filepath` |
+
+#### Common format and identifier tags
+
+| Tag | What it checks | Dottie annotation syntax example |
+| --- | --- | --- |
+| `uuid` | UUID format | `# @dottie/validate uuid` |
+| `ulid` | ULID format | `# @dottie/validate ulid` |
+| `semver` | Semantic version | `# @dottie/validate semver` |
+| `cron` | Cron expression | `# @dottie/validate cron` |
+| `json` | JSON-encoded string | `# @dottie/validate json` |
+| `jwt` | JWT format | `# @dottie/validate jwt` |
+| `hexcolor` | Hex color string | `# @dottie/validate hexcolor` |
+| `rgb` | RGB color string | `# @dottie/validate rgb` |
+| `rgba` | RGBA color string | `# @dottie/validate rgba` |
+| `base64` | Base64 string | `# @dottie/validate base64` |
+| `timezone` | Time zone identifier | `# @dottie/validate timezone` |
+
+Examples:
+
+```env
+# @dottie/validate required,oneof=dev staging production
+APP_ENV=dev
+
+# @dottie/validate required_if=QUEUE_DRIVER sqs
+SQS_QUEUE=
+
+# @dottie/validate required,dir
+STORAGE_PATH=/var/lib/myapp
+
+# @dottie/validate omitempty,oneof=debug info warn error
+LOG_LEVEL=info
+
+# @dottie/validate required,email|fqdn
+CONTACT=ops@example.com
+```
+
+Notes:
+
+* Multiple rules are comma-separated.
+* Alternative rules can be expressed with `|` (OR logic).
+* `dottie validate --ignore-rule <tag>` can suppress a specific failing tag (for example `dir`).
+* Invalid rule names (for example `invalid-rule`) are treated as validation configuration errors.
+* Dottie delegates rule behavior to validator/v10; exact availability follows the validator version in Dottie.
+* Validator reference: <https://pkg.go.dev/github.com/go-playground/validator/v10>
+
+#### Validator gotchas
+
+* **Use `required_if` for value-based conditions**
+  * Example: `required_if=QUEUE_DRIVER sqs` means “required only when `QUEUE_DRIVER` is exactly `sqs`”.
+* **Use `required_with` for presence-based conditions**
+  * Example: `required_with=MAIL_DRIVER` means “required when `MAIL_DRIVER` is set to any non-empty value”.
+* **Cross-field rules depend on key names**
+  * Tags like `required_if` and `required_with` reference other assignment keys by name; typos in key names make rules behave unexpectedly.
+* **`omitempty` short-circuits the rest of the tag chain**
+  * `omitempty,email` passes on empty values, but validates as email when a value is provided.
+* **OR (`|`) only applies inside the same tag expression**
+  * `email|fqdn` means either format is accepted; combine with commas for additional required checks (e.g. `required,email|fqdn`).
+
+Decision table:
+
+| If you need... | Use | Example |
+| --- | --- | --- |
+| Required only when another key has a specific value | `required_if` | `required_if=QUEUE_DRIVER sqs` |
+| Required when another key is present/non-empty | `required_with` | `required_with=MAIL_DRIVER` |
+| Required when any of several keys are present | `required_with` with multiple fields | `required_with=HOST PORT` |
+| Required when another key is missing/empty | `required_without` | `required_without=REDIS_URL` |
+| Required when all listed keys are missing/empty | `required_without_all` | `required_without_all=REDIS_URL MEMCACHED_URL` |
+| Optional, but must match format when set | `omitempty,<rule>` | `omitempty,email` |
+| Accept one of two formats | `<ruleA>|<ruleB>` | `email|fqdn` |
+
+### Examples
+
+```env
+# @dottie/source https://example.com/.env.template
+
+# @dottie/validate required,number
+PORT=3306
+
+# @dottie/exec ./scripts/resolve-version.sh
+APP_VERSION=""
+
+# @dottie/hidden
+INTERNAL_DEBUG_TOKEN="secret"
+```
+
+### Notes
+
+* `@dottie/validate` supports validator tags (for example: `required`, `number`, `email`, `boolean`, `oneof`, `dir`, `file`, `fqdn`, `hostname`, `http_url`, `ne`, and more).
+* `@dottie/exec` expects exactly one exec annotation per assignment.
+* Any non-`dottie/*` annotation is still parsed and preserved, but has no built-in command behavior unless consumed by your own tooling/templates.
 
 ---
 
