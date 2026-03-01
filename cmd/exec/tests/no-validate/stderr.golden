@@ -1,12 +1,8 @@
 --------------------------------------------------------------------------------
-- Output of command from line 1 in [tests/echo-validate.run]:
-- [exec]
+- Output of command from line 1 in [tests/no-validate.run]:
+- [exec --no-validate]
 --------------------------------------------------------------------------------
 
   OUTPUT ( /fake/testing/path/tmp.env:3 )
     * (ne) The value [failure] must not be equal to [failure].
 
-Error: validation failed
-Run 'dottie exec --help' for usage.
-
-(Command exited with error)

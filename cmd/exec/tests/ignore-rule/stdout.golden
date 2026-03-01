@@ -1,0 +1,12 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/ignore-rule.run]:
+- [exec --ignore-rule ne]
+--------------------------------------------------------------------------------
+
+Running exec command for assignment [ OUTPUT ]
+  Command: [ echo 'failure' ]
+  Output : [ failure ]
+  Validation succeeded
+
+All exec commands completed successfully
+File successfully saved

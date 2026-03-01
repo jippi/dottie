@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -45,10 +46,22 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	var selectors []ast.Selector
+
+	selectors = append(selectors, ast.ExcludeDisabledAssignments)
+
+	for _, prefix := range shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix") {
+		selectors = append(selectors, ast.ExcludeKeyPrefix(prefix))
+	}
+
+	ignoreRules := shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
+	shouldValidate := shared.BoolWithInverseValue(cmd.Flags(), "validate")
+	shouldSave := shared.BoolWithInverseValue(cmd.Flags(), "save")
+
 	out := tui.StdoutFromContext(cmd.Context())
 	count := 0
 
-	for _, assignment := range document.AllAssignments(ast.ExcludeDisabledAssignments) {
+	for _, assignment := range document.AllAssignments(selectors...) {
 		annotations := assignment.Annotation("dottie/exec")
 		if len(annotations) == 0 {
 			continue
@@ -103,7 +116,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		assignment.SetLiteral(cmd.Context(), output)
 
 		// Validate the assignment
-		validationErrors, err := document.ValidateSingleAssignment(cmd.Context(), assignment, nil, nil)
+		validationErrors, err := document.ValidateSingleAssignment(cmd.Context(), assignment, nil, ignoreRules)
 		if err != nil {
 			return err
 		}
@@ -111,7 +124,13 @@ func runE(cmd *cobra.Command, args []string) error {
 		if validationErrors != nil {
 			fmt.Fprintln(cmd.ErrOrStderr(), validation.Explain(cmd.Context(), document, validationErrors, assignment, false, true))
 
-			return err
+			if shouldValidate {
+				return errors.New("validation failed")
+			}
+
+			out.Warning().Println("  Validation failed, but continuing because [--no-validate] was provided")
+
+			continue
 		}
 
 		out.Success().Println("  Validation succeeded")
@@ -119,6 +138,12 @@ func runE(cmd *cobra.Command, args []string) error {
 
 	out.NoColor().Println()
 	out.Success().Println("All exec commands completed successfully")
+
+	if !shouldSave {
+		out.Warning().Println("[--no-save] was provided, not saving file")
+
+		return nil
+	}
 
 	if err := pkg.Save(cmd.Context(), filename, document); err != nil {
 		return err
