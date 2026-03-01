@@ -41,13 +41,12 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tui.StdoutFromContext(cmd.Context()).
-		NoColor().
-		Println(
-			render.NewRenderer(*settings).
-				Statement(cmd.Context(), document).
-				String(),
-		)
+	output := render.NewRenderer(*settings).
+		Statement(cmd.Context(), document).
+		String()
+
+	writer := tui.StdoutFromContext(cmd.Context())
+	writer.NoColor().Println(output)
 
 	return nil
 }
