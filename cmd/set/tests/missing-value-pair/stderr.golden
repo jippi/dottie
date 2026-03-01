@@ -1,0 +1,9 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/missing-value-pair.run]:
+- [set ONLY_KEY]
+--------------------------------------------------------------------------------
+
+Error: key [ ONLY_KEY ] Error: expected [KEY VALUE] arguments pair, missing [ VALUE ] argument
+Run 'dottie set --help' for usage.
+
+(Command exited with error)
