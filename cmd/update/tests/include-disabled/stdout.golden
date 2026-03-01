@@ -1,0 +1,33 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/include-disabled.run]:
+- [update --source tests/include-disabled.source --ignore-disabled=false --no-backup --no-validate]
+--------------------------------------------------------------------------------
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                   Starting update of env file from source                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for source configuration
+  Found source via CLI flag
+
+Copying source from tests/include-disabled.source
+  OK
+
+Loading and parsing source
+  OK
+
+Updating source with key/value pairs from __TMP__/tmp.env
+
+  [DISABLED_KEY] was successfully set to [user]
+  [ENABLED_KEY] was successfully set to [user]
+
+Saving the new __TMP__/tmp.env
+  OK
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                        Update successfully completed                         │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
