@@ -622,6 +622,15 @@ func TestExtractVariables(t *testing.T) {
 				"bar": {Name: "bar", DefaultValue: "<(cat /dev/null)"},
 			},
 		},
+		{
+			name: "alternate-with-empty-value",
+			dict: map[string]interface{}{
+				"foo": "${0+}",
+			},
+			expected: map[string]templatepkg.Variable{
+				"0": {Name: "0"},
+			},
+		},
 	}
 
 	for _, tt := range testCases {

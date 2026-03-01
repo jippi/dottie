@@ -172,6 +172,12 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 		for _, partInterface := range w.Parts {
 			switch part := partInterface.(type) {
 			case *syntax.ParamExp:
+				if part.Param == nil {
+					// Some malformed parameter expressions can produce ParamExp nodes
+					// without a parameter name; skip those safely.
+					continue
+				}
+
 				variable := Variable{
 					Name: part.Param.Value,
 				}
@@ -188,7 +194,9 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 					}
 
 					if slices.Contains([]syntax.ParExpOperator{syntax.AlternateUnset, syntax.AlternateUnsetOrNull}, part.Exp.Op) {
-						variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+						if part.Exp.Word != nil && len(part.Exp.Word.Parts) > 0 {
+							variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+						}
 					}
 				}
 
