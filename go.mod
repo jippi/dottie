@@ -2,8 +2,6 @@ module github.com/jippi/dottie
 
 go 1.26.0
 
-replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
-
 require (
 	charm.land/lipgloss/v2 v2.0.0
 	github.com/Masterminds/sprig/v3 v3.3.0
