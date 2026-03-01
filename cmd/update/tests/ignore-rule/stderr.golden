@@ -1,0 +1,6 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/ignore-rule.run]:
+- [update --source tests/ignore-rule.source --ignore-rule number --no-backup]
+--------------------------------------------------------------------------------
+
+(no output to stderr)

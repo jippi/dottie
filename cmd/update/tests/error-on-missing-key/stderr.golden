@@ -1,0 +1,10 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/error-on-missing-key.run]:
+- [update --source tests/error-on-missing-key.source --error-on-missing-key --no-backup]
+--------------------------------------------------------------------------------
+
+  [KEY_NOT_IN_SOURCE] was skipped: the key does not exists in the document (ErrorIfMissing)
+Error: some fields failed validation, aborting
+Run 'dottie update --help' for usage.
+
+(Command exited with error)
