@@ -62,11 +62,15 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 	document = ast.NewDocument()
 
 	for p.token.Type != token.EOF {
+		// Keep parser logging metadata-only here so malformed/oversized fuzz inputs
+		// don't force large literal allocations while building structured log attrs.
 		ctx := slogctx.With(
 			ctx,
 			slog.Group("parser_state",
 				slog.String("filename", p.filename),
-				slog.Any("token", p.token),
+				slog.String("token_type", p.token.Type.String()),
+				slog.Uint64("token_line", uint64(p.token.LineNumber)),
+				slog.Bool("token_commented", p.token.Commented),
 			),
 			slog.String("source", "parser"),
 		)

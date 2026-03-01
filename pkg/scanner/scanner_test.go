@@ -1,6 +1,7 @@
 package scanner_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/scanner"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+const oversizedValuePadding = 70 * 1024
 
 func TestScanner_NextToken_Trivial(t *testing.T) {
 	t.Parallel()
@@ -239,6 +242,33 @@ func TestScanner_NextToken_Valid_Identifier(t *testing.T) {
 			assert.Equal(t, tt.expectedLiteral, actual.Literal)
 		})
 	}
+}
+
+func TestScanner_NextToken_OversizedUnquotedValueReturnsIllegal(t *testing.T) {
+	t.Parallel()
+
+	input := "A=" + strings.Repeat("\x8f", oversizedValuePadding)
+	sc := scanner.New(input)
+
+	assert.Equal(t, token.Identifier, sc.NextToken(t.Context()).Type)
+	assert.Equal(t, token.Assign, sc.NextToken(t.Context()).Type)
+
+	value := sc.NextToken(t.Context())
+	assert.Equal(t, token.Illegal, value.Type)
+	assert.Equal(t, "value exceeds maximum supported length", value.Literal)
+}
+
+func TestScanner_NextToken_OversizedQuotedValueReturnsIllegal(t *testing.T) {
+	t.Parallel()
+
+	input := "A=\"" + strings.Repeat("a", oversizedValuePadding) + "\""
+	sc := scanner.New(input)
+
+	assert.Equal(t, token.Identifier, sc.NextToken(t.Context()).Type)
+	assert.Equal(t, token.Assign, sc.NextToken(t.Context()).Type)
+
+	value := sc.NextToken(t.Context())
+	assert.Equal(t, token.Illegal, value.Type)
 }
 
 func TestScanner_NextToken_Naked_Value(t *testing.T) {

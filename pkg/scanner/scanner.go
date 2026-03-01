@@ -23,6 +23,10 @@ var escaper = strings.NewReplacer(
 const (
 	bom = 0xFEFF // byte order mark, only permitted as the first character
 	eof = -1     // eof indicates the end of the file.
+
+	// maxValueTokenBytes bounds scanner work for a single value token to prevent
+	// pathological inputs from forcing extremely expensive scans during parsing.
+	maxValueTokenBytes = 64 * 1024
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -260,6 +264,15 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	start := s.offset
 
 	for !isEOF(s.rune) && !isNewLine(s.rune) {
+		if s.offset-start >= maxValueTokenBytes {
+			return token.New(
+				token.Illegal,
+				token.WithLiteral("value exceeds maximum supported length"),
+				token.WithOffset(s.offset),
+				token.WithLineNumber(s.lineNumber),
+			)
+		}
+
 		s.next()
 	}
 
@@ -309,6 +322,12 @@ func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote tok
 
 		if escapes == 2 {
 			escapes = 0
+		}
+
+		if s.offset-start >= maxValueTokenBytes {
+			tType = token.Illegal
+
+			break
 		}
 
 		s.next()
