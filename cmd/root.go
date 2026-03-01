@@ -41,25 +41,25 @@ func NewRootCommand() *cobra.Command {
 	root.AddGroup(&cobra.Group{ID: "manipulate", Title: "Manipulation Commands"})
 	root.AddGroup(&cobra.Group{ID: "output", Title: "Output Commands"})
 
+	root.AddCommand(set_cmd.New())
+	root.AddCommand(update_cmd.New())
+	root.AddCommand(fmt_cmd.New())
 	root.AddCommand(disable_cmd.New())
 	root.AddCommand(enable_cmd.New())
 	root.AddCommand(exec_cmd.New())
-	root.AddCommand(fmt_cmd.New())
-	root.AddCommand(set_cmd.New())
 	root.AddCommand(shell_cmd.New())
-	root.AddCommand(template_cmd.New())
-	root.AddCommand(update_cmd.New())
 
 	root.AddCommand(print_cmd.New())
-	root.AddCommand(value_cmd.New())
 	root.AddCommand(validate_cmd.New())
+	root.AddCommand(value_cmd.New())
 	root.AddCommand(groups_cmd.New())
 	root.AddCommand(json_cmd.New())
+	root.AddCommand(template_cmd.New())
 
 	return root
 }
 
-func RunCommand(ctx context.Context, args []string, stdout io.Writer, stderr io.Writer) (*cobra.Command, error) {
+func RunCommand(ctx context.Context, args []string, stdout, stderr io.Writer) (*cobra.Command, error) {
 	root := NewRootCommand()
 	root.SilenceErrors = true
 	root.SilenceUsage = true

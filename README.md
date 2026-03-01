@@ -2,17 +2,37 @@
 
 ## About
 
-`dottie` (pronounced `dotty`) is a tool for working with dot-env (`.env`) files more enjoyable and safe.
+`dottie` (pronounced `dotty`) makes `.env` files maintainable at scale.
 
-* Grouping of keys into logical sections
-* Rich validation of key/value pairs via comment "annotations"
-* Update/sync/migrate a `.env` file from an upstream/external source for easy upgrades/migrations.
-* Create/Read/Update/Delete commands for easy programmatic manipulation of the `.env` file.
-* JSON representation of the `.env` file for templating or external consumption.
-* Enable (uncomment) and Disable (comment) KEY/VALUE pairs.
-* Colorized / pretty / dense / export output.
-* Filtering by key/prefix/groups when printing keys.
-* Literal (what you see is what you get) or interpolated (shell-like interpolation of variables) modes.
+Most teams start with a small `.env`, then over time it becomes hard to review, risky to edit, and difficult to keep in sync across environments. Dottie turns `.env` from a plain text dump into a structured, validated, automatable configuration document.
+
+### Why Dottie Is Useful
+
+* **Safer changes** — validate values before they ship (e.g. URL, number, email, required values).
+* **Less drift** — update local `.env` files from an upstream template while preserving local values.
+* **Better readability** — keep sections, comments, formatting, and optional/disabled values organized.
+* **Automation-friendly** — query values, print JSON, or render custom docs/templates from the `.env` model.
+* **Team-friendly workflows** — treat `.env` as code with predictable formatting and command-driven edits.
+
+### What Dottie Can Do
+
+* **Create and update values** with comments, quote styles, ordering, and groups.
+* **Enable/disable keys** without losing the original value.
+* **Validate** values using annotation-based rules.
+* **Format** files for consistent style.
+* **Print** in multiple styles (compact, pretty, export, filtered, with/without disabled keys).
+* **Read specific values** as literal or interpolated output.
+* **List groups** and inspect file structure.
+* **Export JSON** for external tooling.
+* **Render templates** for generated docs or config artifacts.
+
+### Core Concepts
+
+* **Annotations in comments** (e.g. `@dottie/validate`, `@dottie/source`) attach metadata to keys.
+* **Groups** organize keys into logical sections.
+* **Interpolation** resolves references like `${PORT}` when desired.
+* **Disabled keys** are preserved as commented assignments and can be re-enabled later.
+* **Upstream source templates** let you evolve defaults without overwriting local intent.
 
 ## Example
 
@@ -20,10 +40,10 @@
 > Run these example commands in a directory without an existing `.env` file
 
 ```shell
-# Crate a new env file
+# Create a new `.env` file
 touch .env
 
-# Create a key/pair value
+# Create a key/value pair
 dottie set my_key=value
 
 # Create another key (PORT) with value "3306"
@@ -56,14 +76,14 @@ dottie validate
 dottie set PORT=3306
 
 # Create a new key/value pair in a group named "database"
-# NOTE: the group will be created on-demand if it does not exists
+# NOTE: the group will be created on-demand if it does not exist
 dottie set \
   --group database \
   --comment 'the hostname to the database' \
   DB_HOST="db"
 
 # Create a "DB_PORT" key pair in the same "database" group as before
-# NOTE: this value refer to the 'PORT' key we set above via interpolation
+# NOTE: this value refers to the 'PORT' key we set above via interpolation
 dottie set \
   --group database \
   --comment 'the port for the database' \
@@ -88,15 +108,23 @@ dottie print --pretty --with-disabled
 dottie enable DB_PORT
 ```
 
+This flow shows the core Dottie lifecycle:
+
+1. Create and annotate keys (`set` + comments + validation rules)
+2. Validate correctness (`validate`)
+3. Inspect output in different modes (`print`, `value`, `json`)
+4. Temporarily toggle behavior (`disable` / `enable`)
+5. Keep everything readable and consistent over time (`fmt`, `update`)
+
 ## Install
 
-### homebrew tap
+### Homebrew Tap
 
 ```shell
 brew install jippi/tap/dottie
 ```
 
-### apt
+### APT
 
 ```shell
 echo 'deb [trusted=yes] https://pkg.jippi.dev/apt/ * *' | sudo tee /etc/apt/sources.list.d/dottie.list
@@ -104,7 +132,7 @@ sudo apt update
 sudo apt install dottie
 ```
 
-### yum
+### YUM
 
 ```shell
 echo '[dottie]
@@ -115,38 +143,38 @@ gpgcheck=0' | sudo tee /etc/yum.repos.d/dottie.repo
 sudo yum install dottie
 ```
 
-### snapcraft
+### Snapcraft
 
 ```shell
 sudo snap install dottie
 ```
 
-### scoop
+### Scoop
 
 ```shell
 scoop bucket add dottie https://github.com/jippi/scoop-bucket.git
 scoop install dottie
 ```
 
-### aur
+### AUR
 
 ```shell
 yay -S dottie-bin
 ```
 
-### deb, rpm and apk packages
+### Deb, RPM, and APK Packages
 
 Download the `.deb`, `.rpm` or `.apk` packages from the [releases page](https://github.com/jippi/dottie/releases) and install them with the appropriate tools.
 
-### go install
+### Go Install
 
 ```shell
 go install github.com/jippi/dottie@latest
 ```
 
-## Verifying the artifacts
+## Verifying the Artifacts
 
-### binaries
+### Binaries
 
 All artifacts are checksummed, and the checksum file is signed with [cosign](https://github.com/sigstore/cosign).
 
@@ -168,7 +196,7 @@ All artifacts are checksummed, and the checksum file is signed with [cosign](htt
     sha256sum --ignore-missing -c checksums.txt
     ```
 
-### docker images
+### Docker Images
 
 Our Docker images are signed with [cosign](https://github.com/sigstore/cosign).
 
@@ -186,6 +214,27 @@ cosign verify \
 
 ## Commands
 
+Quick navigation (ordered by common usage):
+
+* [Global Flags](#global-flags)
+* [Manipulation Commands](#manipulation-commands)
+  * [`dottie set`](#dottie-set)
+  * [`dottie update`](#dottie-update)
+  * [`dottie fmt`](#dottie-fmt)
+  * [`dottie disable`](#dottie-disable)
+  * [`dottie enable`](#dottie-enable)
+  * [`dottie exec`](#dottie-exec)
+  * [`dottie shell`](#dottie-shell)
+* [Output Commands](#output-commands)
+  * [`dottie print`](#dottie-print)
+  * [`dottie validate`](#dottie-validate)
+  * [`dottie value`](#dottie-value)
+  * [`dottie groups`](#dottie-groups)
+  * [`dottie json`](#dottie-json)
+  * [`dottie template`](#dottie-template)
+* [Additional Commands](#additional-commands)
+  * [`dottie completion`](#dottie-completion)
+
 ### Global Flags
 
 All commands support the following global flags:
@@ -199,151 +248,9 @@ All commands support the following global flags:
 
 ### Manipulation Commands
 
-#### `dottie disable`
-
-Disable (comment out) a KEY if it exists. The key is prefixed with `#` to comment it out, making it invisible to normal `print` output while preserving the value for later re-enabling.
-
-```
-dottie disable KEY [flags]
-```
-
-<details>
-<summary>Example</summary>
-
-Given a `.env` file:
-
-```env
-APP_NAME="dottie"
-
-# Database port
-DB_PORT="3306"
-```
-
-Running:
-
-```shell
-$ dottie disable DB_PORT
-Key [ DB_PORT ] was successfully disabled
-```
-
-The `.env` file is now:
-
-```env
-APP_NAME="dottie"
-
-# Database port
-#DB_PORT="3306"
-```
-
-The key is commented out with `#` but all comments above it are preserved. Use `dottie print --with-disabled` to still see disabled keys in output.
-
-</details>
-
----
-
-#### `dottie enable`
-
-Enable (uncomment) a KEY if it exists. Removes the leading `#` from a previously disabled key, making it active again.
-
-```
-dottie enable KEY [flags]
-```
-
-<details>
-<summary>Example</summary>
-
-Given a `.env` file with a disabled key:
-
-```env
-# Database port
-#DB_PORT="3306"
-```
-
-Running:
-
-```shell
-$ dottie enable DB_PORT
-Key [ DB_PORT ] was successfully enabled
-```
-
-The `.env` file is now:
-
-```env
-# Database port
-DB_PORT="3306"
-```
-
-</details>
-
----
-
-#### `dottie exec`
-
-Update the .env file from a source.
-
-```
-dottie exec [flags]
-```
-
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--error-on-missing-key` | Error if a KEY in FILE is missing from SOURCE | |
-| `--no-error-on-missing-key` | Add KEY to FILE if missing from SOURCE | `true` |
-| `--exclude-key-prefix` | Ignore these KEY prefixes | |
-| `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
-| `--save` / `--no-save` | Save the document after processing | `true` |
-| `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
-| `--source` | URL or local file path to the upstream source file. Takes precedence over any `@dottie/source` annotation in the file | |
-
----
-
-#### `dottie fmt`
-
-Format a .env file. Ensures consistent spacing by adding blank lines between key/value groups, especially before comment blocks.
-
-```
-dottie fmt [flags]
-```
-
-<details>
-<summary>Example</summary>
-
-Given a `.env` file with inconsistent spacing:
-
-```env
-KEY1=hello
-# Comment for KEY2
-KEY2=world
-# Comment for KEY3
-KEY3=test
-```
-
-Running:
-
-```shell
-$ dottie fmt
-File was successfully formatted
-```
-
-The `.env` file is now properly spaced:
-
-```env
-KEY1=hello
-
-# Comment for KEY2
-KEY2=world
-
-# Comment for KEY3
-KEY3=test
-```
-
-Blank lines are automatically added before comment blocks to improve readability.
-
-</details>
-
----
-
 #### `dottie set`
+
+[↑ Back to Commands](#commands)
 
 Set/update one or multiple key=value pairs.
 
@@ -357,7 +264,7 @@ dottie set KEY=VALUE [KEY=VALUE ...] [flags]
 | `--before` | If the key doesn't exist, add it to the file *before* this KEY | |
 | `--comment` | Set one or multiple lines of comments to the KEY=VALUE pair | |
 | `--disabled` | Set/change the flag to be disabled (commented out) | |
-| `--error-if-missing` | Exit with an error if the KEY does not exist in the .env file already | |
+| `--error-if-missing` | Exit with an error if the KEY does not exist in the `.env` file already | |
 | `--group` | The (optional) group name to add the KEY=VALUE pair under | |
 | `--quote-style` | The quote style to use (`single`, `double`, `none`) | `double` |
 | `--skip-if-exists` | If the KEY already exists, do not set or change any settings | |
@@ -422,19 +329,11 @@ Error: Key: 'PORT' Error:Field validation for 'PORT' failed on the 'number' tag
 
 ---
 
-#### `dottie shell`
-
-Interactive dottie shell.
-
-```
-dottie shell [flags]
-```
-
----
-
 #### `dottie update`
 
-Update the .env file from a source.
+[↑ Back to Commands](#commands)
+
+Update the `.env` file from a source.
 
 ```
 dottie update [flags]
@@ -442,12 +341,12 @@ dottie update [flags]
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--backup` / `--no-backup` | Should the .env file be backed up before updating it? | `true` |
+| `--backup` / `--no-backup` | Should the `.env` file be backed up before updating it? | `true` |
 | `--backup-file` | File path to write the backup to (by default it will write a `.env.dottie-backup` file in the same directory) | |
 | `--error-on-missing-key` | Error if a KEY in FILE is missing from SOURCE | |
 | `--no-error-on-missing-key` | Add KEY to FILE if missing from SOURCE | `true` |
 | `--exclude-key-prefix` | Ignore these KEY prefixes | |
-| `--ignore-disabled` | Ignore disabled KEY/VALUE pairs from the .env file | `true` |
+| `--ignore-disabled` | Ignore disabled KEY/VALUE pairs from the `.env` file | `true` |
 | `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
 | `--save` / `--no-save` | Save the document after processing | `true` |
 | `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
@@ -485,9 +384,197 @@ A backup file (`.env.dottie-backup`) is created by default before updating.
 
 ---
 
+#### `dottie fmt`
+
+[↑ Back to Commands](#commands)
+
+Format a `.env` file. Ensures consistent spacing by adding blank lines between key/value groups, especially before comment blocks.
+
+```
+dottie fmt [flags]
+```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file with inconsistent spacing:
+
+```env
+KEY1=hello
+# Comment for KEY2
+KEY2=world
+# Comment for KEY3
+KEY3=test
+```
+
+Running:
+
+```shell
+$ dottie fmt
+File was successfully formatted
+```
+
+The `.env` file is now properly spaced:
+
+```env
+KEY1=hello
+
+# Comment for KEY2
+KEY2=world
+
+# Comment for KEY3
+KEY3=test
+```
+
+Blank lines are automatically added before comment blocks to improve readability.
+
+</details>
+
+---
+
+#### `dottie disable`
+
+[↑ Back to Commands](#commands)
+
+Disable (comment out) a KEY if it exists. The key is prefixed with `#` to comment it out, making it invisible to normal `print` output while preserving the value for later re-enabling.
+
+```
+dottie disable KEY [flags]
+```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file:
+
+```env
+APP_NAME="dottie"
+
+# Database port
+DB_PORT="3306"
+```
+
+Running:
+
+```shell
+$ dottie disable DB_PORT
+Key [ DB_PORT ] was successfully disabled
+```
+
+The `.env` file is now:
+
+```env
+APP_NAME="dottie"
+
+# Database port
+#DB_PORT="3306"
+```
+
+The key is commented out with `#` but all comments above it are preserved. Use `dottie print --with-disabled` to still see disabled keys in output.
+
+</details>
+
+---
+
+#### `dottie enable`
+
+[↑ Back to Commands](#commands)
+
+Enable (uncomment) a KEY if it exists. Removes the leading `#` from a previously disabled key, making it active again.
+
+```
+dottie enable KEY [flags]
+```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file with a disabled key:
+
+```env
+# Database port
+#DB_PORT="3306"
+```
+
+Running:
+
+```shell
+$ dottie enable DB_PORT
+Key [ DB_PORT ] was successfully enabled
+```
+
+The `.env` file is now:
+
+```env
+# Database port
+DB_PORT="3306"
+```
+
+</details>
+
+---
+
+#### `dottie exec`
+
+[↑ Back to Commands](#commands)
+
+Run update logic against a source without forcing a file write. This is useful for checks, previews, CI validation, and troubleshooting update behavior before persisting changes.
+
+```
+dottie exec [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--error-on-missing-key` | Error if a KEY in FILE is missing from SOURCE | |
+| `--no-error-on-missing-key` | Add KEY to FILE if missing from SOURCE | `true` |
+| `--exclude-key-prefix` | Ignore these KEY prefixes | |
+| `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
+| `--save` / `--no-save` | Save the document after processing | `true` |
+| `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
+| `--source` | URL or local file path to the upstream source file. Takes precedence over any `@dottie/source` annotation in the file | |
+
+<details>
+<summary>Example</summary>
+
+Preview update behavior without writing changes:
+
+```shell
+dottie exec --source https://example.com/.env.template --no-save
+```
+
+This will:
+
+1. Load your current `.env`
+2. Load the source/template file
+3. Run merge + validation logic
+4. Print issues if any, without saving the result
+
+Use `dottie update` when you want to persist the merged output to disk.
+
+</details>
+
+---
+
+#### `dottie shell`
+
+[↑ Back to Commands](#commands)
+
+Start an interactive dottie shell for exploring and working with your `.env` file in a REPL-style workflow.
+
+```
+dottie shell [flags]
+```
+
+Use this when you prefer an interactive session over one-off commands, especially while iterating on config changes.
+
+---
+
 ### Output Commands
 
 #### `dottie print`
+
+[↑ Back to Commands](#commands)
 
 Print environment variables.
 
@@ -596,51 +683,11 @@ DB_PORT="8080"
 
 ---
 
-#### `dottie value`
-
-Print value of an env key if it exists.
-
-```
-dottie value KEY [flags]
-```
-
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--literal` | Show literal value instead of interpolated | |
-| `--with-disabled` | Include disabled assignments | |
-
-<details>
-<summary>Example</summary>
-
-Given a `.env` with `DB_PORT="${PORT}"` and `PORT=8080`:
-
-```shell
-# Interpolated value (default) - resolves variable references
-$ dottie value DB_PORT
-8080
-
-# Literal value - shows the raw value as written in the file
-$ dottie value DB_PORT --literal
-${PORT}
-```
-
-If a key is disabled (commented out), you need `--with-disabled`:
-
-```shell
-$ dottie value DB_PORT
-Error: key [ DB_PORT ] exists, but is commented out - use [--with-disabled] to include it
-
-$ dottie value DB_PORT --with-disabled
-8080
-```
-
-</details>
-
----
-
 #### `dottie validate`
 
-Validate an .env file.
+[↑ Back to Commands](#commands)
+
+Validate a `.env` file.
 
 ```
 dottie validate [flags]
@@ -701,9 +748,55 @@ $ dottie validate
 
 ---
 
+#### `dottie value`
+
+[↑ Back to Commands](#commands)
+
+Print the value of a `.env` key if it exists.
+
+```
+dottie value KEY [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--literal` | Show literal value instead of interpolated | |
+| `--with-disabled` | Include disabled assignments | |
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` with `DB_PORT="${PORT}"` and `PORT=8080`:
+
+```shell
+# Interpolated value (default) - resolves variable references
+$ dottie value DB_PORT
+8080
+
+# Literal value - shows the raw value as written in the file
+$ dottie value DB_PORT --literal
+${PORT}
+```
+
+If a key is disabled (commented out), you need `--with-disabled`:
+
+```shell
+$ dottie value DB_PORT
+Error: key [ DB_PORT ] exists, but is commented out - use [--with-disabled] to include it
+
+$ dottie value DB_PORT --with-disabled
+8080
+```
+
+</details>
+
+---
+
 #### `dottie groups`
 
-Print groups found in the .env file. Groups are defined by section headers using the banner format.
+[↑ Back to Commands](#commands)
+
+Print groups found in the `.env` file. Groups are defined by section headers using the banner format.
 
 ```
 dottie groups [flags]
@@ -742,7 +835,9 @@ Group names can be used to filter output with `dottie print --group database`.
 
 #### `dottie json`
 
-Print the .env file as JSON. Outputs a structured JSON representation including keys, values, comments, annotations, groups, variable dependencies, and position information.
+[↑ Back to Commands](#commands)
+
+Print the `.env` file as JSON. Outputs a structured JSON representation including keys, values, comments, annotations, groups, variable dependencies, and position information.
 
 ```
 dottie json [flags]
@@ -807,10 +902,12 @@ The JSON output includes variable dependency tracking (`dependencies` / `depende
 
 #### `dottie template`
 
-Render a template.
+[↑ Back to Commands](#commands)
+
+Render a template from a `.env` file model.
 
 ```
-dottie template [flags]
+dottie template [flags] TEMPLATE_FILE
 ```
 
 | Flag | Description | Default |
@@ -818,23 +915,118 @@ dottie template [flags]
 | `--interpolation` / `--no-interpolation` | Enable interpolation | `true` |
 | `--with-disabled` | Include disabled assignments | |
 
+<details>
+<summary>Example: generate docs from an env file</summary>
+
+This is the same pattern used in the docker-pixelfed project to generate settings documentation from `.env.docker`:
+
+* Template: `docs-customization/template/dot-env.template.tmpl`
+* Source env: `.env.docker`
+
+You can see their template here:
+<https://github.com/jippi/docker-pixelfed/blob/main/docs-customization/template/dot-env.template.tmpl#L37>
+
+And their source env file here:
+<https://github.com/jippi/docker-pixelfed/blob/main/.env.docker>
+
+Sample template (`dot-env.template.tmpl`) excerpt:
+
+```gotemplate
+{{ range .Groups }}
+## {{ .String | title }}
+{{ range .Assignments }}
+### {{ .Name | title }} { data-toc-label="{{ .Name }}" }
+{{ if .Annotation "dottie/validate" | first | default "" | contains "required" }}
+<!-- md:flag required -->
+{{ end }}
+{{ if eq .Literal "" }}
+<!-- md:default none -->
+{{ else if eq .Literal .Interpolated }}
+<!-- md:default `{{ .Interpolated | trim }}` -->
+{{ else }}
+<!-- md:default computed:`{{ .Literal | trim }}` -->
+{{ end }}
+{{ with .Documentation true }}{{ . | trim }}{{ end }}
+{{ with .Annotation "dottie/validate" }}
+**Validation rules:** `{{ . | first | trim }}`
+{{ end }}
+{{ end }}
+{{ end }}
+```
+
+Run it with:
+
+```shell
+dottie template --file .env.docker docs-customization/template/dot-env.template.tmpl > docs/generated/env-settings.md
+```
+
+Example output (abbreviated):
+
+```markdown
+## App
+
+### App Name { data-toc-label="APP_NAME" }
+<!-- md:flag required -->
+<!-- md:default none -->
+The name/title for your site
+Validation rules: `required,ne=My Pixelfed Site`
+
+### App Url { data-toc-label="APP_URL" }
+<!-- md:default computed:`https://${APP_DOMAIN}` -->
+This URL is used by the console to properly generate URLs.
+Validation rules: `required,http_url`
+```
+
+How it works:
+
+1. Dottie parses `.env.docker` into a structured document (`Groups`, `Assignments`, comments, annotations).
+2. The Go template can read metadata like `.Documentation`, `.Annotation "dottie/validate"`, `.Literal`, and `.Interpolated`.
+3. Interpolation is enabled by default, so computed defaults can be rendered from variable references.
+
+</details>
+
 ---
 
 ### Additional Commands
 
 #### `dottie completion`
 
-Generate the autocompletion script for the specified shell.
+[↑ Back to Commands](#commands)
+
+Generate shell completion scripts so `dottie` subcommands and flags can be tab-completed in your terminal.
 
 ```
 dottie completion [bash|zsh|fish|powershell]
 ```
 
+<details>
+<summary>Examples</summary>
+
+Temporary (current shell session):
+
+```shell
+# bash
+source <(dottie completion bash)
+
+# zsh
+source <(dottie completion zsh)
+```
+
+Persisted setup (example for zsh):
+
+```shell
+dottie completion zsh > ~/.zsh/completions/_dottie
+```
+
+Then ensure your shell's completion path includes that directory.
+
+</details>
+
 ---
 
 ## Development Setup
 
-To compile the module yourself, you can setup this repository for development.
+To compile the module yourself, you can set up this repository for development.
 
 You will need:
 
