@@ -214,7 +214,7 @@ cosign verify \
 
 ## Commands
 
-Quick navigation (ordered by common usage):
+Quick navigation:
 
 * [Annotation Reference](#annotation-reference)
 * [Global Flags](#global-flags)
@@ -749,7 +749,7 @@ $ dottie validate
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Supported validation rules:** `required`, `number`, `boolean`, `email`, `fqdn`, `hostname`, `http_url`, `oneof=a b c`, `ne=value`, `dir`, `file`
+For the full dottie-focused validator tag reference and syntax examples, see [@dottie/validate Reference](#dottievalidate-reference).
 
 </details>
 
