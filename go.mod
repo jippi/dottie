@@ -6,12 +6,19 @@ replace github.com/go-playground/validator/v10 => github.com/jippi/go-validator/
 
 replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-20240224183226-3fdc9d9d89a3
 
+replace charm.land/lipgloss/v2 => github.com/charmbracelet/lipgloss/v2 v2.0.0
+
+replace charm.land/bubbles/v2 => github.com/charmbracelet/bubbles/v2 v2.0.0
+
+replace charm.land/bubbletea/v2 => github.com/charmbracelet/bubbletea/v2 v2.0.0
+
 require (
+	charm.land/lipgloss/v2 v2.0.0
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.2
 	github.com/carapace-sh/carapace v1.11.1
+	github.com/charmbracelet/colorprofile v0.4.2
 	github.com/charmbracelet/huh v0.8.0
-	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-cz/devslog v0.0.15
@@ -42,18 +49,20 @@ require (
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
-	github.com/aymanbagabas/go-udiff v0.4.0 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/carapace-sh/carapace-shlex v1.1.1 // indirect
 	github.com/catppuccin/go v0.3.0 // indirect
-	github.com/charmbracelet/bubbles v1.0.0 // indirect
+	github.com/charmbracelet/bubbles v0.21.1 // indirect
 	github.com/charmbracelet/bubbletea v1.3.10 // indirect
-	github.com/charmbracelet/colorprofile v0.4.2 // indirect
+	github.com/charmbracelet/lipgloss v1.1.0 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20260223171050-89c142e4aa73 // indirect
 	github.com/charmbracelet/x/ansi v0.11.6 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.15 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20260301003739-baafbde16d0a // indirect
 	github.com/charmbracelet/x/exp/strings v0.1.0 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
+	github.com/charmbracelet/x/termios v0.1.1 // indirect
+	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect

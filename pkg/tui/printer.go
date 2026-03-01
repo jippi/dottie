@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	lipgloss "charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
 )
 
 type StyleChanger func(*lipgloss.Style)
 
 var Bold = func(s *lipgloss.Style) {
-	s.Bold(true)
+	*s = s.Bold(true)
 }
 
 type PrinterOption func(p *Printer)
@@ -22,20 +24,19 @@ type PrinterOption func(p *Printer)
 //
 // Additionally, [Printer*] methods writes to the configured [Writer] instead of [os.Stdout]
 type Printer struct {
-	boxWidth       int                // Max width for strings when using WrapMode
-	writer         io.Writer          // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
-	renderer       *lipgloss.Renderer // The renderer responsible for providing the output and color management
-	style          Style              // Style config
+	boxWidth       int       // Max width for strings when using WrapMode
+	writer         io.Writer // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
+	style          Style     // Style config
 	textStyle      lipgloss.Style
 	boxHeaderStyle lipgloss.Style
 	boxBodyStyle   lipgloss.Style
 }
 
-func NewPrinter(style Style, renderer *lipgloss.Renderer, options ...PrinterOption) Printer {
+func NewPrinter(style Style, w io.Writer, options ...PrinterOption) Printer {
 	options = append([]PrinterOption{
 		WitBoxWidth(80),
 		WithStyle(style),
-		WithRenderer(renderer),
+		WithWriter(w),
 	}, options...)
 
 	printer := &Printer{}
@@ -153,7 +154,7 @@ func (p Printer) Box(header string, bodies ...string) {
 		fmt.Fprintln(
 			p.writer,
 			headerStyle.
-				Width(p.boxWidth-borderWidth).
+				Width(p.boxWidth).
 				Border(headerOnlyBorder).
 				Render(header),
 		)
@@ -162,8 +163,8 @@ func (p Printer) Box(header string, bodies ...string) {
 	}
 
 	// Render the header and body box
-	boxHeader := headerStyle.Width(p.boxWidth - borderWidth).Render(header)
-	boxBody := bodyStyle.Width(p.boxWidth - borderWidth).Render(body)
+	boxHeader := headerStyle.Width(p.boxWidth).Render(header)
+	boxBody := bodyStyle.Width(p.boxWidth).Render(body)
 
 	// If a BoxWidth is set, the boxes will be aligned automatically to the max
 	if p.boxWidth > 0 {
@@ -180,8 +181,8 @@ func (p Printer) Box(header string, bodies ...string) {
 	}
 
 	// Compute the width of the header and body elements
-	headerWidth := lipgloss.Width(boxHeader) - borderWidth
-	bodyWidth := lipgloss.Width(boxBody) - borderWidth
+	headerWidth := lipgloss.Width(boxHeader)
+	bodyWidth := lipgloss.Width(boxBody)
 
 	// Find the shortest box and (re)render it to the length of the longest one
 	switch {
@@ -277,14 +278,7 @@ func (p Printer) printHelper(a ...any) string {
 func WithStyle(style Style) PrinterOption {
 	return func(p *Printer) {
 		p.style = style
-		p.textStyle = p.renderer.NewStyle().Inherit(style.TextStyle())
-	}
-}
-
-func WithRenderer(renderer *lipgloss.Renderer) PrinterOption {
-	return func(p *Printer) {
-		p.renderer = renderer
-		p.writer = renderer.Output()
+		p.textStyle = lipgloss.NewStyle().Inherit(style.TextStyle())
 	}
 }
 
@@ -297,18 +291,18 @@ func WithTextStyle(style lipgloss.Style) PrinterOption {
 func WithEmphasis(b bool) PrinterOption {
 	return func(printer *Printer) {
 		if b {
-			printer.textStyle = printer.renderer.NewStyle().Inherit(printer.style.TextEmphasisStyle())
+			printer.textStyle = lipgloss.NewStyle().Inherit(printer.style.TextEmphasisStyle())
 
 			return
 		}
 
-		printer.textStyle = printer.renderer.NewStyle().Inherit(printer.style.TextStyle())
+		printer.textStyle = lipgloss.NewStyle().Inherit(printer.style.TextStyle())
 	}
 }
 
 func WithWriter(w io.Writer) PrinterOption {
 	return func(p *Printer) {
-		p.writer = w
+		p.writer = colorprofile.NewWriter(w, os.Environ())
 	}
 }
 

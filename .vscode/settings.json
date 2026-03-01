@@ -11,6 +11,6 @@
   },
   "cSpell.words": ["bitmask", "multierr", "Printfln", "Upsert", "upserter"],
   "chat.tools.terminal.autoApprove": {
-    "go": true
+    "/tmp/dottie": true
   }
 }

@@ -1,7 +1,10 @@
 package tui
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"io"
+
+	lipgloss "charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/compat"
 )
 
 type styleIdentifier int
@@ -19,33 +22,33 @@ const (
 )
 
 type Style struct {
-	textColor         lipgloss.AdaptiveColor
+	textColor         compat.AdaptiveColor
 	textStyle         lipgloss.Style
-	textEmphasisColor lipgloss.AdaptiveColor
+	textEmphasisColor compat.AdaptiveColor
 	textEmphasisStyle lipgloss.Style
-	backgroundColor   lipgloss.AdaptiveColor
-	borderColor       lipgloss.AdaptiveColor
+	backgroundColor   compat.AdaptiveColor
+	borderColor       compat.AdaptiveColor
 }
 
-func NewStyle(baseColor lipgloss.Color) Style {
-	base := ColorToHex(baseColor)
+func NewStyle(baseColor string) Style {
+	base := baseColor
 
 	style := Style{
-		textColor: lipgloss.AdaptiveColor{
-			Light: TransformColor(base, "", 0),
-			Dark:  TransformColor(base, "tint", 0.4),
+		textColor: compat.AdaptiveColor{
+			Light: lipgloss.Color(TransformColor(base, "", 0)),
+			Dark:  lipgloss.Color(TransformColor(base, "tint", 0.4)),
 		},
-		textEmphasisColor: lipgloss.AdaptiveColor{
-			Light: TransformColor(base, "shade", 0.6),
-			Dark:  TransformColor(base, "tint", 0.4),
+		textEmphasisColor: compat.AdaptiveColor{
+			Light: lipgloss.Color(TransformColor(base, "shade", 0.6)),
+			Dark:  lipgloss.Color(TransformColor(base, "tint", 0.4)),
 		},
-		backgroundColor: lipgloss.AdaptiveColor{
-			Light: TransformColor(base, "tint", 0.8),
-			Dark:  TransformColor(base, "shade", 0.8),
+		backgroundColor: compat.AdaptiveColor{
+			Light: lipgloss.Color(TransformColor(base, "tint", 0.8)),
+			Dark:  lipgloss.Color(TransformColor(base, "shade", 0.8)),
 		},
-		borderColor: lipgloss.AdaptiveColor{
-			Light: TransformColor(base, "tint", 0.6),
-			Dark:  TransformColor(base, "shade", 0.4),
+		borderColor: compat.AdaptiveColor{
+			Light: lipgloss.Color(TransformColor(base, "tint", 0.6)),
+			Dark:  lipgloss.Color(TransformColor(base, "shade", 0.4)),
 		},
 	}
 
@@ -68,8 +71,8 @@ func NewStyleWithoutColor() Style {
 	return Style{}
 }
 
-func (style Style) NewPrinter(renderer *lipgloss.Renderer, options ...PrinterOption) Printer {
-	return NewPrinter(style, renderer, options...)
+func (style Style) NewPrinter(w io.Writer, options ...PrinterOption) Printer {
+	return NewPrinter(style, w, options...)
 }
 
 func (style Style) TextStyle() lipgloss.Style {
