@@ -14,6 +14,7 @@ func ContextualError(stmt Statement, err error) error {
 	}
 
 	var pos *Position
+
 	switch val := stmt.(type) {
 	case *Assignment:
 		pos = &val.Position

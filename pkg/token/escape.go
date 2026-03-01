@@ -62,7 +62,7 @@ func EscapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, AS
 		slogctx.Debug(ctx, "escapeRune.input.rune: r == rune(quote)")
 
 		buf = append(buf, '\\')
-		buf = append(buf, byte(runeValue))
+		buf = append(buf, byte(runeValue)) //nolint:gosec
 
 		return buf
 	}
@@ -107,8 +107,8 @@ func EscapeRune(ctx context.Context, buf []byte, runeValue rune, quote Quote, AS
 		switch {
 		case runeValue < ' ' || runeValue == 0x7f:
 			buf = append(buf, `\x`...)
-			buf = append(buf, lowerhex[byte(runeValue)>>4])
-			buf = append(buf, lowerhex[byte(runeValue)&0xF])
+			buf = append(buf, lowerhex[byte(runeValue)>>4])  //nolint:gosec
+			buf = append(buf, lowerhex[byte(runeValue)&0xF]) //nolint:gosec
 
 		case !utf8.ValidRune(runeValue):
 			runeValue = 0xFFFD
@@ -141,7 +141,7 @@ func isInGraphicList(runeVal rune) bool {
 		return false
 	}
 
-	rr := uint16(runeVal)
+	rr := uint16(runeVal) //nolint:gosec
 	i := bsearch16(isGraphic, rr)
 
 	return i < len(isGraphic) && rr == isGraphic[i]

@@ -37,7 +37,7 @@ func (qt Quote) Rune() rune {
 }
 
 func (qt Quote) Byte() byte {
-	return byte(qt.Rune())
+	return byte(qt.Rune()) //nolint:gosec
 }
 
 func (qt Quote) Name() string {
