@@ -10,7 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const oversizedValuePadding = 70 * 1024
+const (
+	oversizedValuePadding = 70 * 1024
+	oversizedInputPadding = 200 * 1024
+)
 
 func TestScanner_NextToken_Trivial(t *testing.T) {
 	t.Parallel()
@@ -269,6 +272,17 @@ func TestScanner_NextToken_OversizedQuotedValueReturnsIllegal(t *testing.T) {
 
 	value := sc.NextToken(t.Context())
 	assert.Equal(t, token.Illegal, value.Type)
+}
+
+func TestScanner_NextToken_OversizedInputIsCapped(t *testing.T) {
+	t.Parallel()
+
+	input := "# " + strings.Repeat("a", oversizedInputPadding)
+	sc := scanner.New(input)
+
+	comment := sc.NextToken(t.Context())
+	assert.Equal(t, token.Comment, comment.Type)
+	assert.Less(t, len(comment.Literal), len(input))
 }
 
 func TestScanner_NextToken_Naked_Value(t *testing.T) {

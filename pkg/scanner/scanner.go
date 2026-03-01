@@ -24,6 +24,10 @@ const (
 	bom = 0xFEFF // byte order mark, only permitted as the first character
 	eof = -1     // eof indicates the end of the file.
 
+	// maxInputBytes bounds total scanner input to avoid pathological payloads
+	// exhausting fuzz worker execution budgets during tokenization.
+	maxInputBytes = 128 * 1024
+
 	// maxValueTokenBytes bounds scanner work for a single value token to prevent
 	// pathological inputs from forcing extremely expensive scans during parsing.
 	maxValueTokenBytes = 64 * 1024
@@ -41,6 +45,10 @@ type Scanner struct {
 
 // New returns new Scanner.
 func New(input string) *Scanner {
+	if len(input) > maxInputBytes {
+		input = input[:maxInputBytes]
+	}
+
 	scanner := &Scanner{
 		input:      input,
 		lineNumber: 1,
