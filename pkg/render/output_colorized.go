@@ -24,6 +24,7 @@ func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settin
 
 func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
 	printer := tui.NewWriter(ctx, nil)
+
 	var out strings.Builder
 
 	if !assignment.Enabled {
@@ -57,17 +58,14 @@ func (ColorizedOutput) Comment(ctx context.Context, comment *ast.Comment, settin
 		return NewLinesCollection().Add(out.Sprint(comment.Value))
 	}
 
-	if comment.Annotation != nil {
-		var sb strings.Builder
-		sb.WriteString(out.Sprint("# "))
-		sb.WriteString(out.ApplyStyle(tui.Bold).Sprint("@", comment.Annotation.Key))
-		sb.WriteString(out.Sprint(" "))
-		sb.WriteString(out.Sprint(comment.Annotation.Value))
+	var builder strings.Builder
 
-		return NewLinesCollection().Add(sb.String())
-	}
+	builder.WriteString(out.Sprint("# "))
+	builder.WriteString(out.ApplyStyle(tui.Bold).Sprint("@", comment.Annotation.Key))
+	builder.WriteString(out.Sprint(" "))
+	builder.WriteString(out.Sprint(comment.Annotation.Value))
 
-	return nil
+	return NewLinesCollection().Add(builder.String())
 }
 
 func (ColorizedOutput) Newline(ctx context.Context, newline *ast.Newline, settings Settings) *Lines {
