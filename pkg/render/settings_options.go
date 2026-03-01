@@ -56,12 +56,18 @@ func WithGroupBanners(b bool) SettingsOption {
 }
 
 func WithFormattedOutput(boolean bool) SettingsOption {
-	return func(s *Settings) {
-		s.formatOutput = boolean
-		s.showBlankLines = boolean
-		s.showColors = boolean
-		s.showComments = boolean
-		s.ShowGroupBanners = boolean
+	return func(settings *Settings) {
+		settings.formatOutput = boolean
+		settings.showBlankLines = boolean
+		settings.showColors = boolean
+		settings.showComments = boolean
+		settings.ShowGroupBanners = boolean
+
+		if boolean {
+			settings.outputter = ColorizedOutput{}
+		} else {
+			settings.outputter = PlainOutput{}
+		}
 	}
 }
 

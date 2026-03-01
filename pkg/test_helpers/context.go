@@ -3,6 +3,8 @@ package test_helpers
 import (
 	"bytes"
 	"context"
+	"io"
+	"log/slog"
 	"testing"
 
 	"github.com/jippi/dottie/pkg/tui"
@@ -23,5 +25,13 @@ func CreateTestContext(t *testing.T, out, err *bytes.Buffer) context.Context {
 
 	ctx := tui.NewContextWithoutLogger(t.Context(), out, err)
 
-	return slogctx.NewCtx(ctx, slogt.New(t))
+	return slogctx.NewCtx(
+		ctx,
+		slogt.New(
+			t,
+			slogt.Factory(func(w io.Writer) slog.Handler {
+				return slog.NewTextHandler(w, &slog.HandlerOptions{Level: slog.LevelInfo})
+			}),
+		),
+	)
 }

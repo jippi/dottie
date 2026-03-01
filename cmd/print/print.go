@@ -1,6 +1,8 @@
 package print_cmd
 
 import (
+	"fmt"
+
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/cli/shared"
@@ -41,13 +43,16 @@ func runE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	tui.StdoutFromContext(cmd.Context()).
-		NoColor().
-		Println(
-			render.NewRenderer(*settings).
-				Statement(cmd.Context(), document).
-				String(),
-		)
+	output := render.NewRenderer(*settings).
+		Statement(cmd.Context(), document).
+		String()
+
+	writer := tui.StdoutFromContext(cmd.Context())
+	if shouldColorOutput(cmd) {
+		_, _ = fmt.Fprintln(writer.GetWriter(), output)
+	} else {
+		writer.NoColor().Println(output)
+	}
 
 	return nil
 }
@@ -70,14 +75,13 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 
 	settings := render.NewSettings(
 		render.WithBlankLines(shared.BoolWithInverseValue(flags, "blank-lines")),
-		render.WithColors(shared.BoolWithInverseValue(flags, "color")),
+		render.WithColors(false),
 		render.WithComments(shared.BoolWithInverseValue(flags, "comments")),
 		render.WithFilterGroup(stringFlag("group")),
 		render.WithFilterKeyPrefix(stringFlag("key-prefix")),
 		render.WithGroupBanners(shared.BoolWithInverseValue(flags, "group-banners")),
 		render.WithIncludeDisabled(boolFlag("with-disabled")),
 		render.WithInterpolation(shared.BoolWithInverseValue(flags, "interpolation")),
-		render.WithOutputType(render.Plain),
 	)
 
 	var allErrors error
@@ -96,6 +100,8 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 		settings.Apply(render.WithFormattedOutput(true))
 	}
 
+	settings.Apply(render.WithColors(shouldColorOutput(cmd)))
+
 	if boolFlag("export") {
 		settings.Apply(render.WithExport(true))
 	}
@@ -105,4 +111,11 @@ func setup(cmd *cobra.Command) (*ast.Document, *render.Settings, error) {
 	}
 
 	return doc, settings, allErrors
+}
+
+func shouldColorOutput(cmd *cobra.Command) bool {
+	flags := cmd.Flags()
+	colorRequested := shared.BoolFlag(flags, "pretty") || flags.Lookup("color").Changed || flags.Lookup("no-color").Changed
+
+	return colorRequested && shared.ColorEnabled(flags, "color")
 }
