@@ -121,7 +121,7 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 			}
 
 			// Reset comment block
-			comments = make([]*ast.Comment, 0, 1)
+			comments = nil //nolint:prealloc
 			previousStatement = val
 
 		case *ast.Comment:
@@ -174,7 +174,7 @@ func (p *Parser) Parse(ctx context.Context) (document *ast.Document, err error) 
 			}
 
 			// Reset the accumulated comments slice
-			comments = make([]*ast.Comment, 0, 1)
+			comments = nil //nolint:prealloc
 			previousStatement = val
 		}
 	}
