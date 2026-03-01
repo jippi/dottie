@@ -4,5 +4,5 @@
 --------------------------------------------------------------------------------
 
   OUTPUT ( /fake/testing/path/tmp.env:3 )
-    * (ne) The value [failure] must NOT be equal to [failure], please change it.
+    * (ne) The value [failure] must not be equal to [failure].
 

@@ -7,5 +7,7 @@ import (
 )
 
 func TestJsonCommand(t *testing.T) {
+	t.Parallel()
+
 	test_helpers.RunFileBasedCommandTests(t, 0, "json")
 }

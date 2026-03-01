@@ -7,5 +7,7 @@ import (
 )
 
 func TestTemplateCommand(t *testing.T) {
+	t.Parallel()
+
 	test_helpers.RunFileBasedCommandTests(t, 0, "template")
 }

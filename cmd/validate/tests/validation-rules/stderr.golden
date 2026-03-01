@@ -10,25 +10,25 @@
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+    * (oneof) The value [X] must be one of [a b c].
 
 NUMBER_KEY_ERR (tests/validation-rules.env:21)
     * (number) The value [hello] is not a valid number.
 
 EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+    * (email) The value [hello] is not a valid e-mail address.
 
 REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+    * (required) This value is required and cannot be empty.
 
 FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+    * (fqdn) The value [example] is not a valid fully qualified domain name (FQDN).
 
 HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+    * (hostname) The value [@invalid|chars] is not a valid hostname.
 
 NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+    * (ne) The value [example.com] must not be equal to [example.com].
 
 BOOLEAN_KEY_ERR_1 (tests/validation-rules.env:90)
     * (boolean) The value [yes] is not a valid boolean.
@@ -43,13 +43,13 @@ BOOLEAN_KEY_ERR_4 (tests/validation-rules.env:99)
     * (boolean) The value [] is not a valid boolean.
 
 HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [ftp://google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [something] is not a valid HTTP/HTTPS URL.
 
 DIR_KEY_ERR_1 (tests/validation-rules.env:137)
     * (dir) The directory [not-tests] does not exist.
@@ -85,34 +85,34 @@ Run 'dottie validate --help' for usage.
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+    * (oneof) The value [X] must be one of [a b c].
 
 NUMBER_KEY_ERR (tests/validation-rules.env:21)
     * (number) The value [hello] is not a valid number.
 
 EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+    * (email) The value [hello] is not a valid e-mail address.
 
 REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+    * (required) This value is required and cannot be empty.
 
 FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+    * (fqdn) The value [example] is not a valid fully qualified domain name (FQDN).
 
 HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+    * (hostname) The value [@invalid|chars] is not a valid hostname.
 
 NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+    * (ne) The value [example.com] must not be equal to [example.com].
 
 HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [ftp://google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [something] is not a valid HTTP/HTTPS URL.
 
 DIR_KEY_ERR_1 (tests/validation-rules.env:137)
     * (dir) The directory [not-tests] does not exist.
@@ -148,34 +148,34 @@ Run 'dottie validate --help' for usage.
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+    * (oneof) The value [X] must be one of [a b c].
 
 NUMBER_KEY_ERR (tests/validation-rules.env:21)
     * (number) The value [hello] is not a valid number.
 
 EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+    * (email) The value [hello] is not a valid e-mail address.
 
 REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+    * (required) This value is required and cannot be empty.
 
 FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+    * (fqdn) The value [example] is not a valid fully qualified domain name (FQDN).
 
 HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+    * (hostname) The value [@invalid|chars] is not a valid hostname.
 
 NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+    * (ne) The value [example.com] must not be equal to [example.com].
 
 HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [ftp://google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [something] is not a valid HTTP/HTTPS URL.
 
 Error: validation failed
 Run 'dottie validate --help' for usage.
@@ -193,34 +193,34 @@ Run 'dottie validate --help' for usage.
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+    * (oneof) The value [X] must be one of [a b c].
 
 NUMBER_KEY_ERR (tests/validation-rules.env:21)
     * (number) The value [hello] is not a valid number.
 
 EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+    * (email) The value [hello] is not a valid e-mail address.
 
 REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+    * (required) This value is required and cannot be empty.
 
 FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+    * (fqdn) The value [example] is not a valid fully qualified domain name (FQDN).
 
 HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+    * (hostname) The value [@invalid|chars] is not a valid hostname.
 
 NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+    * (ne) The value [example.com] must not be equal to [example.com].
 
 HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [ftp://google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [something] is not a valid HTTP/HTTPS URL.
 
 DIR_KEY_ERR_1 (tests/validation-rules.env:137)
     * (dir) The directory [not-tests] does not exist.
@@ -256,34 +256,34 @@ Run 'dottie validate --help' for usage.
 └──────────────────────────────────────────────────────────────────────────────┘
 
 ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+    * (oneof) The value [X] must be one of [a b c].
 
 NUMBER_KEY_ERR (tests/validation-rules.env:21)
     * (number) The value [hello] is not a valid number.
 
 EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+    * (email) The value [hello] is not a valid e-mail address.
 
 REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+    * (required) This value is required and cannot be empty.
 
 FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+    * (fqdn) The value [example] is not a valid fully qualified domain name (FQDN).
 
 HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+    * (hostname) The value [@invalid|chars] is not a valid hostname.
 
 NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+    * (ne) The value [example.com] must not be equal to [example.com].
 
 HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [ftp://google.com] is not a valid HTTP/HTTPS URL.
 
 HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+    * (http_url) The value [something] is not a valid HTTP/HTTPS URL.
 
 Error: validation failed
 Run 'dottie validate --help' for usage.

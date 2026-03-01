@@ -7,5 +7,7 @@ import (
 )
 
 func TestShellCommand(t *testing.T) {
+	t.Parallel()
+
 	test_helpers.RunFileBasedCommandTests(t, 0, "shell")
 }
