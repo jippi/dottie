@@ -9,5 +9,8 @@
   "[go]": {
     "editor.formatOnSave": true
   },
-  "cSpell.words": ["bitmask", "multierr", "Printfln", "Upsert", "upserter"]
+  "cSpell.words": ["bitmask", "multierr", "Printfln", "Upsert", "upserter"],
+  "chat.tools.terminal.autoApprove": {
+    "/tmp/dottie": true
+  }
 }
