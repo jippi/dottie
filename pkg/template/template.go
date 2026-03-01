@@ -76,7 +76,22 @@ func Substitute(ctx context.Context, input string, resolver Resolver, accessible
 	}
 
 	// Expand variables
-	result, err := expand.Literal(config, words)
+	var result string
+
+	err = func() (innerErr error) {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				// Fuzzing uncovered panics inside the third-party shell expansion library
+				// for malformed arithmetic expansions. Convert that panic to a regular
+				// template error so bad input fails safely without crashing the parser.
+				innerErr = fmt.Errorf("template expansion panic: %v", recovered)
+			}
+		}()
+
+		result, innerErr = expand.Literal(config, words)
+
+		return innerErr
+	}()
 	if err != nil {
 		// Inspect error and enrich it
 		target := &expand.UnsetParameterError{}

@@ -98,6 +98,18 @@ func TestInvalid(t *testing.T) {
 	}
 }
 
+func TestSubstitute_MalformedArithmeticExpansionReturnsError(t *testing.T) {
+	t.Parallel()
+
+	malformed := "$(($'\\\"0\\\"0\\\"0\\\"0\\00'))"
+
+	assert.NotPanics(t, func() {
+		_, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), malformed, defaultMapping, accessibleVariables)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, "Invalid template")
+	})
+}
+
 // see https://github.com/docker/compose/issues/8601
 func TestNonBraced(t *testing.T) {
 	t.Parallel()
