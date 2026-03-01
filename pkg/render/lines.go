@@ -94,7 +94,7 @@ func (lb Lines) String() string {
 
 // Lines returns the raw slice of lines
 func (lb Lines) Lines() []string {
-	res := []string{}
+	res := make([]string, 0, len(lb.lines))
 
 	for _, line := range lb.lines {
 		res = append(res, line.String())

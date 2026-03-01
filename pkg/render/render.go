@@ -35,7 +35,7 @@ func NewRenderer(settings Settings, extraHandlers ...Handler) *Renderer {
 
 func NewUnfilteredRenderer(settings *Settings, extraHandlers ...Handler) *Renderer {
 	// Default handlers for filtering down the
-	handlers := []Handler{}
+	handlers := make([]Handler, 0, 1+len(extraHandlers))
 	handlers = append(handlers, NewAstSelectorHandler(settings.Handlers()...))
 	handlers = append(handlers, extraHandlers...)
 

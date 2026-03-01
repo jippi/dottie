@@ -12,7 +12,7 @@ import (
 func DebugStringSlice(ctx context.Context, value string) []string {
 	x, _ := Unescape(ctx, value, DoubleQuote) //nolint
 
-	var res []string
+	res := make([]string, 0, 10)
 
 	res = append(res, fmt.Sprint("Raw ........  : ", value))
 	res = append(res, fmt.Sprint("Glyph ......  : ", fmt.Sprintf("%q", value)))
