@@ -1,0 +1,9 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/runtime-error.run]:
+- [exec]
+--------------------------------------------------------------------------------
+
+Error: exit status 1
+Run 'dottie exec --help' for usage.
+
+(Command exited with error)
