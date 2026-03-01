@@ -2,7 +2,6 @@ package print_cmd_test
 
 import (
 	"bytes"
-	"strings"
 	"testing"
 
 	"github.com/jippi/dottie/cmd"
@@ -33,5 +32,5 @@ func TestPrintCommandNoColorEnv(t *testing.T) {
 
 	require.NoError(t, err)
 	assert.NotContains(t, stdout.String(), "\x1b[")
-	assert.True(t, strings.Contains(stdout.String(), "KEY_A=\"I'm key A\""))
+	assert.Contains(t, stdout.String(), "KEY_A=\"I'm key A\"")
 }

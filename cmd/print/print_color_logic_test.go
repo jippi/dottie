@@ -1,8 +1,9 @@
-package print_cmd
+package print_cmd_test
 
 import (
 	"testing"
 
+	print_cmd "github.com/jippi/dottie/cmd/print"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -27,15 +28,15 @@ func TestShouldColorOutput(t *testing.T) {
 		{name: "no color env + pretty color", args: []string{"--pretty", "--color"}, env: map[string]string{"NO_COLOR": "1"}, expected: false},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			for key, value := range tc.env {
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			for key, value := range testCase.env {
 				t.Setenv(key, value)
 			}
 
-			command := New()
-			require.NoError(t, command.ParseFlags(tc.args))
-			assert.Equal(t, tc.expected, shouldColorOutput(command))
+			command := print_cmd.New()
+			require.NoError(t, command.ParseFlags(testCase.args))
+			assert.Equal(t, testCase.expected, print_cmd.ShouldColorOutput(command))
 		})
 	}
 }
