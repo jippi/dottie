@@ -3,8 +3,8 @@
 - [value disabled]
 --------------------------------------------------------------------------------
 
-Error: key [ disabled ] exists, but is commented out - use [--with-disabled] to include it
-Run 'dottie value --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: key [ disabled ] exists, but is commented out - use [--with-disabled] to include it[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie value --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------

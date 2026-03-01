@@ -22,9 +22,9 @@ type PrinterOption func(p *Printer)
 //
 // Additionally, [Printer*] methods writes to the configured [Writer] instead of [os.Stdout]
 type Printer struct {
-	boxWidth       int           // Max width for strings when using WrapMode
-	writer         io.Writer     // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
-	style          Style         // Style config
+	boxWidth       int       // Max width for strings when using WrapMode
+	writer         io.Writer // Writer controls where implicit print output goes for [Print], [Printf], [Printfln] and [Println]
+	style          Style     // Style config
 	textStyle      lipgloss.Style
 	boxHeaderStyle lipgloss.Style
 	boxBodyStyle   lipgloss.Style

@@ -3,4 +3,4 @@
 - [enable KEY_B]
 --------------------------------------------------------------------------------
 
-warning: The key [ KEY_B ] is already enabled
+[38;2;255;218;106mwarning: The key [ KEY_B ] is already enabled[m

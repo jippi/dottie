@@ -3,74 +3,74 @@
 - [validate --no-fix]
 --------------------------------------------------------------------------------
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                          20 validation errors found                          │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+[38;2;132;32;41m┌────────────────────────────────────────────────────────────────────────────┐[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                         [m[1;38;2;234;134;143;48;2;44;11;14m20 validation errors found[m[48;2;44;11;14m                         [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m└────────────────────────────────────────────────────────────────────────────┘[m
+[38;2;234;134;143m[m
+[38;2;234;134;143mONEOF_KEY_ERR[m (tests/validation-rules.env:11)
+[38;2;110;168;254m    * [m(oneof) The value [[1;38;2;255;218;106;48;2;51;39;1mX[m] is not one of [[1;38;2;255;218;106;48;2;51;39;1ma b c[m].
 
-ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+[38;2;234;134;143mNUMBER_KEY_ERR[m (tests/validation-rules.env:21)
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid number.
 
-NUMBER_KEY_ERR (tests/validation-rules.env:21)
-    * (number) The value [hello] is not a valid number.
+[38;2;234;134;143mEMAIL_KEY_ERR[m (tests/validation-rules.env:31)
+[38;2;110;168;254m    * [m(email) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid e-mail.
 
-EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+[38;2;234;134;143mREQUIRED_KEY_ERR[m (tests/validation-rules.env:41)
+[38;2;110;168;254m    * [m(required) This value must not be empty/blank.
 
-REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+[38;2;234;134;143mFQDN_KEY_ERR[m (tests/validation-rules.env:51)
+[38;2;110;168;254m    * [m(fqdn) The value [[1;38;2;255;218;106;48;2;51;39;1mexample[m] is not a valid Fully Qualified Domain Name (FQDN).
 
-FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+[38;2;234;134;143mHOSTNAME_KEY_ERR[m (tests/validation-rules.env:61)
+[38;2;110;168;254m    * [m(hostname) The value [[1;38;2;255;218;106;48;2;51;39;1m@invalid|chars[m] is not a valid hostname (e.g., 'example.com').
 
-HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+[38;2;234;134;143mNE_KEY_ERR[m (tests/validation-rules.env:71)
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m], please change it.
 
-NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+[38;2;234;134;143mBOOLEAN_KEY_ERR_1[m (tests/validation-rules.env:90)
+[38;2;110;168;254m    * [m(boolean) The value [[1;38;2;255;218;106;48;2;51;39;1myes[m] is not a valid boolean.
 
-BOOLEAN_KEY_ERR_1 (tests/validation-rules.env:90)
-    * (boolean) The value [yes] is not a valid boolean.
+[38;2;234;134;143mBOOLEAN_KEY_ERR_2[m (tests/validation-rules.env:93)
+[38;2;110;168;254m    * [m(boolean) The value [[1;38;2;255;218;106;48;2;51;39;1mno[m] is not a valid boolean.
 
-BOOLEAN_KEY_ERR_2 (tests/validation-rules.env:93)
-    * (boolean) The value [no] is not a valid boolean.
+[38;2;234;134;143mBOOLEAN_KEY_ERR_3[m (tests/validation-rules.env:96)
+[38;2;110;168;254m    * [m(boolean) The value [[1;38;2;255;218;106;48;2;51;39;1mnej[m] is not a valid boolean.
 
-BOOLEAN_KEY_ERR_3 (tests/validation-rules.env:96)
-    * (boolean) The value [nej] is not a valid boolean.
+[38;2;234;134;143mBOOLEAN_KEY_ERR_4[m (tests/validation-rules.env:99)
+[38;2;110;168;254m    * [m(boolean) The value [[1;38;2;255;218;106;48;2;51;39;1m[m] is not a valid boolean.
 
-BOOLEAN_KEY_ERR_4 (tests/validation-rules.env:99)
-    * (boolean) The value [] is not a valid boolean.
+[38;2;234;134;143mHTTP_URL_KEY_ERR_1[m (tests/validation-rules.env:118)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mgoogle.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_2[m (tests/validation-rules.env:121)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mftp://google.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_3[m (tests/validation-rules.env:124)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1msomething[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mDIR_KEY_ERR_1[m (tests/validation-rules.env:137)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1mnot-tests[m] does not exist.
 
-DIR_KEY_ERR_1 (tests/validation-rules.env:137)
-    * (dir) The directory [not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_2[m (tests/validation-rules.env:140)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m./not-tests[m] does not exist.
 
-DIR_KEY_ERR_2 (tests/validation-rules.env:140)
-    * (dir) The directory [./not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_3[m (tests/validation-rules.env:143)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-DIR_KEY_ERR_3 (tests/validation-rules.env:143)
-    * (dir) The directory [] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_1[m (tests/validation-rules.env:156)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1mnot-tests/some-file.golden[m] does not exist.
 
-FILE_KEY_ERR_1 (tests/validation-rules.env:156)
-    * (file) The file [not-tests/some-file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_2[m (tests/validation-rules.env:159)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m./not-tests/file.golden[m] does not exist.
 
-FILE_KEY_ERR_2 (tests/validation-rules.env:159)
-    * (file) The file [./not-tests/file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_3[m (tests/validation-rules.env:162)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-FILE_KEY_ERR_3 (tests/validation-rules.env:162)
-    * (file) The file [] does not exist.
-
-Error: validation failed
-Run 'dottie validate --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation failed[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------
@@ -78,62 +78,62 @@ Run 'dottie validate --help' for usage.
 - [validate --no-fix --exclude-prefix BOOLEAN_]
 --------------------------------------------------------------------------------
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                          16 validation errors found                          │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+[38;2;132;32;41m┌────────────────────────────────────────────────────────────────────────────┐[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                         [m[1;38;2;234;134;143;48;2;44;11;14m16 validation errors found[m[48;2;44;11;14m                         [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m└────────────────────────────────────────────────────────────────────────────┘[m
+[38;2;234;134;143m[m
+[38;2;234;134;143mONEOF_KEY_ERR[m (tests/validation-rules.env:11)
+[38;2;110;168;254m    * [m(oneof) The value [[1;38;2;255;218;106;48;2;51;39;1mX[m] is not one of [[1;38;2;255;218;106;48;2;51;39;1ma b c[m].
 
-ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+[38;2;234;134;143mNUMBER_KEY_ERR[m (tests/validation-rules.env:21)
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid number.
 
-NUMBER_KEY_ERR (tests/validation-rules.env:21)
-    * (number) The value [hello] is not a valid number.
+[38;2;234;134;143mEMAIL_KEY_ERR[m (tests/validation-rules.env:31)
+[38;2;110;168;254m    * [m(email) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid e-mail.
 
-EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+[38;2;234;134;143mREQUIRED_KEY_ERR[m (tests/validation-rules.env:41)
+[38;2;110;168;254m    * [m(required) This value must not be empty/blank.
 
-REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+[38;2;234;134;143mFQDN_KEY_ERR[m (tests/validation-rules.env:51)
+[38;2;110;168;254m    * [m(fqdn) The value [[1;38;2;255;218;106;48;2;51;39;1mexample[m] is not a valid Fully Qualified Domain Name (FQDN).
 
-FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+[38;2;234;134;143mHOSTNAME_KEY_ERR[m (tests/validation-rules.env:61)
+[38;2;110;168;254m    * [m(hostname) The value [[1;38;2;255;218;106;48;2;51;39;1m@invalid|chars[m] is not a valid hostname (e.g., 'example.com').
 
-HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+[38;2;234;134;143mNE_KEY_ERR[m (tests/validation-rules.env:71)
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m], please change it.
 
-NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+[38;2;234;134;143mHTTP_URL_KEY_ERR_1[m (tests/validation-rules.env:118)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mgoogle.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_2[m (tests/validation-rules.env:121)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mftp://google.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_3[m (tests/validation-rules.env:124)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1msomething[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mDIR_KEY_ERR_1[m (tests/validation-rules.env:137)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1mnot-tests[m] does not exist.
 
-DIR_KEY_ERR_1 (tests/validation-rules.env:137)
-    * (dir) The directory [not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_2[m (tests/validation-rules.env:140)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m./not-tests[m] does not exist.
 
-DIR_KEY_ERR_2 (tests/validation-rules.env:140)
-    * (dir) The directory [./not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_3[m (tests/validation-rules.env:143)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-DIR_KEY_ERR_3 (tests/validation-rules.env:143)
-    * (dir) The directory [] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_1[m (tests/validation-rules.env:156)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1mnot-tests/some-file.golden[m] does not exist.
 
-FILE_KEY_ERR_1 (tests/validation-rules.env:156)
-    * (file) The file [not-tests/some-file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_2[m (tests/validation-rules.env:159)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m./not-tests/file.golden[m] does not exist.
 
-FILE_KEY_ERR_2 (tests/validation-rules.env:159)
-    * (file) The file [./not-tests/file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_3[m (tests/validation-rules.env:162)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-FILE_KEY_ERR_3 (tests/validation-rules.env:162)
-    * (file) The file [] does not exist.
-
-Error: validation failed
-Run 'dottie validate --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation failed[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------
@@ -141,44 +141,44 @@ Run 'dottie validate --help' for usage.
 - [validate --no-fix --exclude-prefix BOOLEAN_,DIR_,FILE_]
 --------------------------------------------------------------------------------
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                          10 validation errors found                          │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+[38;2;132;32;41m┌────────────────────────────────────────────────────────────────────────────┐[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                         [m[1;38;2;234;134;143;48;2;44;11;14m10 validation errors found[m[48;2;44;11;14m                         [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m└────────────────────────────────────────────────────────────────────────────┘[m
+[38;2;234;134;143m[m
+[38;2;234;134;143mONEOF_KEY_ERR[m (tests/validation-rules.env:11)
+[38;2;110;168;254m    * [m(oneof) The value [[1;38;2;255;218;106;48;2;51;39;1mX[m] is not one of [[1;38;2;255;218;106;48;2;51;39;1ma b c[m].
 
-ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+[38;2;234;134;143mNUMBER_KEY_ERR[m (tests/validation-rules.env:21)
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid number.
 
-NUMBER_KEY_ERR (tests/validation-rules.env:21)
-    * (number) The value [hello] is not a valid number.
+[38;2;234;134;143mEMAIL_KEY_ERR[m (tests/validation-rules.env:31)
+[38;2;110;168;254m    * [m(email) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid e-mail.
 
-EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+[38;2;234;134;143mREQUIRED_KEY_ERR[m (tests/validation-rules.env:41)
+[38;2;110;168;254m    * [m(required) This value must not be empty/blank.
 
-REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+[38;2;234;134;143mFQDN_KEY_ERR[m (tests/validation-rules.env:51)
+[38;2;110;168;254m    * [m(fqdn) The value [[1;38;2;255;218;106;48;2;51;39;1mexample[m] is not a valid Fully Qualified Domain Name (FQDN).
 
-FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+[38;2;234;134;143mHOSTNAME_KEY_ERR[m (tests/validation-rules.env:61)
+[38;2;110;168;254m    * [m(hostname) The value [[1;38;2;255;218;106;48;2;51;39;1m@invalid|chars[m] is not a valid hostname (e.g., 'example.com').
 
-HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+[38;2;234;134;143mNE_KEY_ERR[m (tests/validation-rules.env:71)
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m], please change it.
 
-NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+[38;2;234;134;143mHTTP_URL_KEY_ERR_1[m (tests/validation-rules.env:118)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mgoogle.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_2[m (tests/validation-rules.env:121)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mftp://google.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_3[m (tests/validation-rules.env:124)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1msomething[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
-
-Error: validation failed
-Run 'dottie validate --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation failed[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------
@@ -186,62 +186,62 @@ Run 'dottie validate --help' for usage.
 - [validate --no-fix --ignore-rule boolean]
 --------------------------------------------------------------------------------
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                          16 validation errors found                          │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+[38;2;132;32;41m┌────────────────────────────────────────────────────────────────────────────┐[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                         [m[1;38;2;234;134;143;48;2;44;11;14m16 validation errors found[m[48;2;44;11;14m                         [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m└────────────────────────────────────────────────────────────────────────────┘[m
+[38;2;234;134;143m[m
+[38;2;234;134;143mONEOF_KEY_ERR[m (tests/validation-rules.env:11)
+[38;2;110;168;254m    * [m(oneof) The value [[1;38;2;255;218;106;48;2;51;39;1mX[m] is not one of [[1;38;2;255;218;106;48;2;51;39;1ma b c[m].
 
-ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+[38;2;234;134;143mNUMBER_KEY_ERR[m (tests/validation-rules.env:21)
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid number.
 
-NUMBER_KEY_ERR (tests/validation-rules.env:21)
-    * (number) The value [hello] is not a valid number.
+[38;2;234;134;143mEMAIL_KEY_ERR[m (tests/validation-rules.env:31)
+[38;2;110;168;254m    * [m(email) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid e-mail.
 
-EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+[38;2;234;134;143mREQUIRED_KEY_ERR[m (tests/validation-rules.env:41)
+[38;2;110;168;254m    * [m(required) This value must not be empty/blank.
 
-REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+[38;2;234;134;143mFQDN_KEY_ERR[m (tests/validation-rules.env:51)
+[38;2;110;168;254m    * [m(fqdn) The value [[1;38;2;255;218;106;48;2;51;39;1mexample[m] is not a valid Fully Qualified Domain Name (FQDN).
 
-FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+[38;2;234;134;143mHOSTNAME_KEY_ERR[m (tests/validation-rules.env:61)
+[38;2;110;168;254m    * [m(hostname) The value [[1;38;2;255;218;106;48;2;51;39;1m@invalid|chars[m] is not a valid hostname (e.g., 'example.com').
 
-HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+[38;2;234;134;143mNE_KEY_ERR[m (tests/validation-rules.env:71)
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m], please change it.
 
-NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+[38;2;234;134;143mHTTP_URL_KEY_ERR_1[m (tests/validation-rules.env:118)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mgoogle.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_2[m (tests/validation-rules.env:121)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mftp://google.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_3[m (tests/validation-rules.env:124)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1msomething[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mDIR_KEY_ERR_1[m (tests/validation-rules.env:137)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1mnot-tests[m] does not exist.
 
-DIR_KEY_ERR_1 (tests/validation-rules.env:137)
-    * (dir) The directory [not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_2[m (tests/validation-rules.env:140)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m./not-tests[m] does not exist.
 
-DIR_KEY_ERR_2 (tests/validation-rules.env:140)
-    * (dir) The directory [./not-tests] does not exist.
+[38;2;234;134;143mDIR_KEY_ERR_3[m (tests/validation-rules.env:143)
+[38;2;110;168;254m    * [m(dir) The directory [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-DIR_KEY_ERR_3 (tests/validation-rules.env:143)
-    * (dir) The directory [] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_1[m (tests/validation-rules.env:156)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1mnot-tests/some-file.golden[m] does not exist.
 
-FILE_KEY_ERR_1 (tests/validation-rules.env:156)
-    * (file) The file [not-tests/some-file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_2[m (tests/validation-rules.env:159)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m./not-tests/file.golden[m] does not exist.
 
-FILE_KEY_ERR_2 (tests/validation-rules.env:159)
-    * (file) The file [./not-tests/file.golden] does not exist.
+[38;2;234;134;143mFILE_KEY_ERR_3[m (tests/validation-rules.env:162)
+[38;2;110;168;254m    * [m(file) The file [[1;38;2;255;218;106;48;2;51;39;1m[m] does not exist.
 
-FILE_KEY_ERR_3 (tests/validation-rules.env:162)
-    * (file) The file [] does not exist.
-
-Error: validation failed
-Run 'dottie validate --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation failed[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------
@@ -249,43 +249,43 @@ Run 'dottie validate --help' for usage.
 - [validate --no-fix --ignore-rule boolean,dir,file,http]
 --------------------------------------------------------------------------------
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                                                                              │
-│                          10 validation errors found                          │
-│                                                                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+[38;2;132;32;41m┌────────────────────────────────────────────────────────────────────────────┐[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                         [m[1;38;2;234;134;143;48;2;44;11;14m10 validation errors found[m[48;2;44;11;14m                         [m[38;2;132;32;41m│[m
+[38;2;132;32;41m│[m[48;2;44;11;14m                                      [m[48;2;44;11;14m                                      [m[38;2;132;32;41m│[m
+[38;2;132;32;41m└────────────────────────────────────────────────────────────────────────────┘[m
+[38;2;234;134;143m[m
+[38;2;234;134;143mONEOF_KEY_ERR[m (tests/validation-rules.env:11)
+[38;2;110;168;254m    * [m(oneof) The value [[1;38;2;255;218;106;48;2;51;39;1mX[m] is not one of [[1;38;2;255;218;106;48;2;51;39;1ma b c[m].
 
-ONEOF_KEY_ERR (tests/validation-rules.env:11)
-    * (oneof) The value [X] is not one of [a b c].
+[38;2;234;134;143mNUMBER_KEY_ERR[m (tests/validation-rules.env:21)
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid number.
 
-NUMBER_KEY_ERR (tests/validation-rules.env:21)
-    * (number) The value [hello] is not a valid number.
+[38;2;234;134;143mEMAIL_KEY_ERR[m (tests/validation-rules.env:31)
+[38;2;110;168;254m    * [m(email) The value [[1;38;2;255;218;106;48;2;51;39;1mhello[m] is not a valid e-mail.
 
-EMAIL_KEY_ERR (tests/validation-rules.env:31)
-    * (email) The value [hello] is not a valid e-mail.
+[38;2;234;134;143mREQUIRED_KEY_ERR[m (tests/validation-rules.env:41)
+[38;2;110;168;254m    * [m(required) This value must not be empty/blank.
 
-REQUIRED_KEY_ERR (tests/validation-rules.env:41)
-    * (required) This value must not be empty/blank.
+[38;2;234;134;143mFQDN_KEY_ERR[m (tests/validation-rules.env:51)
+[38;2;110;168;254m    * [m(fqdn) The value [[1;38;2;255;218;106;48;2;51;39;1mexample[m] is not a valid Fully Qualified Domain Name (FQDN).
 
-FQDN_KEY_ERR (tests/validation-rules.env:51)
-    * (fqdn) The value [example] is not a valid Fully Qualified Domain Name (FQDN).
+[38;2;234;134;143mHOSTNAME_KEY_ERR[m (tests/validation-rules.env:61)
+[38;2;110;168;254m    * [m(hostname) The value [[1;38;2;255;218;106;48;2;51;39;1m@invalid|chars[m] is not a valid hostname (e.g., 'example.com').
 
-HOSTNAME_KEY_ERR (tests/validation-rules.env:61)
-    * (hostname) The value [@invalid|chars] is not a valid hostname (e.g., 'example.com').
+[38;2;234;134;143mNE_KEY_ERR[m (tests/validation-rules.env:71)
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mexample.com[m], please change it.
 
-NE_KEY_ERR (tests/validation-rules.env:71)
-    * (ne) The value [example.com] must NOT be equal to [example.com], please change it.
+[38;2;234;134;143mHTTP_URL_KEY_ERR_1[m (tests/validation-rules.env:118)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mgoogle.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_1 (tests/validation-rules.env:118)
-    * (http_url) The value [google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_2[m (tests/validation-rules.env:121)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1mftp://google.com[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_2 (tests/validation-rules.env:121)
-    * (http_url) The value [ftp://google.com] is not a valid HTTP URL (e.g., 'https://example.com').
+[38;2;234;134;143mHTTP_URL_KEY_ERR_3[m (tests/validation-rules.env:124)
+[38;2;110;168;254m    * [m(http_url) The value [[1;38;2;255;218;106;48;2;51;39;1msomething[m] is not a valid HTTP URL (e.g., 'https://example.com').
 
-HTTP_URL_KEY_ERR_3 (tests/validation-rules.env:124)
-    * (http_url) The value [something] is not a valid HTTP URL (e.g., 'https://example.com').
-
-Error: validation failed
-Run 'dottie validate --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation failed[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
 
 (Command exited with error)

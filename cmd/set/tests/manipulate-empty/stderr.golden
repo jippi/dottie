@@ -52,11 +52,11 @@
 - [set NOT_A_NUMBER=abc --comment @dottie/validate number]
 --------------------------------------------------------------------------------
 
-  NOT_A_NUMBER ( memory://tmp/upsert:13 )
-    * (number) The value [abc] is not a valid number.
+[38;2;234;134;143m  NOT_A_NUMBER[m ( memory://tmp/upsert:13 )
+[38;2;110;168;254m    * [m(number) The value [[1;38;2;255;218;106;48;2;51;39;1mabc[m] is not a valid number.
 
-Error: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag
-Run 'dottie set --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: Key: 'NOT_A_NUMBER' Error:Field validation for 'NOT_A_NUMBER' failed on the 'number' tag[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie set --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------

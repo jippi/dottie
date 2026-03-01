@@ -3,7 +3,7 @@
 - [disable]
 --------------------------------------------------------------------------------
 
-Error: accepts 1 arg(s), received 0
-Run 'dottie disable --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: accepts 1 arg(s), received 0[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie disable --help' for usage.[m[m
 
 (Command exited with error)

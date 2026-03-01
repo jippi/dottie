@@ -3,6 +3,6 @@
 - [exec]
 --------------------------------------------------------------------------------
 
-  OUTPUT ( /fake/testing/path/tmp.env:3 )
-    * (ne) The value [failure] must NOT be equal to [failure], please change it.
+[38;2;234;134;143m  OUTPUT[m ( /fake/testing/path/tmp.env:3 )
+[38;2;110;168;254m    * [m(ne) The value [[1;38;2;255;218;106;48;2;51;39;1mfailure[m] must NOT be equal to [[1;38;2;255;218;106;48;2;51;39;1mfailure[m], please change it.
 

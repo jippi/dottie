@@ -3,6 +3,6 @@
 - [exec]
 --------------------------------------------------------------------------------
 
-Running exec command for assignment [ OUTPUT ]
-  Command: [ echo 'failure' ]
-  Output : [ failure ]
+[38;2;110;223;246m[38;2;110;223;246mRunning exec command for assignment [ OUTPUT ][m[m
+[38;2;164;167;170m[38;2;164;167;170m  Command: [ echo 'failure' ][m[m
+[38;2;117;183;152m[38;2;117;183;152m  Output : [ failure ][m[m

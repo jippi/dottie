@@ -3,8 +3,8 @@
 - [set --error-if-missing MISSING_KEY=THIS MUST FAIL]
 --------------------------------------------------------------------------------
 
-Error: Key [ MISSING_KEY ] was skipped: the key does not exists in the document (ErrorIfMissing)
-Run 'dottie set --help' for usage.
+[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: Key [ MISSING_KEY ] was skipped: the key does not exists in the document (ErrorIfMissing)[m[m
+[38;2;110;223;246m[38;2;110;223;246mRun 'dottie set --help' for usage.[m[m
 
 (Command exited with error)
 --------------------------------------------------------------------------------

@@ -3,15 +3,15 @@
 - [exec]
 --------------------------------------------------------------------------------
 
-Running exec command for assignment [ SOME_JSON_OUTPUT ]
-  Command: [ curl -sS https://jsonplaceholder.typicode.com/todos/1 ]
-  Output : [ {                  
-  "userId": 1,                  
-  "id": 1,                      
-  "title": "delectus aut autem",
-  "completed": false            
-} ]                             
-  Validation succeeded
+[38;2;110;223;246m[38;2;110;223;246mRunning exec command for assignment [ SOME_JSON_OUTPUT ][m[m
+[38;2;164;167;170m[38;2;164;167;170m  Command: [ curl -sS https://jsonplaceholder.typicode.com/todos/1 ][m[m
+[38;2;117;183;152m[38;2;117;183;152m  Output : [ {[m                  [m
+[38;2;117;183;152m[38;2;117;183;152m  "userId": 1,[m                  [m
+[38;2;117;183;152m[38;2;117;183;152m  "id": 1,[m                      [m
+[38;2;117;183;152m[38;2;117;183;152m  "title": "delectus aut autem",[m[m
+[38;2;117;183;152m[38;2;117;183;152m  "completed": false[m            [m
+[38;2;117;183;152m[38;2;117;183;152m} ][m                             [m
+[38;2;117;183;152m  Validation succeeded[m
 
-All exec commands completed successfully
-File successfully saved
+[38;2;117;183;152mAll exec commands completed successfully[m
+[38;2;117;183;152mFile successfully saved[m
