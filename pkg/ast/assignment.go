@@ -30,6 +30,8 @@ type Assignment struct {
 func (a *Assignment) statementNode() {}
 
 func (a *Assignment) Initialize(ctx context.Context) {
+	a.Dependencies = nil
+
 	if dependencies := template.ExtractVariables(ctx, a.Literal); len(dependencies) > 0 {
 		a.Dependencies = dependencies
 	}

@@ -1,0 +1,1 @@
+--source tests/ignore-rule.source --ignore-rule number --no-backup

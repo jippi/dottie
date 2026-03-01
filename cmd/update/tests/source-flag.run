@@ -1,0 +1,1 @@
+--source tests/source-flag.source --no-backup --no-validate

@@ -89,75 +89,28 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 				primary.Print("      ")
 			}
 
-			switch rule.ActualTag() {
-			case "dir":
-				light.Println("(dir) The directory [" + bold.Sprint(assignment.Interpolated) + "] does not exist.")
+			tag := rule.ActualTag()
+			light.Print("(", tag, ") ")
 
-				if askToFix {
-					fmt.Fprintln(tui.StderrFromContext(ctx).NoColor(), buff.String())
-					buff.Reset()
+			for _, segment := range splitHighlightedMessage(explainRuleMessage(tag, rule.Param(), assignment.Interpolated)) {
+				if segment.highlighted {
+					bold.Print(segment.text)
 
-					AskToCreateDirectory(ctx, assignment.Interpolated)
-
-					askToFix = false
+					continue
 				}
 
-			case "file":
-				light.Print("(file) The file [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] does not exist.")
+				light.Print(segment.text)
+			}
 
-			case "oneof":
-				light.Print("(oneof) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Print("] is not one of [")
-				bold.Print(rule.Param())
-				light.Println("].")
+			light.Println()
 
-			case "number":
-				light.Print("(number) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid number.")
+			if tag == "dir" && askToFix {
+				fmt.Fprintln(tui.StderrFromContext(ctx).NoColor(), buff.String())
+				buff.Reset()
 
-			case "email":
-				light.Print("(email) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid e-mail.")
+				AskToCreateDirectory(ctx, assignment.Interpolated)
 
-			case "required":
-				light.Println("(required) This value must not be empty/blank.")
-
-			case "fqdn":
-				light.Print("(fqdn) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid Fully Qualified Domain Name (FQDN).")
-
-			case "hostname":
-				light.Print("(hostname) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid hostname (e.g., 'example.com').")
-
-			case "ne":
-				light.Print("(ne) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Print("] must NOT be equal to [")
-				bold.Print(rule.Param())
-				light.Println("], please change it.")
-
-			case "boolean":
-				light.Print("(boolean) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid boolean.")
-
-			case "http_url":
-				light.Print("(http_url) The value [")
-				bold.Print(assignment.Interpolated)
-				light.Println("] is not a valid HTTP URL (e.g., 'https://example.com').")
-
-			default:
-				light.Printf("(%s) The value [", rule.ActualTag())
-				bold.Print(assignment.Interpolated)
-				light.Println("] failed validation.")
+				askToFix = false
 			}
 
 			if askToFix {
@@ -176,6 +129,182 @@ func Explain(ctx context.Context, doc *ast.Document, inputError any, assignment 
 	}
 
 	return buff.String()
+}
+
+type messageSegment struct {
+	text        string
+	highlighted bool
+}
+
+func splitHighlightedMessage(message string) []messageSegment {
+	segments := []messageSegment{}
+
+	rest := message
+
+	for len(rest) > 0 {
+		open := strings.Index(rest, "[")
+		if open == -1 {
+			segments = append(segments, messageSegment{text: rest})
+
+			break
+		}
+
+		if open > 0 {
+			segments = append(segments, messageSegment{text: rest[:open]})
+		}
+
+		remaining := rest[open+1:]
+
+		closeIndex := strings.Index(remaining, "]")
+		if closeIndex == -1 {
+			segments = append(segments, messageSegment{text: rest[open:]})
+
+			break
+		}
+
+		segments = append(segments, messageSegment{text: "["})
+		segments = append(segments, messageSegment{text: remaining[:closeIndex], highlighted: true})
+		segments = append(segments, messageSegment{text: "]"})
+
+		rest = remaining[closeIndex+1:]
+	}
+
+	return segments
+}
+
+func explainRuleMessage(tag, param, value string) string {
+	switch tag {
+	case "required":
+		return "This value is required and cannot be empty."
+	case "omitempty":
+		return "The value is only validated when it is non-empty, and the provided value did not pass the remaining rule(s)."
+	case "required_if":
+		return fmt.Sprintf("This value is required when [%s].", param)
+	case "required_unless":
+		return fmt.Sprintf("This value is required unless [%s].", param)
+	case "required_with":
+		return fmt.Sprintf("This value is required when any of [%s] is set.", param)
+	case "required_with_all":
+		return fmt.Sprintf("This value is required when all of [%s] are set.", param)
+	case "required_without":
+		return fmt.Sprintf("This value is required when any of [%s] is missing.", param)
+	case "required_without_all":
+		return fmt.Sprintf("This value is required when all of [%s] are missing.", param)
+	case "excluded_if":
+		return fmt.Sprintf("This value must be empty when [%s].", param)
+	case "excluded_unless":
+		return fmt.Sprintf("This value must be empty unless [%s].", param)
+
+	case "len":
+		return fmt.Sprintf("The value [%s] must have exact length/value [%s].", value, param)
+	case "min":
+		return fmt.Sprintf("The value [%s] must be at least [%s].", value, param)
+	case "max":
+		return fmt.Sprintf("The value [%s] must be at most [%s].", value, param)
+	case "eq":
+		return fmt.Sprintf("The value [%s] must be exactly [%s].", value, param)
+	case "ne":
+		return fmt.Sprintf("The value [%s] must not be equal to [%s].", value, param)
+	case "gt":
+		return fmt.Sprintf("The value [%s] must be greater than [%s].", value, param)
+	case "gte":
+		return fmt.Sprintf("The value [%s] must be greater than or equal to [%s].", value, param)
+	case "lt":
+		return fmt.Sprintf("The value [%s] must be less than [%s].", value, param)
+	case "lte":
+		return fmt.Sprintf("The value [%s] must be less than or equal to [%s].", value, param)
+	case "oneof":
+		return fmt.Sprintf("The value [%s] must be one of [%s].", value, param)
+	case "oneofci":
+		return fmt.Sprintf("The value [%s] must case-insensitively match one of [%s].", value, param)
+
+	case "number":
+		return fmt.Sprintf("The value [%s] is not a valid number.", value)
+	case "numeric":
+		return fmt.Sprintf("The value [%s] must be a numeric string.", value)
+	case "boolean":
+		return fmt.Sprintf("The value [%s] is not a valid boolean.", value)
+	case "alpha":
+		return fmt.Sprintf("The value [%s] must contain only letters.", value)
+	case "alphanum":
+		return fmt.Sprintf("The value [%s] must contain only letters and digits.", value)
+	case "ascii":
+		return fmt.Sprintf("The value [%s] must contain only ASCII characters.", value)
+	case "lowercase":
+		return fmt.Sprintf("The value [%s] must be all lowercase.", value)
+	case "uppercase":
+		return fmt.Sprintf("The value [%s] must be all uppercase.", value)
+	case "contains":
+		return fmt.Sprintf("The value [%s] must contain [%s].", value, param)
+	case "excludes":
+		return fmt.Sprintf("The value [%s] must not contain [%s].", value, param)
+	case "startswith":
+		return fmt.Sprintf("The value [%s] must start with [%s].", value, param)
+	case "endswith":
+		return fmt.Sprintf("The value [%s] must end with [%s].", value, param)
+
+	case "email":
+		return fmt.Sprintf("The value [%s] is not a valid e-mail address.", value)
+	case "url":
+		return fmt.Sprintf("The value [%s] is not a valid URL.", value)
+	case "uri":
+		return fmt.Sprintf("The value [%s] is not a valid URI.", value)
+	case "http_url":
+		return fmt.Sprintf("The value [%s] is not a valid HTTP/HTTPS URL.", value)
+	case "https_url":
+		return fmt.Sprintf("The value [%s] is not a valid HTTPS URL.", value)
+	case "hostname":
+		return fmt.Sprintf("The value [%s] is not a valid hostname.", value)
+	case "hostname_rfc1123":
+		return fmt.Sprintf("The value [%s] is not a valid RFC1123 hostname.", value)
+	case "fqdn":
+		return fmt.Sprintf("The value [%s] is not a valid fully qualified domain name (FQDN).", value)
+	case "hostname_port":
+		return fmt.Sprintf("The value [%s] is not a valid hostname:port pair.", value)
+	case "ip":
+		return fmt.Sprintf("The value [%s] is not a valid IP address.", value)
+	case "ipv4":
+		return fmt.Sprintf("The value [%s] is not a valid IPv4 address.", value)
+	case "ipv6":
+		return fmt.Sprintf("The value [%s] is not a valid IPv6 address.", value)
+	case "cidr":
+		return fmt.Sprintf("The value [%s] is not a valid CIDR block.", value)
+	case "mac":
+		return fmt.Sprintf("The value [%s] is not a valid MAC address.", value)
+	case "dir":
+		return fmt.Sprintf("The directory [%s] does not exist.", value)
+	case "dirpath":
+		return fmt.Sprintf("The value [%s] is not a valid directory path.", value)
+	case "file":
+		return fmt.Sprintf("The file [%s] does not exist.", value)
+	case "filepath":
+		return fmt.Sprintf("The value [%s] is not a valid file path.", value)
+
+	case "uuid":
+		return fmt.Sprintf("The value [%s] is not a valid UUID.", value)
+	case "ulid":
+		return fmt.Sprintf("The value [%s] is not a valid ULID.", value)
+	case "semver":
+		return fmt.Sprintf("The value [%s] is not a valid semantic version.", value)
+	case "cron":
+		return fmt.Sprintf("The value [%s] is not a valid cron expression.", value)
+	case "json":
+		return fmt.Sprintf("The value [%s] is not valid JSON.", value)
+	case "jwt":
+		return fmt.Sprintf("The value [%s] is not a valid JWT.", value)
+	case "hexcolor":
+		return fmt.Sprintf("The value [%s] is not a valid hex color.", value)
+	case "rgb":
+		return fmt.Sprintf("The value [%s] is not a valid RGB color.", value)
+	case "rgba":
+		return fmt.Sprintf("The value [%s] is not a valid RGBA color.", value)
+	case "base64":
+		return fmt.Sprintf("The value [%s] is not a valid base64 string.", value)
+	case "timezone":
+		return fmt.Sprintf("The value [%s] is not a valid time zone identifier.", value)
+	default:
+		return fmt.Sprintf("The value [%s] failed validation.", value)
+	}
 }
 
 func AskToCreateDirectory(ctx context.Context, path string) {

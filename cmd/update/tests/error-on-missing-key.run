@@ -1,0 +1,1 @@
+--source tests/error-on-missing-key.source --error-on-missing-key --no-backup

@@ -734,10 +734,10 @@ PORT (.env:2)
     * (number) The value [hello] is not a valid number.
 
 ADMIN_EMAIL (.env:5)
-    * (email) The value [not-an-email] is not a valid e-mail.
+  * (email) The value [not-an-email] is not a valid e-mail address.
 
 API_KEY (.env:8)
-    * (required) This value must not be empty/blank.
+  * (required) This value is required and cannot be empty.
 ```
 
 When all values are valid:

@@ -1,0 +1,9 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/multiple-annotations.run]:
+- [exec]
+--------------------------------------------------------------------------------
+
+Error: multiple exec annotations found for assignment [ OUTPUT ]
+Run 'dottie exec --help' for usage.
+
+(Command exited with error)

@@ -1,0 +1,9 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/missing-arg.run]:
+- [enable]
+--------------------------------------------------------------------------------
+
+Error: accepts 1 arg(s), received 0
+Run 'dottie enable --help' for usage.
+
+(Command exited with error)

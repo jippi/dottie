@@ -76,7 +76,22 @@ func Substitute(ctx context.Context, input string, resolver Resolver, accessible
 	}
 
 	// Expand variables
-	result, err := expand.Literal(config, words)
+	var result string
+
+	err = func() (innerErr error) {
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				// Fuzzing uncovered panics inside the third-party shell expansion library
+				// for malformed arithmetic expansions. Convert that panic to a regular
+				// template error so bad input fails safely without crashing the parser.
+				innerErr = fmt.Errorf("template expansion panic: %v", recovered)
+			}
+		}()
+
+		result, innerErr = expand.Literal(config, words)
+
+		return innerErr
+	}()
 	if err != nil {
 		// Inspect error and enrich it
 		target := &expand.UnsetParameterError{}
@@ -160,7 +175,9 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 			return val.Param.Value
 
 		default:
-			panic(val)
+			// Fuzzing has shown that shell parser nodes can include additional
+			// word part variants; treat unknown parts as non-variable content.
+			return ""
 		}
 	}
 
@@ -170,6 +187,12 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 		for _, partInterface := range w.Parts {
 			switch part := partInterface.(type) {
 			case *syntax.ParamExp:
+				if part.Param == nil {
+					// Some malformed parameter expressions can produce ParamExp nodes
+					// without a parameter name; skip those safely.
+					continue
+				}
+
 				variable := Variable{
 					Name: part.Param.Value,
 				}
@@ -186,17 +209,21 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 					}
 
 					if slices.Contains([]syntax.ParExpOperator{syntax.AlternateUnset, syntax.AlternateUnsetOrNull}, part.Exp.Op) {
-						variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+						if part.Exp.Word != nil && len(part.Exp.Word.Parts) > 0 {
+							variable.PresenceValue = grab(part.Exp.Word.Parts[0])
+						}
 					}
 				}
 
 				variables = append(variables, variable)
 
-			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob, *syntax.ArithmExp:
+			case *syntax.CmdSubst, *syntax.ProcSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob, *syntax.ArithmExp:
 				// Ignore known good-to-ignore-keywords
 
 			default:
-				panic(fmt.Errorf("unexpected type: %T", partInterface))
+				// Keep extraction resilient for new/rare shell AST nodes discovered
+				// by fuzzing, rather than crashing parser initialization.
+				slogctx.Debug(ctx, "template.extractVariable() ignoring unsupported part", slog.String("part_type", fmt.Sprintf("%T", partInterface)))
 			}
 		}
 

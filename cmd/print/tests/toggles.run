@@ -1,0 +1,2 @@
+--no-color --comments --group-banners --blank-lines
+--no-color --no-comments --no-group-banners --no-blank-lines

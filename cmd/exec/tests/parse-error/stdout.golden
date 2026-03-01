@@ -1,0 +1,7 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/parse-error.run]:
+- [exec]
+--------------------------------------------------------------------------------
+
+Running exec command for assignment [ OUTPUT ]
+  Command: [ echo $( ]

@@ -1,0 +1,1 @@
+--source tests/include-disabled.source --ignore-disabled=false --no-backup --no-validate

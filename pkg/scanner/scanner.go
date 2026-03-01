@@ -3,7 +3,6 @@ package scanner
 import (
 	"context"
 	"log/slog"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -24,6 +23,16 @@ var escaper = strings.NewReplacer(
 const (
 	bom = 0xFEFF // byte order mark, only permitted as the first character
 	eof = -1     // eof indicates the end of the file.
+
+	// maxInputBytes bounds total scanner input to avoid pathological payloads
+	// exhausting fuzz worker execution budgets during tokenization.
+	maxInputBytes = 128 * 1024
+
+	// maxValueTokenBytes bounds scanner work for a single value token to prevent
+	// pathological inputs from forcing extremely expensive scans during parsing.
+	maxValueTokenBytes = 64 * 1024
+
+	scannerInputTooLargeErrorLiteral = "input exceeds maximum supported length"
 )
 
 // Scanner converts a sequence of characters into a sequence of tokens.
@@ -34,13 +43,17 @@ type Scanner struct {
 	offset     int  // character offset
 	peekOffset int  // position after current character
 	lineNumber uint // current line number
+
+	inputTooLarge        bool
+	inputTooLargeEmitted bool
 }
 
 // New returns new Scanner.
 func New(input string) *Scanner {
 	scanner := &Scanner{
-		input:      input,
-		lineNumber: 1,
+		input:         input,
+		lineNumber:    1,
+		inputTooLarge: len(input) > maxInputBytes,
 	}
 
 	scanner.next()
@@ -60,6 +73,21 @@ func New(input string) *Scanner {
 //
 // If the returned token is token.Illegal, the literal string is the offending character.
 func (s *Scanner) NextToken(ctx context.Context) token.Token {
+	if s.inputTooLarge && !s.inputTooLargeEmitted {
+		// Fuzzing found oversized payloads where silently truncating input hid
+		// malformed content; emit an explicit illegal token instead so invalid
+		// input fails fast and predictably.
+		s.inputTooLargeEmitted = true
+		s.rune = eof
+
+		return token.New(
+			token.Illegal,
+			token.WithLiteral(scannerInputTooLargeErrorLiteral),
+			token.WithOffset(0),
+			token.WithLineNumber(1),
+		)
+	}
+
 	ctx = slogctx.With(
 		ctx,
 		slog.Group("scanner_state",
@@ -261,6 +289,15 @@ func (s *Scanner) scanUnquotedValue() token.Token {
 	start := s.offset
 
 	for !isEOF(s.rune) && !isNewLine(s.rune) {
+		if s.offset-start >= maxValueTokenBytes {
+			return token.New(
+				token.Illegal,
+				token.WithLiteral("value exceeds maximum supported length"),
+				token.WithOffset(s.offset),
+				token.WithLineNumber(s.lineNumber),
+			)
+		}
+
 		s.next()
 	}
 
@@ -310,6 +347,12 @@ func (s *Scanner) scanQuotedValue(_ context.Context, tType token.Type, quote tok
 
 		if escapes == 2 {
 			escapes = 0
+		}
+
+		if s.offset-start >= maxValueTokenBytes {
+			tType = token.Illegal
+
+			break
 		}
 
 		s.next()
@@ -390,11 +433,11 @@ func (s *Scanner) scanRune(offset int) (rune, int) {
 		// not ASCII
 		runeVal, width = utf8.DecodeRuneInString(s.input[offset:])
 		if runeVal == utf8.RuneError && width == 1 {
-			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
+			return utf8.RuneError, 1
 		}
 
-		if runeVal == bom && s.offset > 0 {
-			panic("illegal byte order mark on position " + strconv.Itoa(offset))
+		if runeVal == bom && offset > 0 {
+			return utf8.RuneError, width
 		}
 	}
 

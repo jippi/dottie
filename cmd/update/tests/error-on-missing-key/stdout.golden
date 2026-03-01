@@ -1,0 +1,25 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/error-on-missing-key.run]:
+- [update --source tests/error-on-missing-key.source --error-on-missing-key --no-backup]
+--------------------------------------------------------------------------------
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                   Starting update of env file from source                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for source configuration
+  Found source via CLI flag
+
+Copying source from tests/error-on-missing-key.source
+  OK
+
+Loading and parsing source
+  OK
+
+Updating source with key/value pairs from __TMP__/tmp.env
+
+  [KEY_IN_SOURCE] was successfully set to [user]
+
+

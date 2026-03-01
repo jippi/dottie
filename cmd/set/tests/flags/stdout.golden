@@ -1,0 +1,23 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/flags.run]:
+- [set --disabled DISABLED_KEY=value]
+--------------------------------------------------------------------------------
+
+Key [ DISABLED_KEY ] was successfully upserted
+File was successfully saved
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/flags.run]:
+- [set --group My Group GROUPED_KEY=value]
+--------------------------------------------------------------------------------
+
+Key [ GROUPED_KEY ] was successfully upserted
+File was successfully saved
+
+--------------------------------------------------------------------------------
+- Output of command from line 3 in [tests/flags.run]:
+- [set --no-validate NOT_A_NUMBER=abc --comment @dottie/validate number]
+--------------------------------------------------------------------------------
+
+Key [ NOT_A_NUMBER ] was successfully upserted
+File was successfully saved

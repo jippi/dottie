@@ -1,0 +1,12 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/no-save.run]:
+- [exec --no-save]
+--------------------------------------------------------------------------------
+
+Running exec command for assignment [ OUTPUT ]
+  Command: [ echo 'saved? no' ]
+  Output : [ saved? no ]
+  Validation succeeded
+
+All exec commands completed successfully
+[--no-save] was provided, not saving file
