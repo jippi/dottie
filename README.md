@@ -184,14 +184,238 @@ cosign verify \
 > [!NOTE]
 > The `.pem` and `.sig` files are the image `name:tag`, replacing `/` and `:` with `-`.
 
+## Commands
+
+### Global Flags
+
+All commands support the following global flags:
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-f`, `--file` | Load this file | `.env` |
+| `-h`, `--help` | Help for the command | |
+
+---
+
+### Manipulation Commands
+
+#### `dottie disable`
+
+Disable (comment out) a KEY if it exists.
+
+```
+dottie disable KEY [flags]
+```
+
+---
+
+#### `dottie enable`
+
+Enable (uncomment) a KEY if it exists.
+
+```
+dottie enable KEY [flags]
+```
+
+---
+
+#### `dottie exec`
+
+Update the .env file from a source.
+
+```
+dottie exec [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--error-on-missing-key` | Error if a KEY in FILE is missing from SOURCE | |
+| `--no-error-on-missing-key` | Add KEY to FILE if missing from SOURCE | `true` |
+| `--exclude-key-prefix` | Ignore these KEY prefixes | |
+| `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
+| `--save` / `--no-save` | Save the document after processing | `true` |
+| `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
+| `--source` | URL or local file path to the upstream source file. Takes precedence over any `@dottie/source` annotation in the file | |
+
+---
+
+#### `dottie fmt`
+
+Format a .env file.
+
+```
+dottie fmt [flags]
+```
+
+---
+
+#### `dottie set`
+
+Set/update one or multiple key=value pairs.
+
+```
+dottie set KEY=VALUE [KEY=VALUE ...] [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--after` | If the key doesn't exist, add it to the file *after* this KEY | |
+| `--before` | If the key doesn't exist, add it to the file *before* this KEY | |
+| `--comment` | Set one or multiple lines of comments to the KEY=VALUE pair | |
+| `--disabled` | Set/change the flag to be disabled (commented out) | |
+| `--error-if-missing` | Exit with an error if the KEY does not exist in the .env file already | |
+| `--group` | The (optional) group name to add the KEY=VALUE pair under | |
+| `--quote-style` | The quote style to use (`single`, `double`, `none`) | `double` |
+| `--skip-if-exists` | If the KEY already exists, do not set or change any settings | |
+| `--skip-if-same` | If the KEY already exists and the value is identical, do not set or change any settings | |
+| `--validate` / `--no-validate` | Validate the VALUE input before saving the file | `true` |
+
+---
+
+#### `dottie shell`
+
+Interactive dottie shell.
+
+```
+dottie shell [flags]
+```
+
+---
+
+#### `dottie update`
+
+Update the .env file from a source.
+
+```
+dottie update [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--backup` / `--no-backup` | Should the .env file be backed up before updating it? | `true` |
+| `--backup-file` | File path to write the backup to (by default it will write a `.env.dottie-backup` file in the same directory) | |
+| `--error-on-missing-key` | Error if a KEY in FILE is missing from SOURCE | |
+| `--no-error-on-missing-key` | Add KEY to FILE if missing from SOURCE | `true` |
+| `--exclude-key-prefix` | Ignore these KEY prefixes | |
+| `--ignore-disabled` | Ignore disabled KEY/VALUE pairs from the .env file | `true` |
+| `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
+| `--save` / `--no-save` | Save the document after processing | `true` |
+| `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
+| `--source` | URL or local file path to the upstream source file. Takes precedence over any `@dottie/source` annotation in the file | |
+
+---
+
+### Output Commands
+
+#### `dottie print`
+
+Print environment variables.
+
+```
+dottie print [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--blank-lines` / `--no-blank-lines` | Show blank lines | `true` |
+| `--color` / `--no-color` | Enable color output | `true` |
+| `--comments` / `--no-comments` | Show comments | `false` |
+| `--export` | Prefix all key/value pairs with `export` statement | |
+| `--group` | Filter by group name (*glob* wildcard supported) | |
+| `--group-banners` / `--no-group-banners` | Show group banners | `false` |
+| `--interpolation` / `--no-interpolation` | Enable interpolation | `true` |
+| `--key-prefix` | Filter by key prefix | |
+| `--pretty` | Implies `--color --comments --blank-lines --group-banners` | |
+| `--with-disabled` | Include disabled assignments | |
+
+---
+
+#### `dottie value`
+
+Print value of an env key if it exists.
+
+```
+dottie value KEY [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--literal` | Show literal value instead of interpolated | |
+| `--with-disabled` | Include disabled assignments | |
+
+---
+
+#### `dottie validate`
+
+Validate an .env file.
+
+```
+dottie validate [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--exclude-prefix` | Exclude KEY with this prefix | |
+| `--fix` / `--no-fix` | Guide the user to fix supported validation errors | `true` |
+| `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
+
+---
+
+#### `dottie groups`
+
+Print groups found in the .env file.
+
+```
+dottie groups [flags]
+```
+
+---
+
+#### `dottie json`
+
+Print the .env file as JSON.
+
+```
+dottie json [flags]
+```
+
+---
+
+#### `dottie template`
+
+Render a template.
+
+```
+dottie template [flags]
+```
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--interpolation` / `--no-interpolation` | Enable interpolation | `true` |
+| `--with-disabled` | Include disabled assignments | |
+
+---
+
+### Additional Commands
+
+#### `dottie completion`
+
+Generate the autocompletion script for the specified shell.
+
+```
+dottie completion [bash|zsh|fish|powershell]
+```
+
+---
+
 ## Development Setup
 
 To compile the module yourself, you can setup this repository for development.
 
 You will need:
 
-- [Git](https://git-scm.com/)
-- [Go](https://go.dev/doc/install)
+* [Git](https://git-scm.com/)
+* [Go](https://go.dev/doc/install)
 
 1. Clone the repository:
 
@@ -200,13 +424,13 @@ You will need:
   cd dottie
   ```
 
-2. Build the module:
+1. Build the module:
 
   ```sh
   go build
   ```
 
-3. Build the docker container:
+1. Build the docker container:
 
   ```sh
   docker build --file Dockerfile.release --tag ghcr.io/jippi/dottie:v0.15.1 .
