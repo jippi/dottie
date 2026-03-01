@@ -10,6 +10,10 @@ type Writer struct {
 	writer io.Writer
 }
 
+func (w Writer) GetWriter() io.Writer {
+	return w.writer
+}
+
 func (w Writer) Danger() Printer {
 	return w.Style(Danger)
 }

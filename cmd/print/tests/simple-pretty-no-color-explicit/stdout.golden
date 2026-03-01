@@ -1,0 +1,25 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/simple-pretty-no-color-explicit.run]:
+- [print --pretty --color=false]
+--------------------------------------------------------------------------------
+
+KEY_A="I'm key A"
+
+# Comment for KEY_B
+KEY_B="I'm key B"
+
+KEY_C="I'm key C"
+
+
+--------------------------------------------------------------------------------
+- Output of command from line 2 in [tests/simple-pretty-no-color-explicit.run]:
+- [print --pretty --no-color]
+--------------------------------------------------------------------------------
+
+KEY_A="I'm key A"
+
+# Comment for KEY_B
+KEY_B="I'm key B"
+
+KEY_C="I'm key C"
+

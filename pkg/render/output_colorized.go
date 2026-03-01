@@ -1,8 +1,8 @@
 package render
 
 import (
-	"bytes"
 	"context"
+	"strings"
 
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/tui"
@@ -13,28 +13,26 @@ var _ Output = (*ColorizedOutput)(nil)
 type ColorizedOutput struct{}
 
 func (ColorizedOutput) GroupBanner(ctx context.Context, group *ast.Group, settings Settings) *Lines {
-	var buf bytes.Buffer
+	writer := tui.NewWriter(ctx, nil)
+	success := writer.Success()
 
-	out := tui.NewWriter(ctx, &buf).Success()
-
-	out.Println("################################################################################")
-	out.ApplyStyle(tui.Bold).Println(group.Name)
-	out.Print("################################################################################")
-
-	return NewLinesCollection().Add(buf.String())
+	return NewLinesCollection().
+		Add(success.Sprint("################################################################################")).
+		Add(success.ApplyStyle(tui.Bold).Sprint(group.Name)).
+		Add(success.Sprint("################################################################################"))
 }
 
 func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignment, settings Settings) *Lines {
-	var buf bytes.Buffer
+	printer := tui.NewWriter(ctx, nil)
 
-	printer := tui.NewWriter(ctx, &buf)
+	var out strings.Builder
 
 	if !assignment.Enabled {
-		printer.Danger().Print("#")
+		out.WriteString(printer.Danger().Sprint("#"))
 	}
 
 	if settings.export {
-		printer.Dark().Print("export ")
+		out.WriteString(printer.Dark().Sprint("export "))
 	}
 
 	val := assignment.Literal
@@ -43,34 +41,31 @@ func (ColorizedOutput) Assignment(ctx context.Context, assignment *ast.Assignmen
 		val = assignment.Interpolated
 	}
 
-	printer.Primary().Print(assignment.Name)
-	printer.Dark().Print("=")
-	printer.Success().Print(assignment.Quote)
-	printer.Warning().Print(val)
-	printer.Success().Print(assignment.Quote)
+	out.WriteString(printer.Primary().Sprint(assignment.Name))
+	out.WriteString(printer.Dark().Sprint("="))
+	out.WriteString(printer.Success().Sprint(assignment.Quote))
+	out.WriteString(printer.Warning().Sprint(val))
+	out.WriteString(printer.Success().Sprint(assignment.Quote))
 
-	return NewLinesCollection().Add(buf.String())
+	return NewLinesCollection().Add(out.String())
 }
 
 func (ColorizedOutput) Comment(ctx context.Context, comment *ast.Comment, settings Settings) *Lines {
-	var buf bytes.Buffer
-
-	out := tui.NewWriter(ctx, &buf).Success()
+	writer := tui.NewWriter(ctx, nil)
+	out := writer.Success()
 
 	if comment.Annotation == nil {
-		out.Print(comment.Value)
-
-		return NewLinesCollection().Add(buf.String())
+		return NewLinesCollection().Add(out.Sprint(comment.Value))
 	}
 
-	if comment.Annotation != nil {
-		out.Print("# ")
-		out.ApplyStyle(tui.Bold).Print("@", comment.Annotation.Key)
-		out.Print(" ")
-		out.Print(comment.Annotation.Value)
-	}
+	var builder strings.Builder
 
-	return NewLinesCollection().Add(buf.String())
+	builder.WriteString(out.Sprint("# "))
+	builder.WriteString(out.ApplyStyle(tui.Bold).Sprint("@", comment.Annotation.Key))
+	builder.WriteString(out.Sprint(" "))
+	builder.WriteString(out.Sprint(comment.Annotation.Value))
+
+	return NewLinesCollection().Add(builder.String())
 }
 
 func (ColorizedOutput) Newline(ctx context.Context, newline *ast.Newline, settings Settings) *Lines {
