@@ -159,3 +159,23 @@ func TestTemplateCommandRejectsMissingAndExtraArgs(t *testing.T) {
 		assert.Empty(t, stdout.String())
 	})
 }
+
+func TestTemplateCommandPanicsOnInvalidTemplateSyntax(t *testing.T) {
+	t.Parallel()
+
+	require.Panics(t, func() {
+		_ = runTemplateCommand(t, "A=hello\n", "{{ if }}")
+	})
+}
+
+func TestTemplateCommandReturnsExecutionError(t *testing.T) {
+	t.Parallel()
+
+	result := runTemplateCommand(t, "A=hello\n", "{{ index . \"MISSING\" }}")
+
+	require.Error(t, result.err)
+	assert.Equal(t, "template", result.executed)
+	assert.Contains(t, result.err.Error(), "can't index item")
+	assert.Contains(t, result.stderr, "Run 'dottie template --help' for usage.")
+	assert.Empty(t, result.stdout)
+}
