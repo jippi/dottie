@@ -8,6 +8,10 @@ replace github.com/reugn/pkgslog => github.com/jippi/pkgslog v0.0.0-202402241832
 
 replace charm.land/lipgloss/v2 => github.com/charmbracelet/lipgloss/v2 v2.0.0
 
+replace charm.land/bubbles/v2 => github.com/charmbracelet/bubbles/v2 v2.0.0
+
+replace charm.land/bubbletea/v2 => github.com/charmbracelet/bubbletea/v2 v2.0.0
+
 require (
 	charm.land/lipgloss/v2 v2.0.0
 	github.com/Masterminds/sprig/v3 v3.3.0
