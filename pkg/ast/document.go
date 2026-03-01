@@ -125,7 +125,7 @@ func (doc *Document) InterpolateAll(ctx context.Context) error {
 	}()
 
 	for _, assignment := range doc.AllAssignments() {
-		doc.doInterpolation(ctx, assignment, false)
+		doc.doInterpolation(ctx, assignment, false, map[string]struct{}{})
 	}
 
 	return doc.interpolateErrors
@@ -136,12 +136,12 @@ func (doc *Document) InterpolateStatement(ctx context.Context, target *Assignmen
 		doc.interpolateErrors = nil
 	}()
 
-	doc.doInterpolation(ctx, target, includeDisabled)
+	doc.doInterpolation(ctx, target, includeDisabled, map[string]struct{}{})
 
 	return doc.interpolateErrors
 }
 
-func (doc *Document) doInterpolation(ctx context.Context, target *Assignment, includeDisabled bool) {
+func (doc *Document) doInterpolation(ctx context.Context, target *Assignment, includeDisabled bool, interpolationStack map[string]struct{}) {
 	ctx = slogctx.With(ctx, slog.String("source", "ast.Document"))
 
 	slogctx.Debug(ctx, "Starting interpolation", slog.Any("assignment", target))
@@ -151,6 +151,20 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment, in
 
 		return
 	}
+
+	if interpolationStack == nil {
+		interpolationStack = map[string]struct{}{}
+	}
+
+	if _, exists := interpolationStack[target.Name]; exists {
+		doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("cyclic dependency detected while interpolating key [%s]", target.Name)))
+
+		return
+	}
+
+	interpolationStack[target.Name] = struct{}{}
+
+	defer delete(interpolationStack, target.Name)
 
 	ctx = slogctx.With(ctx, slog.String("interpolation_key", target.Name))
 
@@ -164,14 +178,20 @@ func (doc *Document) doInterpolation(ctx context.Context, target *Assignment, in
 	for _, dependency := range target.Dependencies {
 		ref := doc.Get(dependency.Name)
 		if ref == nil {
-			slogctx.Warn(ctx, fmt.Sprintf("KEY [ %s ] references KEY [ %s ] that do not exist in the Document", target.Name, dependency.Name))
+			doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] has missing dependency [%s]", target.Name, dependency.Name)))
+
+			continue
+		}
+
+		if !ref.Enabled {
+			doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] references disabled dependency [%s]", target.Name, dependency.Name)))
 
 			continue
 		}
 
 		ctx := slogctx.With(ctx, slog.String("dependent_key", target.Name))
 
-		doc.doInterpolation(ctx, doc.Get(dependency.Name), false) // when doing recursive interpolation, do not include disabled key/value pairs
+		doc.doInterpolation(ctx, ref, false, interpolationStack) // when doing recursive interpolation, do not include disabled key/value pairs
 	}
 
 	// If the assignment is wrapped in single quotes, no interpolation should happen
@@ -227,6 +247,12 @@ func (doc *Document) AccessibleVariables(target *Assignment) func() map[string]s
 
 func (doc *Document) InterpolationMapper(target *Assignment) func(input string) (string, bool) {
 	return func(input string) (string, bool) {
+		if input == target.Name {
+			doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] must not reference itself", target.Name)))
+
+			return "", false
+		}
+
 		// Lookup in process environment
 		if val, ok := os.LookupEnv(input); ok {
 			return val, ok
@@ -245,24 +271,8 @@ func (doc *Document) InterpolationMapper(target *Assignment) func(input string) 
 			return "", false
 		}
 
-		for _, dependency := range target.Dependencies {
-			// Self-referencing is not allowed to avoid infinite loops in cases where you do [A="$A"]
-			// which would trigger infinite recursive loop
-			if dependency.Name == target.Name {
-				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] must not reference itself", target.Name)))
-
-				continue
-			}
-
-			// Lookup the assignment
-			prerequisite := doc.Get(dependency.Name)
-
-			// If it does not exists or is not enabled, abort
-			if prerequisite == nil {
-				doc.interpolateErrors = multierr.Append(doc.interpolateErrors, ContextualError(target, fmt.Errorf("key [%s] must has invalid dependency [%s]", target.Name, dependency.Name)))
-
-				continue
-			}
+		if !assignment.Enabled {
+			return "", false
 		}
 
 		return assignment.Interpolated, true
@@ -332,9 +342,14 @@ func (d *Document) GetAssignmentIndex(name string) (int, *Assignment) {
 }
 
 func (document *Document) Initialize(ctx context.Context) {
-	for _, assignment := range document.AllAssignments() {
-		assignment.Initialize(ctx)
+	allAssignments := document.AllAssignments()
 
+	for _, assignment := range allAssignments {
+		assignment.Dependents = nil
+		assignment.Initialize(ctx)
+	}
+
+	for _, assignment := range allAssignments {
 		// Add current assignment as dependent on its own dependencies
 		for _, dependency := range assignment.Dependencies {
 			if x := document.Get(dependency.Name); x != nil {

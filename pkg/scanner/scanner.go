@@ -3,7 +3,6 @@ package scanner
 import (
 	"context"
 	"log/slog"
-	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -390,11 +389,11 @@ func (s *Scanner) scanRune(offset int) (rune, int) {
 		// not ASCII
 		runeVal, width = utf8.DecodeRuneInString(s.input[offset:])
 		if runeVal == utf8.RuneError && width == 1 {
-			panic("illegal UTF-8 encoding on position " + strconv.Itoa(offset))
+			return utf8.RuneError, 1
 		}
 
-		if runeVal == bom && s.offset > 0 {
-			panic("illegal byte order mark on position " + strconv.Itoa(offset))
+		if runeVal == bom && offset > 0 {
+			return utf8.RuneError, width
 		}
 	}
 

@@ -291,6 +291,15 @@ func TestScanner_NextToken_Naked_Value(t *testing.T) {
 	}
 }
 
+func TestScanner_NextToken_InvalidUTF8DoesNotPanic(t *testing.T) {
+	t.Parallel()
+
+	sc := scanner.New(string([]byte{0xff}))
+
+	actual := sc.NextToken(t.Context())
+	assert.Equal(t, token.Illegal, actual.Type)
+}
+
 func TestScanner_NextToken_Illegal(t *testing.T) {
 	t.Parallel()
 
