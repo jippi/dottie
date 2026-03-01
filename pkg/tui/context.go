@@ -5,7 +5,6 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/reugn/pkgslog"
 	slogmulti "github.com/samber/slog-multi"
@@ -58,13 +57,12 @@ func NewContext(ctx context.Context, stdout, stderr io.Writer) context.Context {
 func NewContextWithoutLogger(ctx context.Context, stdout, stderr io.Writer) context.Context {
 	theme := NewTheme()
 
-	stdoutOutput := lipgloss.NewRenderer(stdout, termenv.WithColorCache(true))
-	stderrOutput := lipgloss.NewRenderer(stderr, termenv.WithColorCache(true))
+	stdoutTermenv := termenv.NewOutput(stdout, termenv.WithColorCache(true))
 
 	ctx = context.WithValue(ctx, themeContextValue, theme)
-	ctx = context.WithValue(ctx, colorProfileContextValue, stdoutOutput.ColorProfile())
-	ctx = context.WithValue(ctx, Stdout, theme.Writer(stdoutOutput))
-	ctx = context.WithValue(ctx, Stderr, theme.Writer(stderrOutput))
+	ctx = context.WithValue(ctx, colorProfileContextValue, stdoutTermenv.ColorProfile())
+	ctx = context.WithValue(ctx, Stdout, theme.Writer(stdout))
+	ctx = context.WithValue(ctx, Stderr, theme.Writer(stderr))
 
 	return ctx
 }

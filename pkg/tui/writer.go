@@ -1,13 +1,13 @@
 package tui
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	"io"
 )
 
 type Writer struct {
-	cache    map[styleIdentifier]Printer
-	theme    Theme
-	renderer *lipgloss.Renderer
+	cache  map[styleIdentifier]Printer
+	theme  Theme
+	writer io.Writer
 }
 
 func (w Writer) Danger() Printer {
@@ -51,7 +51,7 @@ func (w Writer) Style(colorType styleIdentifier) Printer {
 		return printer
 	}
 
-	w.cache[colorType] = w.theme.Style(colorType).NewPrinter(w.renderer)
+	w.cache[colorType] = w.theme.Style(colorType).NewPrinter(w.writer)
 
 	return w.cache[colorType]
 }

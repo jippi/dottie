@@ -4,8 +4,7 @@ import (
 	"context"
 	"io"
 
-	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
+	lipgloss "charm.land/lipgloss/v2"
 )
 
 type Theme struct {
@@ -25,9 +24,9 @@ func NewTheme() Theme {
 	theme.styles[Warning] = NewStyle(Yellow)
 
 	dark := NewStyle(Gray700)
-	dark.textEmphasisColor.Dark = ColorToHex(Gray300)
-	dark.backgroundColor.Dark = "#1a1d20"
-	dark.borderColor.Dark = ColorToHex(Gray800)
+	dark.textEmphasisColor.Dark = lipgloss.Color(Gray300)
+	dark.backgroundColor.Dark = lipgloss.Color("#1a1d20")
+	dark.borderColor.Dark = lipgloss.Color(Gray800)
 
 	theme.styles[Dark] = dark
 
@@ -38,26 +37,14 @@ func (theme Theme) Style(id styleIdentifier) Style {
 	return theme.styles[id]
 }
 
-func (theme Theme) Writer(renderer *lipgloss.Renderer) Writer {
+func (theme Theme) Writer(w io.Writer) Writer {
 	return Writer{
-		renderer: renderer,
-		theme:    theme,
-		cache:    make(map[styleIdentifier]Printer),
+		writer: w,
+		theme:  theme,
+		cache:  make(map[styleIdentifier]Printer),
 	}
 }
 
 func NewWriter(ctx context.Context, writer io.Writer) Writer {
-	var options []termenv.OutputOption
-
-	// If the primary (stdout) color profile is in color mode (aka not ASCII),
-	// force  TTY and color profile for the new renderer and writer
-	if profile := ColorProfileFromContext(ctx); profile != termenv.Ascii {
-		options = append(
-			options,
-			termenv.WithTTY(true),
-			termenv.WithProfile(profile),
-		)
-	}
-
-	return ThemeFromContext(ctx).Writer(lipgloss.NewRenderer(writer, options...))
+	return ThemeFromContext(ctx).Writer(writer)
 }
