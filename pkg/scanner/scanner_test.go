@@ -274,15 +274,15 @@ func TestScanner_NextToken_OversizedQuotedValueReturnsIllegal(t *testing.T) {
 	assert.Equal(t, token.Illegal, value.Type)
 }
 
-func TestScanner_NextToken_OversizedInputIsCapped(t *testing.T) {
+func TestScanner_NextToken_OversizedInputReturnsIllegal(t *testing.T) {
 	t.Parallel()
 
 	input := "# " + strings.Repeat("a", oversizedInputPadding)
 	sc := scanner.New(input)
 
-	comment := sc.NextToken(t.Context())
-	assert.Equal(t, token.Comment, comment.Type)
-	assert.Less(t, len(comment.Literal), len(input))
+	actual := sc.NextToken(t.Context())
+	assert.Equal(t, token.Illegal, actual.Type)
+	assert.Equal(t, "input exceeds maximum supported length", actual.Literal)
 }
 
 func TestScanner_NextToken_Naked_Value(t *testing.T) {
