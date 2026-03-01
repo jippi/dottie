@@ -86,7 +86,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 	helper.MissingKeyCallback(name)
 
 	return expand.Variable{
-		Kind: expand.Unset,
+		Kind: expand.Unknown,
 	}
 }
 

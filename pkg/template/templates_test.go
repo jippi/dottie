@@ -523,8 +523,6 @@ func TestShellOperatorComplianceMatrix(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		testCase := testCase
-
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -542,8 +540,8 @@ func TestShellOperatorComplianceMatrix(t *testing.T) {
 
 			if testCase.errSubstr != "" {
 				require.Error(t, err)
-				assert.ErrorContains(t, err, testCase.errSubstr)
-				assert.Equal(t, "", result)
+				require.ErrorContains(t, err, testCase.errSubstr)
+				assert.Empty(t, result)
 
 				return
 			}
@@ -609,25 +607,23 @@ func TestComplexNestedInterpolationBehavior(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
-
-		t.Run(tc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
 			resolver := func(name string) (string, bool) {
-				value, ok := tc.vars[name]
+				value, ok := testCase.vars[name]
 
 				return value, ok
 			}
 
 			accessible := func() map[string]string {
-				return tc.vars
+				return testCase.vars
 			}
 
-			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), tc.template, resolver, accessible)
+			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), testCase.template, resolver, accessible)
 			require.NoError(t, err)
-			assert.Equal(t, tc.expected, result)
+			assert.Equal(t, testCase.expected, result)
 		})
 	}
 }
@@ -654,15 +650,13 @@ func TestComplexInterpolationSpecialConstructsRemainLiteral(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		tc := tc
-
-		t.Run(tc.name, func(t *testing.T) {
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), tc.template, defaultMapping, accessibleVariables)
+			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), testCase.template, defaultMapping, accessibleVariables)
 			require.NoError(t, err)
-			assert.Equal(t, tc.expected, result)
+			assert.Equal(t, testCase.expected, result)
 		})
 	}
 }
