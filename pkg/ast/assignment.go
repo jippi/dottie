@@ -147,7 +147,7 @@ func (a *Assignment) Enable() {
 }
 
 func (a *Assignment) CommentsSlice() []string {
-	res := []string{}
+	res := make([]string, 0, len(a.Comments))
 
 	for _, comment := range a.Comments {
 		res = append(res, comment.CleanString())

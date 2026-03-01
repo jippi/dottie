@@ -336,7 +336,7 @@ func Copy(src, dst string) error {
 		return err
 	}
 
-	dstF, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
+	dstF, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode()) //nolint:gosec
 	if err != nil {
 		return err
 	}

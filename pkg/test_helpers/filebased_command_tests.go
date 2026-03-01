@@ -144,18 +144,18 @@ func RunFileBasedCommandTests(t *testing.T, settings Setting, globalArgs ...stri
 
 			for idx, command := range tt.commands {
 				// Point args to the copied temp env file
-				args := []string{}
+				args := make([]string, 0, len(globalArgs)+len(command))
 				args = append(args, globalArgs...)
 				args = append(args, command...)
 
 				t.Logf("Running step from line %d: %+v", idx+1, args)
 
 				combinedStdout.WriteString(header)
-				combinedStdout.WriteString(fmt.Sprintf("%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args))
+				fmt.Fprintf(&combinedStdout, "%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args)
 				combinedStdout.WriteString(footer)
 
 				combinedStderr.WriteString(header)
-				combinedStderr.WriteString(fmt.Sprintf("%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args))
+				fmt.Fprintf(&combinedStderr, "%s Output of command from line %d in [%s]:\n%s %+v", sep, idx+1, tt.commandsFile, sep, args)
 				combinedStderr.WriteString(footer)
 
 				commandArgs := append(args, "--file", dotEnvFile)
@@ -229,7 +229,7 @@ func copyFile(t *testing.T, src, dst string) error {
 		return err
 	}
 
-	dstF, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
+	dstF, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode()) //nolint:gosec
 	if err != nil {
 		return err
 	}
