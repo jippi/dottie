@@ -160,7 +160,9 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 			return val.Param.Value
 
 		default:
-			panic(val)
+			// Fuzzing has shown that shell parser nodes can include additional
+			// word part variants; treat unknown parts as non-variable content.
+			return ""
 		}
 	}
 
@@ -192,11 +194,13 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 
 				variables = append(variables, variable)
 
-			case *syntax.CmdSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob, *syntax.ArithmExp:
+			case *syntax.CmdSubst, *syntax.ProcSubst, *syntax.SglQuoted, *syntax.DblQuoted, *syntax.Lit, *syntax.ExtGlob, *syntax.ArithmExp:
 				// Ignore known good-to-ignore-keywords
 
 			default:
-				panic(fmt.Errorf("unexpected type: %T", partInterface))
+				// Keep extraction resilient for new/rare shell AST nodes discovered
+				// by fuzzing, rather than crashing parser initialization.
+				slogctx.Debug(ctx, "template.extractVariable() ignoring unsupported part", slog.String("part_type", fmt.Sprintf("%T", partInterface)))
 			}
 		}
 

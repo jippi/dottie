@@ -9,7 +9,6 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/jippi/dottie/pkg/tui"
 	slogctx "github.com/veqryn/slog-context"
 )
 
@@ -48,7 +47,7 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 
 	// LOOP
 	for len(input) > 0 {
-		slogctx.Debug(ctx, "Unescape :: loop :: input", tui.StringDump("input", input))
+		slogctx.Debug(ctx, "Unescape :: loop", slog.Int("remaining_bytes", len(input)))
 
 		// Process the next character, rejecting any unescaped newline characters which are invalid.
 		runeVal, multibyte, remaining, err := unescapeChar(ctx, input, quote)
@@ -56,7 +55,7 @@ func Unescape(ctx context.Context, input string, quote Quote) (out string, err e
 			return input0, err
 		}
 
-		slogctx.Debug(ctx, "Unescape :: loop :: remaining", tui.StringDump("remaining", remaining))
+		slogctx.Debug(ctx, "Unescape :: loop result", slog.Int("remaining_bytes", len(remaining)))
 
 		input = remaining
 
@@ -84,7 +83,7 @@ func index(s string, c byte) int {
 }
 
 func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, multibyte bool, tail string, err error) {
-	ctx = slogctx.With(ctx, tui.StringDump("input", input))
+	ctx = slogctx.With(ctx, slog.Int("input_len", len(input)))
 	slogctx.Debug(ctx, "token.unescapeChar()")
 
 	if len(input) == 0 {
@@ -109,8 +108,8 @@ func unescapeChar(ctx context.Context, input string, quote Quote) (value rune, m
 
 	ctx = slogctx.With(
 		ctx,
-		tui.StringDump("char", string(char)),
-		tui.StringDump("input", input),
+		slog.Int("char_code", int(char)),
+		slog.Int("remaining_input_len", len(input)),
 	)
 
 	slogctx.Debug(ctx, "token.unescapeChar() complex unescape path")

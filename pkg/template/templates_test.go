@@ -613,6 +613,15 @@ func TestExtractVariables(t *testing.T) {
 				"bar": {Name: "bar", PresenceValue: "foo"},
 			},
 		},
+		{
+			name: "default-with-process-substitution",
+			dict: map[string]interface{}{
+				"foo": "${bar:-<(cat /dev/null)}",
+			},
+			expected: map[string]templatepkg.Variable{
+				"bar": {Name: "bar", DefaultValue: "<(cat /dev/null)"},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
