@@ -201,21 +201,79 @@ All commands support the following global flags:
 
 #### `dottie disable`
 
-Disable (comment out) a KEY if it exists.
+Disable (comment out) a KEY if it exists. The key is prefixed with `#` to comment it out, making it invisible to normal `print` output while preserving the value for later re-enabling.
 
 ```
 dottie disable KEY [flags]
 ```
 
+<details>
+<summary>Example</summary>
+
+Given a `.env` file:
+
+```env
+APP_NAME="dottie"
+
+# Database port
+DB_PORT="3306"
+```
+
+Running:
+
+```shell
+$ dottie disable DB_PORT
+Key [ DB_PORT ] was successfully disabled
+```
+
+The `.env` file is now:
+
+```env
+APP_NAME="dottie"
+
+# Database port
+#DB_PORT="3306"
+```
+
+The key is commented out with `#` but all comments above it are preserved. Use `dottie print --with-disabled` to still see disabled keys in output.
+
+</details>
+
 ---
 
 #### `dottie enable`
 
-Enable (uncomment) a KEY if it exists.
+Enable (uncomment) a KEY if it exists. Removes the leading `#` from a previously disabled key, making it active again.
 
 ```
 dottie enable KEY [flags]
 ```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file with a disabled key:
+
+```env
+# Database port
+#DB_PORT="3306"
+```
+
+Running:
+
+```shell
+$ dottie enable DB_PORT
+Key [ DB_PORT ] was successfully enabled
+```
+
+The `.env` file is now:
+
+```env
+# Database port
+DB_PORT="3306"
+```
+
+</details>
 
 ---
 
@@ -241,11 +299,47 @@ dottie exec [flags]
 
 #### `dottie fmt`
 
-Format a .env file.
+Format a .env file. Ensures consistent spacing by adding blank lines between key/value groups, especially before comment blocks.
 
 ```
 dottie fmt [flags]
 ```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file with inconsistent spacing:
+
+```env
+KEY1=hello
+# Comment for KEY2
+KEY2=world
+# Comment for KEY3
+KEY3=test
+```
+
+Running:
+
+```shell
+$ dottie fmt
+File was successfully formatted
+```
+
+The `.env` file is now properly spaced:
+
+```env
+KEY1=hello
+
+# Comment for KEY2
+KEY2=world
+
+# Comment for KEY3
+KEY3=test
+```
+
+Blank lines are automatically added before comment blocks to improve readability.
+
+</details>
 
 ---
 
@@ -269,6 +363,62 @@ dottie set KEY=VALUE [KEY=VALUE ...] [flags]
 | `--skip-if-exists` | If the KEY already exists, do not set or change any settings | |
 | `--skip-if-same` | If the KEY already exists and the value is identical, do not set or change any settings | |
 | `--validate` / `--no-validate` | Validate the VALUE input before saving the file | `true` |
+
+<details>
+<summary>Examples</summary>
+
+**Create a key with comments and a validation rule:**
+
+```shell
+$ dottie set \
+    --comment 'The port for the web server' \
+    --comment '@dottie/validate number' \
+    --quote-style none \
+    PORT=8080
+Key [ PORT ] was successfully upserted
+File was successfully saved
+```
+
+Resulting `.env` entry:
+
+```env
+# The port for the web server
+# @dottie/validate number
+PORT=8080
+```
+
+**Create a key inside a group:**
+
+```shell
+$ dottie set --group database --comment 'Database hostname' DB_HOST=localhost
+Key [ DB_HOST ] was successfully upserted
+File was successfully saved
+```
+
+The group is created automatically if it doesn't exist:
+
+```env
+################################################################################
+# database
+################################################################################
+
+# Database hostname
+DB_HOST="localhost"
+```
+
+**Validation prevents invalid values:**
+
+If a key has a `@dottie/validate number` annotation, setting a non-numeric value is rejected:
+
+```shell
+$ dottie set PORT=hello
+  PORT ( .env:5 )
+    * (number) The value [hello] is not a valid number.
+
+Error: Key: 'PORT' Error:Field validation for 'PORT' failed on the 'number' tag
+```
+
+</details>
 
 ---
 
@@ -303,6 +453,36 @@ dottie update [flags]
 | `--validate` / `--no-validate` | Validation errors will abort the update | `true` |
 | `--source` | URL or local file path to the upstream source file. Takes precedence over any `@dottie/source` annotation in the file | |
 
+<details>
+<summary>Example</summary>
+
+The source file can be specified via a `@dottie/source` annotation in the `.env` file itself:
+
+```env
+# @dottie/source https://example.com/template.env
+
+APP_NAME="my-app"
+DB_HOST="localhost"
+```
+
+Or via the `--source` flag:
+
+```shell
+dottie update --source https://example.com/template.env
+```
+
+The update process:
+
+1. Fetches the source/template `.env` file
+2. Merges your local values into the source structure
+3. Adds new keys from the source with their default values
+4. Preserves your existing values for keys that already exist
+5. Comments and structure come from the source template
+
+A backup file (`.env.dottie-backup`) is created by default before updating.
+
+</details>
+
 ---
 
 ### Output Commands
@@ -328,6 +508,92 @@ dottie print [flags]
 | `--pretty` | Implies `--color --comments --blank-lines --group-banners` | |
 | `--with-disabled` | Include disabled assignments | |
 
+<details>
+<summary>Examples</summary>
+
+Given this `.env` file:
+
+```env
+APP_NAME="dottie"
+
+# The port for the web server
+# @dottie/validate number
+PORT=8080
+
+################################################################################
+# database
+################################################################################
+
+# Database hostname
+DB_HOST="localhost"
+
+# Database port
+# @dottie/validate number
+DB_PORT="${PORT}"
+```
+
+**Default output** (compact, keys and values only):
+
+```shell
+$ dottie print
+APP_NAME="dottie"
+PORT=8080
+DB_HOST="localhost"
+DB_PORT="8080"
+```
+
+Note: `DB_PORT` shows `8080` (interpolated from `${PORT}`) rather than the literal `${PORT}`.
+
+**Pretty output** (with comments, spacing, and group banners):
+
+```shell
+$ dottie print --pretty
+APP_NAME="dottie"
+
+# The port for the web server
+# @dottie/validate number
+PORT=8080
+
+################################################################################
+# database
+################################################################################
+
+# Database hostname
+DB_HOST="localhost"
+
+# Database port
+# @dottie/validate number
+DB_PORT="8080"
+```
+
+**Export format** (for sourcing in shell scripts):
+
+```shell
+$ dottie print --export
+export APP_NAME="dottie"
+export PORT=8080
+export DB_HOST="localhost"
+export DB_PORT="8080"
+```
+
+**Filter by group:**
+
+```shell
+$ dottie print --group database
+DB_HOST="localhost"
+DB_PORT="8080"
+```
+
+**Filter by key prefix:**
+
+```shell
+$ dottie print --key-prefix DB_
+DB_HOST="localhost"
+DB_PORT="8080"
+```
+
+</details>
+
 ---
 
 #### `dottie value`
@@ -342,6 +608,33 @@ dottie value KEY [flags]
 |------|-------------|---------|
 | `--literal` | Show literal value instead of interpolated | |
 | `--with-disabled` | Include disabled assignments | |
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` with `DB_PORT="${PORT}"` and `PORT=8080`:
+
+```shell
+# Interpolated value (default) - resolves variable references
+$ dottie value DB_PORT
+8080
+
+# Literal value - shows the raw value as written in the file
+$ dottie value DB_PORT --literal
+${PORT}
+```
+
+If a key is disabled (commented out), you need `--with-disabled`:
+
+```shell
+$ dottie value DB_PORT
+Error: key [ DB_PORT ] exists, but is commented out - use [--with-disabled] to include it
+
+$ dottie value DB_PORT --with-disabled
+8080
+```
+
+</details>
 
 ---
 
@@ -359,25 +652,156 @@ dottie validate [flags]
 | `--fix` / `--no-fix` | Guide the user to fix supported validation errors | `true` |
 | `--ignore-rule` | Ignore this validation rule (e.g. `dir`) | |
 
+<details>
+<summary>Example</summary>
+
+Given a `.env` with validation annotations:
+
+```env
+# @dottie/validate number
+PORT=hello
+
+# @dottie/validate email
+ADMIN_EMAIL=not-an-email
+
+# @dottie/validate required
+API_KEY=
+```
+
+Running validation:
+
+```shell
+$ dottie validate --no-fix
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          3 validation errors found                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+PORT (.env:2)
+    * (number) The value [hello] is not a valid number.
+
+ADMIN_EMAIL (.env:5)
+    * (email) The value [not-an-email] is not a valid e-mail.
+
+API_KEY (.env:8)
+    * (required) This value must not be empty/blank.
+```
+
+When all values are valid:
+
+```shell
+$ dottie validate
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                          No validation errors found                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Supported validation rules:** `required`, `number`, `boolean`, `email`, `fqdn`, `hostname`, `http_url`, `oneof=a b c`, `ne=value`, `dir`, `file`
+
+</details>
+
 ---
 
 #### `dottie groups`
 
-Print groups found in the .env file.
+Print groups found in the .env file. Groups are defined by section headers using the banner format.
 
 ```
 dottie groups [flags]
 ```
 
+<details>
+<summary>Example</summary>
+
+Given a `.env` file with groups:
+
+```env
+APP_NAME="dottie"
+
+################################################################################
+# database
+################################################################################
+
+DB_HOST="localhost"
+```
+
+Running:
+
+```shell
+$ dottie groups
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              Groups in .env                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+database   (.env:4)
+```
+
+Group names can be used to filter output with `dottie print --group database`.
+
+</details>
+
 ---
 
 #### `dottie json`
 
-Print the .env file as JSON.
+Print the .env file as JSON. Outputs a structured JSON representation including keys, values, comments, annotations, groups, variable dependencies, and position information.
 
 ```
 dottie json [flags]
 ```
+
+<details>
+<summary>Example</summary>
+
+Given a `.env` file:
+
+```env
+# @dottie/validate number
+PORT=8080
+
+DB_PORT="${PORT}"
+```
+
+Running:
+
+```shell
+dottie json
+```
+
+Outputs (abbreviated):
+
+```json
+{
+  "statements": [
+    {
+      "key": "PORT",
+      "literal": "8080",
+      "enabled": true,
+      "quote": null,
+      "comments": [
+        {
+          "value": "# @dottie/validate number",
+          "annotation": { "Key": "dottie/validate", "Value": "number" }
+        }
+      ],
+      "dependents": {
+        "DB_PORT": { "key": "DB_PORT", "literal": "${PORT}" }
+      }
+    },
+    {
+      "key": "DB_PORT",
+      "literal": "${PORT}",
+      "enabled": true,
+      "quote": "double",
+      "dependencies": {
+        "PORT": { "Name": "PORT" }
+      }
+    }
+  ]
+}
+```
+
+The JSON output includes variable dependency tracking (`dependencies` / `dependents`), annotation parsing, and file position information for each entry.
+
+</details>
 
 ---
 
