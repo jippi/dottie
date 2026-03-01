@@ -28,6 +28,7 @@ type EnvironmentHelper struct {
 func (helper EnvironmentHelper) Get(name string) expand.Variable {
 	if val, ok := helper.Resolver(name); ok {
 		return expand.Variable{
+			Set:      true,
 			Str:      val,
 			Exported: true,
 			ReadOnly: false,
@@ -37,6 +38,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 
 	if val, ok := os.LookupEnv(name); ok {
 		return expand.Variable{
+			Set:      true,
 			Str:      val,
 			Exported: true,
 			Kind:     expand.String,
@@ -48,6 +50,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 		user, _ := user.Current()
 
 		return expand.Variable{
+			Set:      true,
 			Str:      user.Uid,
 			Exported: true,
 			Kind:     expand.String,
@@ -57,6 +60,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 		user, _ := user.Current()
 
 		return expand.Variable{
+			Set:      true,
 			Str:      user.Gid,
 			Exported: true,
 			Kind:     expand.String,
@@ -64,6 +68,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 
 	case "IFS":
 		return expand.Variable{
+			Set:      true,
 			Str:      `$' \t\n\C-@'`,
 			Exported: true,
 			Kind:     expand.String,
@@ -71,6 +76,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 
 	case "OPTIND":
 		return expand.Variable{
+			Set:      true,
 			Str:      `1`,
 			Exported: true,
 			Kind:     expand.String,
@@ -87,6 +93,7 @@ func (helper EnvironmentHelper) Get(name string) expand.Variable {
 func (l EnvironmentHelper) Each(callback func(name string, vr expand.Variable) bool) {
 	for k, v := range l.AccessibleVariables() {
 		callback(k, expand.Variable{
+			Set:      true,
 			Str:      v,
 			Exported: true,
 			ReadOnly: false,
@@ -98,6 +105,7 @@ func (l EnvironmentHelper) Each(callback func(name string, vr expand.Variable) b
 		parts := strings.SplitN(v, "=", 2)
 
 		callback(parts[0], expand.Variable{
+			Set:      true,
 			Str:      parts[1],
 			Exported: true,
 			ReadOnly: false,

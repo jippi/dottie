@@ -454,6 +454,219 @@ func TestDefaultsForMandatoryVariables(t *testing.T) {
 	}
 }
 
+func TestSetVariableSemanticsForEmptyValue(t *testing.T) {
+	t.Parallel()
+
+	resolver := func(name string) (string, bool) {
+		if name == "VAR" {
+			return "", true
+		}
+
+		return "", false
+	}
+
+	accessible := func() map[string]string {
+		return map[string]string{"VAR": ""}
+	}
+
+	result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), "ok ${VAR+present}", resolver, accessible)
+	require.NoError(t, err)
+	assert.Equal(t, "ok present", result)
+
+	result, err = templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), "ok ${VAR?err}", resolver, accessible)
+	require.NoError(t, err)
+	assert.Equal(t, "ok ", result)
+}
+
+// TestShellOperatorComplianceMatrix documents and verifies shell parameter
+// expansion behavior for unset, empty, and non-empty variables.
+//
+// Operators covered:
+//   - ${VAR-word}: use word only when VAR is unset
+//   - ${VAR:-word}: use word when VAR is unset or empty
+//   - ${VAR+word}: use word when VAR is set (including empty)
+//   - ${VAR:+word}: use word when VAR is set and non-empty
+//   - ${VAR?word}: error when VAR is unset
+//   - ${VAR:?word}: error when VAR is unset or empty
+func TestShellOperatorComplianceMatrix(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		name      string
+		vars      map[string]string
+		template  string
+		expected  string
+		errSubstr string
+	}
+
+	testCases := []testCase{
+		{name: "unset-dash", vars: map[string]string{}, template: "${VAR-default}", expected: "default"},
+		{name: "unset-colon-dash", vars: map[string]string{}, template: "${VAR:-default}", expected: "default"},
+		{name: "unset-plus", vars: map[string]string{}, template: "${VAR+alt}", expected: ""},
+		{name: "unset-colon-plus", vars: map[string]string{}, template: "${VAR:+alt}", expected: ""},
+		{name: "unset-question", vars: map[string]string{}, template: "${VAR?err}", errSubstr: "required variable VAR is missing a value: err"},
+		{name: "unset-colon-question", vars: map[string]string{}, template: "${VAR:?err}", errSubstr: "required variable VAR is missing a value: err"},
+
+		{name: "empty-dash", vars: map[string]string{"VAR": ""}, template: "${VAR-default}", expected: ""},
+		{name: "empty-colon-dash", vars: map[string]string{"VAR": ""}, template: "${VAR:-default}", expected: "default"},
+		{name: "empty-plus", vars: map[string]string{"VAR": ""}, template: "${VAR+alt}", expected: "alt"},
+		{name: "empty-colon-plus", vars: map[string]string{"VAR": ""}, template: "${VAR:+alt}", expected: ""},
+		{name: "empty-question", vars: map[string]string{"VAR": ""}, template: "${VAR?err}", expected: ""},
+		{name: "empty-colon-question", vars: map[string]string{"VAR": ""}, template: "${VAR:?err}", errSubstr: "required variable VAR is missing a value: err"},
+
+		{name: "value-dash", vars: map[string]string{"VAR": "value"}, template: "${VAR-default}", expected: "value"},
+		{name: "value-colon-dash", vars: map[string]string{"VAR": "value"}, template: "${VAR:-default}", expected: "value"},
+		{name: "value-plus", vars: map[string]string{"VAR": "value"}, template: "${VAR+alt}", expected: "alt"},
+		{name: "value-colon-plus", vars: map[string]string{"VAR": "value"}, template: "${VAR:+alt}", expected: "alt"},
+		{name: "value-question", vars: map[string]string{"VAR": "value"}, template: "${VAR?err}", expected: "value"},
+		{name: "value-colon-question", vars: map[string]string{"VAR": "value"}, template: "${VAR:?err}", expected: "value"},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			resolver := func(name string) (string, bool) {
+				value, ok := testCase.vars[name]
+
+				return value, ok
+			}
+
+			accessible := func() map[string]string {
+				return testCase.vars
+			}
+
+			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), testCase.template, resolver, accessible)
+
+			if testCase.errSubstr != "" {
+				require.Error(t, err)
+				assert.ErrorContains(t, err, testCase.errSubstr)
+				assert.Equal(t, "", result)
+
+				return
+			}
+
+			require.NoError(t, err)
+			assert.Equal(t, testCase.expected, result)
+		})
+	}
+}
+
+func TestComplexNestedInterpolationBehavior(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		name     string
+		vars     map[string]string
+		template string
+		expected string
+	}
+
+	testCases := []testCase{
+		{
+			name:     "nested-default-uses-next-fallback",
+			vars:     map[string]string{},
+			template: "${A:-${B:-fallback}}",
+			expected: "fallback",
+		},
+		{
+			name:     "nested-default-uses-inner-variable",
+			vars:     map[string]string{"B": "inner"},
+			template: "${A:-${B:-fallback}}",
+			expected: "inner",
+		},
+		{
+			name:     "nested-default-prefers-outer-variable",
+			vars:     map[string]string{"A": "outer", "B": "inner"},
+			template: "${A:-${B:-fallback}}",
+			expected: "outer",
+		},
+		{
+			name:     "nested-alternate-with-inner-default",
+			vars:     map[string]string{"A": "set"},
+			template: "${A:+${B:-alt}}",
+			expected: "alt",
+		},
+		{
+			name:     "nested-alternate-with-inner-value",
+			vars:     map[string]string{"A": "set", "B": "value"},
+			template: "${A:+${B:-alt}}",
+			expected: "value",
+		},
+		{
+			name:     "mixed-concatenation-with-defaults-and-alternate",
+			vars:     map[string]string{"A": "left", "B": ""},
+			template: "pre-${A}-${B:-middle}-${A:+tail}",
+			expected: "pre-left-middle-tail",
+		},
+		{
+			name:     "double-nested-operators",
+			vars:     map[string]string{"A": "", "B": "bee", "C": "see"},
+			template: "${A:-${B:+${C:-fallback}}}",
+			expected: "see",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			resolver := func(name string) (string, bool) {
+				value, ok := tc.vars[name]
+
+				return value, ok
+			}
+
+			accessible := func() map[string]string {
+				return tc.vars
+			}
+
+			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), tc.template, resolver, accessible)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestComplexInterpolationSpecialConstructsRemainLiteral(t *testing.T) {
+	t.Parallel()
+
+	type testCase struct {
+		name     string
+		template string
+		expected string
+	}
+
+	testCases := []testCase{
+		{
+			name:     "default-containing-process-substitution-is-not-executed",
+			template: "${UNSET:-<(cat /dev/null)}",
+			expected: "<(cat /dev/null)",
+		},
+		{
+			name:     "process-substitution-and-regular-interpolation",
+			template: "prefix ${FOO} ${UNSET:-<(cat /dev/null)} suffix",
+			expected: "prefix first <(cat /dev/null) suffix",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			result, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), tc.template, defaultMapping, accessibleVariables)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, result)
+		})
+	}
+}
+
 // TestPrecedence tests is the precedence on '-' and '?' is of the first match
 func TestPrecedence(t *testing.T) {
 	t.Parallel()
