@@ -3,56 +3,56 @@
 - [set SOME_KEY=SOME_VALUE]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SOME_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 2 in [tests/manipulate-empty.run]:
 - [set ANOTHER_KEY=ANOTHER_VALUE --quote-style single]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ ANOTHER_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ ANOTHER_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 3 in [tests/manipulate-empty.run]:
 - [set SECOND_KEY=should be before ANOTHER_KEY --before ANOTHER_KEY]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SECOND_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SECOND_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 4 in [tests/manipulate-empty.run]:
 - [set TRUE_SECOND_KEY=HA, I'm after SOME_KEY, so I'm before ANOTHER_KEY now --after SOME_KEY]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ TRUE_SECOND_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ TRUE_SECOND_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 5 in [tests/manipulate-empty.run]:
 - [set SECOND_KEY=damn, I'm the third key now]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SECOND_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SECOND_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 6 in [tests/manipulate-empty.run]:
 - [set SOME_KEY=ANOTHER_VALUE --comment I'm a comment --comment I'm another comment]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SOME_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 7 in [tests/manipulate-empty.run]:
 - [set A_NUMBER=1 --comment @dottie/validate number]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ A_NUMBER ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ A_NUMBER ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 8 in [tests/manipulate-empty.run]:
@@ -66,5 +66,5 @@
 - [set A_NUMBER=2]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ A_NUMBER ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ A_NUMBER ] was successfully upserted
+File was successfully saved

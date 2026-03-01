@@ -3,13 +3,13 @@
 - [set --skip-if-exists SOME_KEY=SUCCESS]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SOME_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved
 
 --------------------------------------------------------------------------------
 - Output of command from line 2 in [tests/skip-if-exists.run]:
 - [set --skip-if-exists SOME_KEY=ERROR; THE VALUE MUST NOT CHANGE]
 --------------------------------------------------------------------------------
 
-[38;2;117;183;152m[38;2;117;183;152mKey [ SOME_KEY ] was successfully upserted[m[m
-[38;2;117;183;152mFile was successfully saved[m
+Key [ SOME_KEY ] was successfully upserted
+File was successfully saved

@@ -3,18 +3,18 @@
 - [print --no-color --pretty]
 --------------------------------------------------------------------------------
 
-[38;2;110;168;254mmulti_double[m[38;2;164;167;170m=[m[38;2;117;183;152m"[m[38;2;255;218;106mfirst[m 
-[38;2;255;218;106msecond[m[38;2;117;183;152m"[m
-[38;2;110;168;254mmulti_single[m[38;2;164;167;170m=[m[38;2;117;183;152m'[m[38;2;255;218;106mfirst[m 
-[38;2;255;218;106msecond[m[38;2;117;183;152m'[m
-[38;2;110;168;254mmulti_double_literal_newline[m[38;2;164;167;170m=[m[38;2;117;183;152m"[m[38;2;255;218;106mfirst[m 
-[38;2;255;218;106m[m      
-[38;2;255;218;106msecond[m[38;2;117;183;152m"[m
-[38;2;110;168;254mmulti_single_literal_newline[m[38;2;164;167;170m=[m[38;2;117;183;152m'[m[38;2;255;218;106mfirst\n[m
-[38;2;255;218;106msecond[m [38;2;117;183;152m'[m
-[38;2;110;168;254mmulti_double_literal_newline_with_tab[m[38;2;164;167;170m=[m[38;2;117;183;152m"[m[38;2;255;218;106mfirst[m     
-[38;2;255;218;106m[m          
-[38;2;255;218;106m    second[m[38;2;117;183;152m"[m
-[38;2;110;168;254mmulti_single_literal_newline_with_tab[m[38;2;164;167;170m=[m[38;2;117;183;152m'[m[38;2;255;218;106mfirst\n[m 
-[38;2;255;218;106m\tsecond[m[38;2;117;183;152m'[m
+multi_double="first
+second"
+multi_single='first
+second'
+multi_double_literal_newline="first
+
+second"
+multi_single_literal_newline='first\n
+second'
+multi_double_literal_newline_with_tab="first
+
+    second"
+multi_single_literal_newline_with_tab='first\n
+\tsecond'
 

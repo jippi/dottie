@@ -3,7 +3,7 @@
 - [enable NONEXISTING_KEY]
 --------------------------------------------------------------------------------
 
-[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: could not find KEY [ NONEXISTING_KEY ][m[m
-[38;2;110;223;246m[38;2;110;223;246mRun 'dottie enable --help' for usage.[m[m
+Error: could not find KEY [ NONEXISTING_KEY ]
+Run 'dottie enable --help' for usage.
 
 (Command exited with error)

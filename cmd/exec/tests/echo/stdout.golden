@@ -3,10 +3,10 @@
 - [exec]
 --------------------------------------------------------------------------------
 
-[38;2;110;223;246m[38;2;110;223;246mRunning exec command for assignment [ OUTPUT ][m[m
-[38;2;164;167;170m[38;2;164;167;170m  Command: [ echo 'it works, yay!' ][m[m
-[38;2;117;183;152m[38;2;117;183;152m  Output : [ it works, yay! ][m[m
-[38;2;117;183;152m  Validation succeeded[m
+Running exec command for assignment [ OUTPUT ]
+  Command: [ echo 'it works, yay!' ]
+  Output : [ it works, yay! ]
+  Validation succeeded
 
-[38;2;117;183;152mAll exec commands completed successfully[m
-[38;2;117;183;152mFile successfully saved[m
+All exec commands completed successfully
+File successfully saved

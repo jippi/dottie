@@ -62,10 +62,6 @@ func WithFormattedOutput(boolean bool) SettingsOption {
 		s.showColors = boolean
 		s.showComments = boolean
 		s.ShowGroupBanners = boolean
-
-		if boolean {
-			s.outputter = ColorizedOutput{}
-		}
 	}
 }
 

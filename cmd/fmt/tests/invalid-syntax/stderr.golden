@@ -3,7 +3,7 @@
 - [fmt]
 --------------------------------------------------------------------------------
 
-[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: unexpected token at line 5: Illegal(@) - parseRowStatement 2[m[m
-[38;2;110;223;246m[38;2;110;223;246mRun 'dottie fmt --help' for usage.[m[m
+Error: unexpected token at line 5: Illegal(@) - parseRowStatement 2
+Run 'dottie fmt --help' for usage.
 
 (Command exited with error)

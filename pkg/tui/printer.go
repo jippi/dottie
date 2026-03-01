@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	lipgloss "charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
 )
 
 type StyleChanger func(*lipgloss.Style)
@@ -152,7 +154,7 @@ func (p Printer) Box(header string, bodies ...string) {
 		fmt.Fprintln(
 			p.writer,
 			headerStyle.
-				Width(p.boxWidth-borderWidth).
+				Width(p.boxWidth).
 				Border(headerOnlyBorder).
 				Render(header),
 		)
@@ -161,8 +163,8 @@ func (p Printer) Box(header string, bodies ...string) {
 	}
 
 	// Render the header and body box
-	boxHeader := headerStyle.Width(p.boxWidth - borderWidth).Render(header)
-	boxBody := bodyStyle.Width(p.boxWidth - borderWidth).Render(body)
+	boxHeader := headerStyle.Width(p.boxWidth).Render(header)
+	boxBody := bodyStyle.Width(p.boxWidth).Render(body)
 
 	// If a BoxWidth is set, the boxes will be aligned automatically to the max
 	if p.boxWidth > 0 {
@@ -179,8 +181,8 @@ func (p Printer) Box(header string, bodies ...string) {
 	}
 
 	// Compute the width of the header and body elements
-	headerWidth := lipgloss.Width(boxHeader) - borderWidth
-	bodyWidth := lipgloss.Width(boxBody) - borderWidth
+	headerWidth := lipgloss.Width(boxHeader)
+	bodyWidth := lipgloss.Width(boxBody)
 
 	// Find the shortest box and (re)render it to the length of the longest one
 	switch {
@@ -300,7 +302,7 @@ func WithEmphasis(b bool) PrinterOption {
 
 func WithWriter(w io.Writer) PrinterOption {
 	return func(p *Printer) {
-		p.writer = w
+		p.writer = colorprofile.NewWriter(w, os.Environ())
 	}
 }
 

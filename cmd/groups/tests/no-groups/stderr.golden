@@ -3,7 +3,7 @@
 - [groups]
 --------------------------------------------------------------------------------
 
-[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: no groups found[m[m
-[38;2;110;223;246m[38;2;110;223;246mRun 'dottie groups --help' for usage.[m[m
+Error: no groups found
+Run 'dottie groups --help' for usage.
 
 (Command exited with error)

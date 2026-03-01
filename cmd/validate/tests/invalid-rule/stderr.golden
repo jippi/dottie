@@ -3,7 +3,7 @@
 - [validate --no-fix]
 --------------------------------------------------------------------------------
 
-[1;38;2;234;134;143;48;2;44;11;14m[1;38;2;234;134;143;48;2;44;11;14mError: validation configuration error: Undefined validation function 'invalid-rule' on field ''[m[m
-[38;2;110;223;246m[38;2;110;223;246mRun 'dottie validate --help' for usage.[m[m
+Error: validation configuration error: Undefined validation function 'invalid-rule' on field ''
+Run 'dottie validate --help' for usage.
 
 (Command exited with error)
