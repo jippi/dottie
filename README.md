@@ -1171,7 +1171,6 @@ Validator tags Dottie can use well (for scalar `.env` values):
 | `lt` | Less than parameter | `# @dottie/validate lt=65536` |
 | `lte` | Less than or equal | `# @dottie/validate lte=65535` |
 | `oneof` | Value must be one of allowed options | `# @dottie/validate oneof=dev staging production` |
-| `oneofci` | Case-insensitive `oneof` | `# @dottie/validate oneofci=debug info warn error` |
 
 #### String content tags
 
@@ -1198,12 +1197,10 @@ Validator tags Dottie can use well (for scalar `.env` values):
 | `url` | Valid URL | `# @dottie/validate url` |
 | `uri` | Valid URI | `# @dottie/validate uri` |
 | `http_url` | Valid HTTP/HTTPS URL | `# @dottie/validate http_url` |
-| `https_url` | Valid HTTPS URL | `# @dottie/validate https_url` |
 | `hostname` | Valid hostname | `# @dottie/validate hostname` |
 | `hostname_rfc1123` | RFC1123 hostname | `# @dottie/validate hostname_rfc1123` |
 | `fqdn` | Fully qualified domain name | `# @dottie/validate fqdn` |
 | `hostname_port` | Hostname + port | `# @dottie/validate hostname_port` |
-| `port` | Port number range | `# @dottie/validate port` |
 | `ip` | Valid IP address | `# @dottie/validate ip` |
 | `ipv4` | Valid IPv4 address | `# @dottie/validate ipv4` |
 | `ipv6` | Valid IPv6 address | `# @dottie/validate ipv6` |
