@@ -10,11 +10,11 @@ const Newline = "\n"
 // Line represents a line in an output
 type Line struct {
 	Literal string // The *real* value of the line being added
-	Debug   string // A debug value to help track where NewLines are coming from (use DEBUG=1 to see them when using --pretty)
+	Debug   string // A debug value to help track where NewLines are coming from (use DOTTIE_DEBUG=1 to see them when using --pretty)
 }
 
 func (l Line) String() string {
-	if os.Getenv("DEBUG") == "1" && l.Debug != "" {
+	if os.Getenv("DOTTIE_DEBUG") == "1" && l.Debug != "" {
 		return l.Debug
 	}
 
@@ -72,7 +72,7 @@ func (lb *Lines) Append(buf *Lines) *Lines {
 // Optionally accepts a list of strings to help identify
 // what the "origin" or reason for the newline is.
 //
-// This can be seen when using [DEBUG=1] environment variable
+// This can be seen when using [DOTTIE_DEBUG=1] environment variable
 // along with [--pretty] CLI flag
 func (lb *Lines) Newline(id ...string) *Lines {
 	str := "# Lines.Newline"
