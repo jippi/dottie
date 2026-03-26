@@ -59,8 +59,13 @@ func runE(cmd *cobra.Command, args []string) error {
 	noColor.Println("Looking for source configuration")
 
 	oldDocument, err := pkg.Load(cmd.Context(), filename)
-	if err != nil {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
+	}
+
+	if oldDocument == nil {
+		// File did not exist, let's create a new one
+		oldDocument = ast.NewDocument()
 	}
 
 	source, _ := cmd.Flags().GetString("source")
