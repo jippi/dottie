@@ -5,7 +5,6 @@
 
 Running exec command for assignment [ OUTPUT ]
   Command: [ echo 'failure' ]
-  Output : [ failure ]
   Validation failed, but continuing because [--no-validate] was provided
 
 All exec commands completed successfully

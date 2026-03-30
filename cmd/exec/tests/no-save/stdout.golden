@@ -5,7 +5,6 @@
 
 Running exec command for assignment [ OUTPUT ]
   Command: [ echo 'saved? no' ]
-  Output : [ saved? no ]
   Validation succeeded
 
 All exec commands completed successfully

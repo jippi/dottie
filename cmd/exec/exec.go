@@ -110,7 +110,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Trim the output to remove any leading and trailing newlines
 		output := strings.TrimSpace(buf.String())
 
-		out.Success().Printfln("  Output : [ %s ]", output)
+		if os.Getenv("DOTTIE_DEBUG") == "1" {
+			out.Success().Printfln("  Output : [ %s ]", output)
+		}
 
 		// Update literal
 		assignment.SetLiteral(cmd.Context(), output)

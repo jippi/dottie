@@ -5,7 +5,6 @@
 
 Running exec command for assignment [ RUN_ONE ]
   Command: [ echo 'run-me' ]
-  Output : [ run-me ]
   Validation succeeded
 
 All exec commands completed successfully
