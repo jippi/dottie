@@ -35,6 +35,8 @@ func New() *cobra.Command {
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
 	shared.BoolWithInverse(cmd, "save", true, "Save the document after processing", "Do not save the document after processing")
 
+	cmd.Flags().BoolP("verbose", "v", false, "Show detailed output including command results (default: off to avoid printing secrets)")
+
 	return cmd
 }
 
@@ -58,6 +60,17 @@ func runE(cmd *cobra.Command, args []string) error {
 	shouldValidate := shared.BoolWithInverseValue(cmd.Flags(), "validate")
 	shouldSave := shared.BoolWithInverseValue(cmd.Flags(), "save")
 
+	verbose := shared.BoolFlag(cmd.Flags(), "verbose")
+	if !cmd.Flags().Changed("verbose") {
+		if env := os.Getenv("DOTTIE_VERBOSE"); env == "1" || env == "true" {
+			verbose = true
+		}
+
+		if os.Getenv("DOTTIE_DEBUG") == "1" {
+			verbose = true
+		}
+	}
+
 	out := tui.StdoutFromContext(cmd.Context())
 	count := 0
 
@@ -71,14 +84,17 @@ func runE(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("multiple exec annotations found for assignment [ %s ]", assignment.Name)
 		}
 
-		if count > 0 {
+		if verbose && count > 0 {
 			out.NoColor().Println()
 		}
 
 		count++
 
 		out.Info().Printfln("Running exec command for assignment [ %s ]", assignment.Name)
-		out.Dark().Printfln("  Command: [ %s ]", annotations[0])
+
+		if verbose {
+			out.Dark().Printfln("  Command: [ %s ]", annotations[0])
+		}
 
 		var buf bytes.Buffer
 
@@ -110,7 +126,9 @@ func runE(cmd *cobra.Command, args []string) error {
 		// Trim the output to remove any leading and trailing newlines
 		output := strings.TrimSpace(buf.String())
 
-		out.Success().Printfln("  Output : [ %s ]", output)
+		if verbose {
+			out.Success().Printfln("  Output : [ %s ]", output)
+		}
 
 		// Update literal
 		assignment.SetLiteral(cmd.Context(), output)
@@ -133,7 +151,9 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		out.Success().Println("  Validation succeeded")
+		if verbose {
+			out.Success().Println("  Validation succeeded")
+		}
 	}
 
 	out.NoColor().Println()

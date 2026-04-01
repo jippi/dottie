@@ -1,12 +1,9 @@
 --------------------------------------------------------------------------------
-- Output of command from line 1 in [tests/no-validate.run]:
-- [exec --no-validate --verbose]
+- Output of command from line 1 in [tests/quiet-default.run]:
+- [exec]
 --------------------------------------------------------------------------------
 
 Running exec command for assignment [ OUTPUT ]
-  Command: [ echo 'failure' ]
-  Output : [ failure ]
-  Validation failed, but continuing because [--no-validate] was provided
 
 All exec commands completed successfully
 File successfully saved

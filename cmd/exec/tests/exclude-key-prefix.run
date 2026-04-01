@@ -1,1 +1,1 @@
---exclude-key-prefix SKIP_
+--exclude-key-prefix SKIP_ --verbose
