@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 - Output of command from line 1 in [tests/no-validate.run]:
-- [exec --no-validate]
+- [exec --no-validate --verbose]
 --------------------------------------------------------------------------------
 
   OUTPUT ( /fake/testing/path/tmp.env:3 )

@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 - Output of command from line 1 in [tests/curl.run]:
-- [exec]
+- [exec --verbose]
 --------------------------------------------------------------------------------
 
 Running exec command for assignment [ SOME_JSON_OUTPUT ]
