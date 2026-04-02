@@ -1,0 +1,6 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/exec-flag.run]:
+- [update --exec --no-backup --no-validate --source tests/exec-flag.source]
+--------------------------------------------------------------------------------
+
+  [EXEC_OUTPUT] was skipped: the key has an empty value (SkipIfEmpty)

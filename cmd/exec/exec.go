@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -17,6 +18,16 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )
+
+// RunOptions holds the parameters for the exec logic, decoupled from cobra flags.
+type RunOptions struct {
+	Filename         string
+	ExcludeKeyPrefix []string
+	IgnoreRules      []string
+	Validate         bool
+	Save             bool
+	Verbose          bool
+}
 
 func New() *cobra.Command {
 	cmd := &cobra.Command{
@@ -41,25 +52,6 @@ func New() *cobra.Command {
 }
 
 func runE(cmd *cobra.Command, args []string) error {
-	filename := cmd.Flag("file").Value.String()
-
-	document, err := pkg.Load(cmd.Context(), filename)
-	if err != nil {
-		return err
-	}
-
-	var selectors []ast.Selector
-
-	selectors = append(selectors, ast.ExcludeDisabledAssignments)
-
-	for _, prefix := range shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix") {
-		selectors = append(selectors, ast.ExcludeKeyPrefix(prefix))
-	}
-
-	ignoreRules := shared.StringSliceFlag(cmd.Flags(), "ignore-rule")
-	shouldValidate := shared.BoolWithInverseValue(cmd.Flags(), "validate")
-	shouldSave := shared.BoolWithInverseValue(cmd.Flags(), "save")
-
 	verbose := shared.BoolFlag(cmd.Flags(), "verbose")
 	if !cmd.Flags().Changed("verbose") {
 		if env := os.Getenv("DOTTIE_VERBOSE"); env == "1" || env == "true" {
@@ -71,7 +63,33 @@ func runE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	out := tui.StdoutFromContext(cmd.Context())
+	return Run(cmd.Context(), RunOptions{
+		Filename:         cmd.Flag("file").Value.String(),
+		ExcludeKeyPrefix: shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix"),
+		IgnoreRules:      shared.StringSliceFlag(cmd.Flags(), "ignore-rule"),
+		Validate:         shared.BoolWithInverseValue(cmd.Flags(), "validate"),
+		Save:             shared.BoolWithInverseValue(cmd.Flags(), "save"),
+		Verbose:          verbose,
+	})
+}
+
+// Run executes all dottie/exec annotations on assignments in the named file.
+func Run(ctx context.Context, opts RunOptions) error {
+	document, err := pkg.Load(ctx, opts.Filename)
+	if err != nil {
+		return err
+	}
+
+	var selectors []ast.Selector
+
+	selectors = append(selectors, ast.ExcludeDisabledAssignments)
+
+	for _, prefix := range opts.ExcludeKeyPrefix {
+		selectors = append(selectors, ast.ExcludeKeyPrefix(prefix))
+	}
+
+	out := tui.StdoutFromContext(ctx)
+	errOut := tui.StderrFromContext(ctx)
 	count := 0
 
 	for _, assignment := range document.AllAssignments(selectors...) {
@@ -84,7 +102,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("multiple exec annotations found for assignment [ %s ]", assignment.Name)
 		}
 
-		if verbose && count > 0 {
+		if opts.Verbose && count > 0 {
 			out.NoColor().Println()
 		}
 
@@ -92,13 +110,13 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		out.Info().Printfln("Running exec command for assignment [ %s ]", assignment.Name)
 
-		if verbose {
+		if opts.Verbose {
 			out.Dark().Printfln("  Command: [ %s ]", annotations[0])
 		}
 
 		var buf bytes.Buffer
 
-		runner, err := interp.New(interp.StdIO(cmd.InOrStdin(), &buf, cmd.ErrOrStderr()))
+		runner, err := interp.New(interp.StdIO(os.Stdin, &buf, errOut.GetWriter()))
 		if err != nil {
 			return err
 		}
@@ -106,7 +124,7 @@ func runE(cmd *cobra.Command, args []string) error {
 		runner.Env = template.EnvironmentHelper{
 			Resolver:            document.InterpolationMapper(assignment),
 			AccessibleVariables: document.AccessibleVariables(assignment),
-			MissingKeyCallback:  template.DefaultMissingKeyCallback(cmd.Context(), assignment.Literal),
+			MissingKeyCallback:  template.DefaultMissingKeyCallback(ctx, assignment.Literal),
 		}
 
 		pwd, _ := os.Getwd()
@@ -119,30 +137,30 @@ func runE(cmd *cobra.Command, args []string) error {
 
 		runner.Reset()
 
-		if err := runner.Run(cmd.Context(), prog); err != nil {
+		if err := runner.Run(ctx, prog); err != nil {
 			return err
 		}
 
 		// Trim the output to remove any leading and trailing newlines
 		output := strings.TrimSpace(buf.String())
 
-		if verbose {
+		if opts.Verbose {
 			out.Success().Printfln("  Output : [ %s ]", output)
 		}
 
 		// Update literal
-		assignment.SetLiteral(cmd.Context(), output)
+		assignment.SetLiteral(ctx, output)
 
 		// Validate the assignment
-		validationErrors, err := document.ValidateSingleAssignment(cmd.Context(), assignment, nil, ignoreRules)
+		validationErrors, err := document.ValidateSingleAssignment(ctx, assignment, nil, opts.IgnoreRules)
 		if err != nil {
 			return err
 		}
 
 		if validationErrors != nil {
-			fmt.Fprintln(cmd.ErrOrStderr(), validation.Explain(cmd.Context(), document, validationErrors, assignment, false, true))
+			fmt.Fprintln(errOut.GetWriter(), validation.Explain(ctx, document, validationErrors, assignment, false, true))
 
-			if shouldValidate {
+			if opts.Validate {
 				return errors.New("validation failed")
 			}
 
@@ -151,7 +169,7 @@ func runE(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		if verbose {
+		if opts.Verbose {
 			out.Success().Println("  Validation succeeded")
 		}
 	}
@@ -159,13 +177,13 @@ func runE(cmd *cobra.Command, args []string) error {
 	out.NoColor().Println()
 	out.Success().Println("All exec commands completed successfully")
 
-	if !shouldSave {
+	if !opts.Save {
 		out.Warning().Println("[--no-save] was provided, not saving file")
 
 		return nil
 	}
 
-	if err := pkg.Save(cmd.Context(), filename, document); err != nil {
+	if err := pkg.Save(ctx, opts.Filename, document); err != nil {
 		return err
 	}
 

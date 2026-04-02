@@ -1,0 +1,1 @@
+--exec --no-backup --no-validate --source tests/exec-flag.source

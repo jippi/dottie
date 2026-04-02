@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-getter/v2"
+	exec_cmd "github.com/jippi/dottie/cmd/exec"
 	"github.com/jippi/dottie/pkg"
 	"github.com/jippi/dottie/pkg/ast"
 	"github.com/jippi/dottie/pkg/ast/upsert"
@@ -38,6 +39,7 @@ func New() *cobra.Command {
 	shared.BoolWithInverse(cmd, "error-on-missing-key", false, "Error if a KEY in FILE is missing from SOURCE", "Add KEY to FILE if missing from SOURCE")
 	shared.BoolWithInverse(cmd, "validate", true, "Validation errors will abort the update", "Validation errors will be printed but will not fail the update")
 	shared.BoolWithInverse(cmd, "save", true, "Save the document after processing", "Do not save the document after processing")
+	shared.BoolWithInverse(cmd, "exec", false, "Run exec annotations after updating", "Do not run exec annotations after updating")
 
 	return cmd
 }
@@ -285,6 +287,10 @@ func runE(cmd *cobra.Command, args []string) error {
 	}
 
 	if !shared.BoolWithInverseValue(cmd.Flags(), "save") {
+		if shared.BoolWithInverseValue(cmd.Flags(), "exec") {
+			stdout.Warning().Println("[--exec] was provided but [--no-save] prevents exec from running (file not saved)")
+		}
+
 		stdout.Warning().Println("[--no-save] was provided, not saving file")
 
 		return nil
@@ -325,6 +331,21 @@ func runE(cmd *cobra.Command, args []string) error {
 	success.Println()
 
 	success.Box("Update successfully completed")
+
+	if shared.BoolWithInverseValue(cmd.Flags(), "exec") {
+		success.Println()
+
+		if err := exec_cmd.Run(cmd.Context(), exec_cmd.RunOptions{
+			Filename:         filename,
+			ExcludeKeyPrefix: shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix"),
+			IgnoreRules:      shared.StringSliceFlag(cmd.Flags(), "ignore-rule"),
+			Validate:         shared.BoolWithInverseValue(cmd.Flags(), "validate"),
+			Save:             shared.BoolWithInverseValue(cmd.Flags(), "save"),
+			Verbose:          false,
+		}); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
