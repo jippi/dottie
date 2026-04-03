@@ -335,16 +335,14 @@ func runE(cmd *cobra.Command, args []string) error {
 	if shared.BoolWithInverseValue(cmd.Flags(), "exec") {
 		success.Println()
 
-		if err := exec_cmd.Run(cmd.Context(), exec_cmd.RunOptions{
+		return exec_cmd.Run(cmd.Context(), exec_cmd.RunOptions{
 			Filename:         filename,
 			ExcludeKeyPrefix: shared.StringSliceFlag(cmd.Flags(), "exclude-key-prefix"),
 			IgnoreRules:      shared.StringSliceFlag(cmd.Flags(), "ignore-rule"),
 			Validate:         shared.BoolWithInverseValue(cmd.Flags(), "validate"),
 			Save:             shared.BoolWithInverseValue(cmd.Flags(), "save"),
 			Verbose:          false,
-		}); err != nil {
-			return err
-		}
+		})
 	}
 
 	return nil
