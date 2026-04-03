@@ -1,0 +1,37 @@
+--------------------------------------------------------------------------------
+- Output of command from line 1 in [tests/exec-flag.run]:
+- [update --exec --no-backup --no-validate --source tests/exec-flag.source]
+--------------------------------------------------------------------------------
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                   Starting update of env file from source                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Looking for source configuration
+  Found source via CLI flag
+
+Copying source from tests/exec-flag.source
+  OK
+
+Loading and parsing source
+  OK
+
+Updating source with key/value pairs from __TMP__/tmp.env
+
+  [KEY] was successfully set to [user]
+
+Saving the new __TMP__/tmp.env
+  OK
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│                        Update successfully completed                         │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Running exec command for assignment [ EXEC_OUTPUT ]
+
+All exec commands completed successfully
+File successfully saved
