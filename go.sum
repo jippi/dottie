@@ -36,8 +36,8 @@ github.com/charmbracelet/huh v1.0.0 h1:wOnedH8G4qzJbmhftTqrpppyqHakl/zbbNdXIWJyI
 github.com/charmbracelet/huh v1.0.0/go.mod h1:5YVc+SlZ1IhQALxRPpkGwwEKftN/+OlJlnJYlDRFqN4=
 github.com/charmbracelet/lipgloss v1.1.0 h1:vYXsiLHVkK7fp74RkV7b2kq9+zDLoEU4MZoFqR/noCY=
 github.com/charmbracelet/lipgloss v1.1.0/go.mod h1:/6Q8FR2o+kj8rz4Dq0zQc3vYf7X+B0binUUBwA0aL30=
-github.com/charmbracelet/ultraviolet v0.0.0-20260420095748-421e4a7fa8d7 h1:PbFxahSfyADcQOp+7WxbeqN3wX37KA/Rk+EXOW1xS9Q=
-github.com/charmbracelet/ultraviolet v0.0.0-20260420095748-421e4a7fa8d7/go.mod h1:3YdTxlnV/L0bQ3VN8WOSw8doF7LZV/xawUQ4MuAPDvo=
+github.com/charmbracelet/ultraviolet v0.0.0-20260422141423-a0f1f21775f7 h1:PeRlqWGEoO0apcS62iEgxQhVnFCTOYyQvi2sUTdf6IE=
+github.com/charmbracelet/ultraviolet v0.0.0-20260422141423-a0f1f21775f7/go.mod h1:3YdTxlnV/L0bQ3VN8WOSw8doF7LZV/xawUQ4MuAPDvo=
 github.com/charmbracelet/x/ansi v0.11.7 h1:kzv1kJvjg2S3r9KHo8hDdHFQLEqn4RBCb39dAYC84jI=
 github.com/charmbracelet/x/ansi v0.11.7/go.mod h1:9qGpnAVYz+8ACONkZBUWPtL7lulP9No6p1epAihUZwQ=
 github.com/charmbracelet/x/cellbuf v0.0.15 h1:ur3pZy0o6z/R7EylET877CBxaiE1Sp1GMxoFPAIztPI=
@@ -46,8 +46,8 @@ github.com/charmbracelet/x/conpty v0.1.0 h1:4zc8KaIcbiL4mghEON8D72agYtSeIgq8FSTh
 github.com/charmbracelet/x/conpty v0.1.0/go.mod h1:rMFsDJoDwVmiYM10aD4bH2XiRgwI7NYJtQgl5yskjEQ=
 github.com/charmbracelet/x/errors v0.0.0-20240508181413-e8d8b6e2de86 h1:JSt3B+U9iqk37QUU2Rvb6DSBYRLtWqFqfxf8l5hOZUA=
 github.com/charmbracelet/x/errors v0.0.0-20240508181413-e8d8b6e2de86/go.mod h1:2P0UgXMEa6TsToMSuFqKFQR+fZTO9CNGUNokkPatT/0=
-github.com/charmbracelet/x/exp/golden v0.0.0-20260420102150-fe550f2efce5 h1:m4zyH/517r8aW7dArzr7cWDGzNQ+euUn3IuH0n2Pe/o=
-github.com/charmbracelet/x/exp/golden v0.0.0-20260420102150-fe550f2efce5/go.mod h1:6fMpcW6iwN/kX+xJ52eqVWsDiBTe0UJD24JLoHFe+P0=
+github.com/charmbracelet/x/exp/golden v0.0.0-20260422141420-a6cbdff8a7e2 h1:onvLouoI82aK2WXJ+oRlX2tQ/5C5MMHDrJHCOf6kRTk=
+github.com/charmbracelet/x/exp/golden v0.0.0-20260422141420-a6cbdff8a7e2/go.mod h1:6fMpcW6iwN/kX+xJ52eqVWsDiBTe0UJD24JLoHFe+P0=
 github.com/charmbracelet/x/exp/strings v0.1.0 h1:i69S2XI7uG1u4NLGeJPSYU++Nmjvpo9nwd6aoEm7gkA=
 github.com/charmbracelet/x/exp/strings v0.1.0/go.mod h1:/ehtMPNh9K4odGFkqYJKpIYyePhdp1hLBRvyY4bWkH8=
 github.com/charmbracelet/x/term v0.2.2 h1:xVRT/S2ZcKdhhOuSP4t5cLi5o+JxklsoEObBSgfgZRk=
