@@ -6,7 +6,7 @@ require (
 	charm.land/lipgloss/v2 v2.0.3
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.2
-	github.com/carapace-sh/carapace v1.11.3
+	github.com/carapace-sh/carapace v1.11.4
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/huh v1.0.0
 	github.com/davecgh/go-spew v1.1.1
