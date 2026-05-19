@@ -8,7 +8,7 @@ require (
 	github.com/caarlos0/go-version v0.2.2
 	github.com/carapace-sh/carapace v1.11.5
 	github.com/charmbracelet/colorprofile v0.4.3
-	github.com/charmbracelet/huh v1.0.0
+	github.com/charmbracelet/huh/v2 v2.0.3
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/golang-cz/devslog v0.0.15
@@ -42,9 +42,9 @@ require (
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/carapace-sh/carapace-shlex v1.1.1 // indirect
 	github.com/catppuccin/go v0.3.0 // indirect
-	github.com/charmbracelet/bubbles v1.0.0 // indirect
-	github.com/charmbracelet/bubbletea v1.3.10 // indirect
-	github.com/charmbracelet/lipgloss v1.1.0 // indirect
+	github.com/charmbracelet/bubbles/v2 v2.1.0 // indirect
+	github.com/charmbracelet/bubbletea/v2 v2.0.6 // indirect
+	github.com/charmbracelet/lipgloss/v2 v2.0.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260511121909-c840852527f3 // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.15 // indirect
