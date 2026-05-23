@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/jippi/dottie/pkg/tui"
-	"github.com/neilotoole/slogt"
+	"github.com/neilotoole/slogt/v2"
 	slogctx "github.com/veqryn/slog-context"
 )
 
