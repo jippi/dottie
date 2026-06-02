@@ -165,8 +165,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/reeflective/console v0.1.25 h1:do/r6rcKH6pCQDEzh5PhoVFcqHkqcjd0N6tNjpmYWWQ=
 github.com/reeflective/console v0.1.25/go.mod h1:It/IqEjo0PowaBuxBS9pEi5EYUgmtvQd0ytMtlS77kk=
-github.com/reeflective/readline v1.2.0 h1:QuT4CbHTFnZfQF1aQpxGDTfmGUPmbr/7r+oS9JLbsKA=
-github.com/reeflective/readline v1.2.0/go.mod h1:bOpqx2/VqGlIoobyWR1Vgt/p5FiMfIHj4OicPuw6RfU=
+github.com/reeflective/readline v1.2.2 h1:UAcTtKQdg7xQDzDlqWyMkvEAsEie2z3gQsEKt8TkErE=
+github.com/reeflective/readline v1.2.2/go.mod h1:bOpqx2/VqGlIoobyWR1Vgt/p5FiMfIHj4OicPuw6RfU=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/reugn/pkgslog v0.2.0 h1:Kedn37OrnOh+5cBxNNwrUHR7e8175CQLk8QztbPZ+VQ=
