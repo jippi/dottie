@@ -18,7 +18,7 @@ require (
 	github.com/lmittmann/tint v1.1.3
 	github.com/muesli/termenv v0.16.0
 	github.com/neilotoole/slogt/v2 v2.0.0
-	github.com/reeflective/console v0.1.25
+	github.com/reeflective/console v0.3.1
 	github.com/reugn/pkgslog v0.2.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/samber/slog-multi v1.8.0
@@ -30,7 +30,7 @@ require (
 	github.com/veqryn/slog-context v0.9.0
 	github.com/veqryn/slog-dedup v0.6.0
 	go.uber.org/multierr v1.11.0
-	mvdan.cc/sh/v3 v3.12.0
+	mvdan.cc/sh/v3 v3.13.1
 )
 
 require (
