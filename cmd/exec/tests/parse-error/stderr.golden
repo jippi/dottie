@@ -3,7 +3,7 @@
 - [exec]
 --------------------------------------------------------------------------------
 
-Error: 1:6: reached EOF without matching ( with )
+Error: 1:6: reached EOF without matching `$(` with `)`
 Run 'dottie exec --help' for usage.
 
 (Command exited with error)

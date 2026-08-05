@@ -183,8 +183,13 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 
 	slogctx.Debug(ctx, "template.extractVariable()", slog.String("sValue", sValue))
 
-	syntax.NewParser(syntax.Variant(syntax.LangBash)).Words(strings.NewReader(sValue), func(w *syntax.Word) bool {
-		for _, partInterface := range w.Parts {
+	for word, err := range syntax.NewParser(syntax.Variant(syntax.LangBash)).WordsSeq(strings.NewReader(sValue)) {
+		if err != nil {
+			// Malformed input; keep whatever variables were extracted so far.
+			break
+		}
+
+		for _, partInterface := range word.Parts {
 			switch part := partInterface.(type) {
 			case *syntax.ParamExp:
 				if part.Param == nil {
@@ -226,9 +231,7 @@ func extractVariable(ctx context.Context, value interface{}) ([]Variable, bool) 
 				slogctx.Debug(ctx, "template.extractVariable() ignoring unsupported part", slog.String("part_type", fmt.Sprintf("%T", partInterface)))
 			}
 		}
-
-		return true
-	})
+	}
 
 	return variables, len(variables) > 0
 }

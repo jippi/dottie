@@ -57,7 +57,7 @@ func logHandler(out io.Writer) slog.Handler {
 	logLevel := ParseLogLevel(os.Getenv("LOG_LEVEL"), slog.LevelInfo)
 
 	if _, ok := os.LookupEnv("CI"); ok {
-		return tint.NewHandler(
+		return tint.NewTextHandler(
 			out,
 			&tint.Options{
 				Level:     logLevel,

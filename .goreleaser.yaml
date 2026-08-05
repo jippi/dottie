@@ -294,6 +294,12 @@ signs:
     artifacts: checksum
     args:
       - sign-blob
+      # cosign v3 defaults to the new bundle format (and a TUF-provided signing
+      # config), both of which require --bundle and are incompatible with
+      # --output-certificate/--output-signature. Keep the .pem/.sig files that
+      # the verification instructions in README.md rely on.
+      - "--new-bundle-format=false"
+      - "--use-signing-config=false"
       - "--output-certificate=${certificate}"
       - "--output-signature=${signature}"
       - "${artifact}"

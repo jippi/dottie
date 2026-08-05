@@ -81,7 +81,8 @@ func TestInvalid(t *testing.T) {
 	invalidTemplates := []string{
 		"${",
 		"${}",
-		"${ }",
+		// NOTE: "${ }" used to belong here, but since mvdan.cc/sh v3.13 it parses as a
+		// bash 5.3 / ksh "function substitution" (${ cmd; }), so it is valid syntax now.
 		"${ foo}",
 		// "${foo }",
 		"${foo!}",
@@ -98,15 +99,17 @@ func TestInvalid(t *testing.T) {
 	}
 }
 
-func TestSubstitute_MalformedArithmeticExpansionReturnsError(t *testing.T) {
+// This input used to panic inside the shell expansion library; mvdan.cc/sh v3.13
+// parses and expands it instead. Either way it must never panic.
+func TestSubstitute_MalformedArithmeticExpansionDoesNotPanic(t *testing.T) {
 	t.Parallel()
 
 	malformed := "$(($'\\\"0\\\"0\\\"0\\\"0\\00'))"
 
 	assert.NotPanics(t, func() {
-		_, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), malformed, defaultMapping, accessibleVariables)
-		assert.Error(t, err)
-		assert.ErrorContains(t, err, "Invalid template")
+		actual, err := templatepkg.Substitute(test_helpers.CreateTestContext(t, nil, nil), malformed, defaultMapping, accessibleVariables)
+		require.NoError(t, err)
+		assert.Equal(t, "0", actual)
 	})
 }
 

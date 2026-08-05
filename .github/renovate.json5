@@ -2,7 +2,6 @@
   extends: [
     "config:recommended",
     ":pinDevDependencies",
-    ":separateMultipleMajorReleases",
     "default:pinDigestsDisabled",
   ],
   schedule: [
@@ -22,6 +21,11 @@
     labels: ["security"],
   },
   packageRules: [
+    {
+      description: "Major upgrades are done by hand, not by Renovate",
+      matchUpdateTypes: ["major"],
+      enabled: false,
+    },
     {
       matchPackageNames: ["go", "golang"],
       groupName: "go",
