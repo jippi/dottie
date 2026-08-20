@@ -1,6 +1,6 @@
 module github.com/jippi/dottie
 
-go 1.26.7
+go 1.27.0
 
 require (
 	charm.land/lipgloss/v2 v2.0.6
