@@ -3,7 +3,7 @@
 - [validate --no-fix]
 --------------------------------------------------------------------------------
 
-Error: validation configuration error: reflect: call of reflect.Value.Uint on string Value
+Error: validation configuration error: Bad field type string
 Run 'dottie validate --help' for usage.
 
 (Command exited with error)
