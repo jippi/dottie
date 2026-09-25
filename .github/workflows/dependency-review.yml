@@ -16,6 +16,6 @@ jobs:
 
       - uses: actions/dependency-review-action@v5.0.0
         with:
-          allow-licenses: BSD-2-Clause, BSD-3-Clause, MIT, Apache-2.0, MPL-2.0
+          allow-licenses: BSD-2-Clause, BSD-3-Clause, MIT, Apache-2.0, MPL-2.0, LicenseRef-scancode-google-patent-license-golang
 
   # ------------------------------
