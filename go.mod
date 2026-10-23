@@ -21,7 +21,7 @@ require (
 	github.com/reeflective/console v0.5.0
 	github.com/reugn/pkgslog v0.2.0
 	github.com/ryanuber/go-glob v1.0.0
-	github.com/samber/slog-multi v1.8.0
+	github.com/samber/slog-multi v1.9.0
 	github.com/sebdah/goldie/v2 v2.8.0
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
