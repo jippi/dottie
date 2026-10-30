@@ -212,8 +212,8 @@ github.com/veqryn/slog-context v0.9.0 h1:VNXHBWufRGfKiumi7cYoh7p2iElquZ4v8AnAumF
 github.com/veqryn/slog-context v0.9.0/go.mod h1:l953waOLsWW6hArZeJDGGKZYLrsOIPBeJ/QQnOA8RU0=
 github.com/veqryn/slog-dedup v0.6.0 h1:h3pm+Wl3IuQkq2f7bv4V4GJsJRyETQlPMNjCfXU929s=
 github.com/veqryn/slog-dedup v0.6.0/go.mod h1:sJzvkleUbwNS92fs14L5n5ZsmCcaZGyZEtCdEwgCBU4=
-github.com/xo/terminfo v1.2.0 h1:d0ZTOCpuGE0lwSAOs0zcJjwz3jWQyqcRt9XbGJpCOl4=
-github.com/xo/terminfo v1.2.0/go.mod h1:lGzkSo8Fe7IRh/w+Gqz7n5mDog4FVXCj3gy/DYTBqio=
+github.com/xo/terminfo v1.3.0 h1:KstyePbNW6UaLq9y12+544VK4aTP3Eku/sym3a9+UgQ=
+github.com/xo/terminfo v1.3.0/go.mod h1:lGzkSo8Fe7IRh/w+Gqz7n5mDog4FVXCj3gy/DYTBqio=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 go.yaml.in/yaml/v3 v3.0.4/go.mod h1:DhzuOOF2ATzADvBadXxruRBLzYTpT36CKvDb3+aBEFg=
