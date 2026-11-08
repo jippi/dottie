@@ -100,5 +100,5 @@ require (
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/term v0.47.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	modernc.org/b/v2 v2.1.12 // indirect
+	modernc.org/b/v2 v2.2.0 // indirect
 )
