@@ -3,7 +3,7 @@ module github.com/jippi/dottie
 go 1.27.4
 
 require (
-	charm.land/lipgloss/v2 v2.1.0
+	charm.land/lipgloss/v2 v2.1.1
 	github.com/Masterminds/sprig/v3 v3.3.0
 	github.com/caarlos0/go-version v0.2.2
 	github.com/carapace-sh/carapace v1.18.2
