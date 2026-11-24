@@ -46,7 +46,7 @@ jobs:
         with:
           cosign-release: v3.1.4
 
-      - uses: anchore/sbom-action/download-syft@v0.24.3
+      - uses: anchore/sbom-action/download-syft@v0.24.4
 
       - name: ghcr-login
         uses: docker/login-action@v4
