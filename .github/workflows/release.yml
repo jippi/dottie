@@ -44,7 +44,7 @@ jobs:
 
       - uses: sigstore/cosign-installer@v4.1.4
         with:
-          cosign-release: v3.1.5
+          cosign-release: v3.1.6
 
       - uses: anchore/sbom-action/download-syft@v0.24.4
 
